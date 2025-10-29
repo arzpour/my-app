@@ -1,12 +1,7 @@
 import React from "react";
-import Header from "./header";
 
 const CheckDashboard = () => {
-  return (
-    <div>
-      <Header />
-    </div>
-  );
+  return <div></div>;
 };
 
 export default CheckDashboard;
