@@ -49,7 +49,11 @@ const TabsComponent = () => {
     >
       <TabsList>
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.id} value={tab.id} className="bg-gray-100 cursor-pointer">
+          <TabsTrigger
+            key={tab.id}
+            value={tab.id}
+            className="bg-gray-100 cursor-pointer"
+          >
             {tab.title}
           </TabsTrigger>
         ))}

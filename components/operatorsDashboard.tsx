@@ -235,7 +235,7 @@ const OperatorsDashboard = () => {
   return (
     <div>
       <div className="flex justify-end">
-        <span className="p-2 bg-gray-200 rounded-t-lg text-xs">
+        <span className="p-2 bg-gray-200 rounded-t-md text-xs">
           1404
         </span>
       </div>
