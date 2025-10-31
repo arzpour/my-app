@@ -1,3 +1,4 @@
+import { getAllCars } from "@/apis/api-requests";
 import {
   Select,
   SelectContent,
@@ -10,6 +11,13 @@ import {
 const chassis = ["66545", "66545"];
 
 const Header = () => {
+  const handleSelectChassis = async (chassisNo: string) => {
+    const res = await getAllCars();
+    console.log("🚀 ~ handleSelectChassis ~ res:", res);
+    // const data = await res.json();
+    // setSelectedCar(data);
+  };
+
   return (
     <div className="border border-b-2 border-gray-300 rounded flex flex-col gap-2 p-4 pb-2.5 relative">
       <div className="grid grid-cols-9 gap-3 items-start justify-start">
@@ -17,7 +25,7 @@ const Header = () => {
           <h3 className="text-var(--title) text-sm font-bold mb-2 text-blue-900">
             شاسی:
           </h3>
-          <Select>
+          <Select onValueChange={(value) => handleSelectChassis(value)}>
             <SelectTrigger className="w-[120px] text-sm">
               <SelectValue placeholder="66545" />
             </SelectTrigger>

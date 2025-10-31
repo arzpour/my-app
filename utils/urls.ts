@@ -1,5 +1,8 @@
 export const urls = {
-  cars: "cars",
+  cars: {
+    list: "/cars",
+    byChassisNo: (chassisNo: string) => `/car/${chassisNo}`,
+  },
   transactions: "/transactions",
   cheques: "/cheques",
 };
