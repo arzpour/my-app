@@ -1,4 +1,5 @@
-import { getAllCars } from "@/apis/api-requests";
+"use client";
+import { useGetCarByChassisNo } from "@/apis/mutations/cars";
 import {
   Select,
   SelectContent,
@@ -7,15 +8,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const chassis = ["66545", "66545"];
+import useGetAllChassisNo from "@/hooks/useGetAllChassisNo";
+import React from "react";
 
 const Header = () => {
+  const [selectedChassis, setSelectedChassis] = React.useState<string>("");
+  const [carInfo, setCarInfo] = React.useState<ICarRes | null>(null);
+  console.log("🚀 ~ Header ~ carInfo:", carInfo);
+
+  const { data: chassisNo } = useGetAllChassisNo();
+  const getCarByChassisNo = useGetCarByChassisNo();
+
   const handleSelectChassis = async (chassisNo: string) => {
-    const res = await getAllCars();
-    console.log("🚀 ~ handleSelectChassis ~ res:", res);
-    // const data = await res.json();
-    // setSelectedCar(data);
+    setSelectedChassis(chassisNo);
+    try {
+      const res = await getCarByChassisNo.mutateAsync(chassisNo);
+      setCarInfo(res);
+    } catch (error) {
+      console.log("🚀 ~ handleSelectChassis ~ error:", error);
+      setCarInfo(null);
+    }
   };
 
   return (
@@ -25,14 +37,14 @@ const Header = () => {
           <h3 className="text-var(--title) text-sm font-bold mb-2 text-blue-900">
             شاسی:
           </h3>
-          <Select onValueChange={(value) => handleSelectChassis(value)}>
+          <Select onValueChange={handleSelectChassis} value={selectedChassis}>
             <SelectTrigger className="w-[120px] text-sm">
-              <SelectValue placeholder="66545" />
+              <SelectValue placeholder="انتخاب شاسی" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {chassis.map((item) => (
-                  <SelectItem key={item} value="apple">
+                {(chassisNo ?? []).map((item) => (
+                  <SelectItem key={item} value={item}>
                     {item}
                   </SelectItem>
                 ))}
@@ -42,61 +54,83 @@ const Header = () => {
         </div>
         <div className="space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">مدل وسیله نقلیه</h3>
-          <h4 className="text-sm">پژو 207 بانا اتو</h4>
-          <span className="text-xs text-green-600">ایران 54</span>
+          <h4 className="text-sm">{carInfo?.CarModel ?? "—"}</h4>
+          <span className="text-xs text-green-600">
+            {carInfo?.LicensePlate ?? "—"}
+          </span>
         </div>
         <div>
           <h3 className="text-sm text-blue-900 font-bold">
             {":مبلغ فروش(خرید شما)"}
           </h3>
-          <h4 className="text-sm">2222222222222</h4>
-          <span className="text-sm text-blue-500">1404/33/30</span>
+          <h4 className="text-sm">{carInfo?.SaleAmount ?? "—"}</h4>
+          <span className="text-sm text-blue-500">
+            {carInfo?.SaleDate ?? "—"}
+          </span>
         </div>
         <div className="space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">
             {":مبلغ خرید(فروش شما)"}
           </h3>
-          <h4 className="text-sm">2222222222222</h4>
-          <span className="text-sm text-blue-500">1404/33/30</span>
+          <h4 className="text-sm">{carInfo?.PurchaseAmount ?? "—"}</h4>
+          <span className="text-sm text-blue-500">
+            {carInfo?.PurchaseDate ?? "—"}
+          </span>
         </div>
         <div className="space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">سود:</h3>
           <p className="text-sm text-green-700">
-            ناخالص
-            <strong className="underline text-black">130000000</strong>
+            ناخالص:{" "}
+            <strong className="underline text-black">
+              {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"}
+            </strong>
           </p>
           <p className="text-sm text-green-700">
-            خالص
-            <strong className="underline text-black">222222222</strong>
+            خالص:{" "}
+            <strong className="underline text-black">
+              {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"}
+            </strong>
           </p>
         </div>
         <div className="space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">
-            کارگزار خرید: <span className="text-green-700">0/ %</span>
+            کارگزار خرید:{" "}
+            <span className="text-green-700">
+              {carInfo?.PurchaseBroker ?? "-"}
+            </span>
           </h3>
           <p className="text-sm">بهادر شامل</p>
-          <p className="text-sm text-green-700 font-bold">0</p>
+          <p className="text-sm text-green-700 font-bold">
+            {carInfo ? carInfo.PurchaseAmount : "—"}
+          </p>
         </div>
         <div className="space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">
-            کارگزار فروش: <span className="text-green-700">33/ %</span>
+            کارگزار فروش:{" "}
+            <span className="text-green-700">{carInfo?.SaleBroker ?? "-"}</span>
           </h3>
           <p className="text-sm">بهادر شامل</p>
-          <p className="text-sm text-green-700 font-bold">33332444,5555,2</p>
+          <p className="text-sm text-green-700 font-bold">
+            {carInfo ? carInfo.SaleAmount : "—"}
+          </p>
         </div>
         <div className="space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">
             فروشنده: <span>33/ %</span>
           </h3>
-          <p className="text-sm">یوسف دینی پروژه/شامل</p>
-          <p className="text-sm text-orange-500">44256655</p>
+          <p className="text-sm">{carInfo?.SellerName ?? "-"}</p>
+          <p className="text-sm text-orange-500">
+            {carInfo?.SellerMobile ?? "-"}
+          </p>
         </div>
         <div className="space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">
             خریدار: <span>33/ %</span>
           </h3>
-          <p className="text-sm">یوسف دینی پروژه/شامل</p>
-          <p className="text-sm text-orange-500">44256655</p>
+          <p className="text-sm">{carInfo?.BuyerName ?? "-"}</p>
+          <p className="text-sm text-orange-500">
+            {carInfo?.BuyerMobile ?? "-"}
+          </p>
         </div>
       </div>
       <hr />
