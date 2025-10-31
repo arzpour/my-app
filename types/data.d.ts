@@ -1,3 +1,7 @@
+interface IChildren {
+  children: React.ReactNode | JSX.Element | JSX.Element[];
+}
+
 interface ICarRes {
   _id: string;
   RowNo: number;
