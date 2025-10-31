@@ -122,3 +122,23 @@
     @apply bg-background text-foreground;
   }
 }
+
+*,
+html,
+body {
+  /* font-family: "IBM Plex Sans", sans-serif; */
+  /* font-family: "IRANSansX", "Inter", sans-serif; */
+  /* font-family: "Vazirmatn", "Inter", sans-serif; */
+  font-family: "Shabnam", "Inter", sans-serif;
+  /* font-family: "Vazirmatn", "Inter", sans-serif; */
+  font-feature-settings: "tnum";
+}
+
+.scrollWebkit::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

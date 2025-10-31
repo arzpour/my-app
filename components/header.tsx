@@ -1,10 +1,8 @@
-import React from "react";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  //   SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -13,7 +11,7 @@ const chassis = ["66545", "66545"];
 
 const Header = () => {
   return (
-    <div className="border border-b-2 border-gray-300 rounded flex flex-col gap-2 p-4 pb-2.5">
+    <div className="border border-b-2 border-gray-300 rounded flex flex-col gap-2 p-4 pb-2.5 relative">
       <div className="grid grid-cols-9 gap-3 items-start justify-start">
         <div className="space-y-1">
           <h3 className="text-var(--title) text-sm font-bold mb-2 text-blue-900">
@@ -25,7 +23,6 @@ const Header = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {/* <SelectLabel>66545</SelectLabel> */}
                 {chassis.map((item) => (
                   <SelectItem key={item} value="apple">
                     {item}
@@ -115,6 +112,9 @@ const Header = () => {
           <p className="px-7 bg-green-400 rounded py-1 text-sm">تسویه کامل</p>
         </div>
       </div>
+      <p className="absolute left-2 -top-6 bg-white py-2 px-4 font-bold">
+        اطلاعات خودرو
+      </p>
     </div>
   );
 };
