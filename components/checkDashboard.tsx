@@ -141,7 +141,7 @@ const CheckDashboard = () => {
   return (
     <div>
       {/* <div className="overflow-x-auto"> */}
-      <div className="grid [grid-template-columns:1fr_1fr_1fr_0.5fr_0.5fr] gap-6 items-start mt-7">
+      <div className="grid [grid-template-columns:1fr_1fr_1fr_0.5fr_0.5fr] gap-6 items-start mt-4">
         {/* <div className="flex gap-6 items-start mt-7 w-max"> */}
         <div className="space-y-6">
           {/* <div className="space-y-3"> */}
