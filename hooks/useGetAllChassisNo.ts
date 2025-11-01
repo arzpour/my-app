@@ -1,4 +1,4 @@
-import { getAllCarChassisNo, getAllCars } from "@/apis/client/cars";
+import { getAllCarChassisNo } from "@/apis/client/cars";
 import { useQuery } from "@tanstack/react-query";
 
 const useGetAllChassisNo = () => {

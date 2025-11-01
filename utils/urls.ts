@@ -4,6 +4,15 @@ export const urls = {
     byChassisNo: (chassisNo: string) => `/cars/${chassisNo}`,
     chassisNo: "/cars/chassisNo",
   },
-  transactions: "/transactions",
-  cheques: "/cheques",
+  transactions: {
+    list: "/transactions",
+    byChassisNo: (chassisNo: string) => `/transactions/${chassisNo}`,
+  },
+  cheques: {
+    list: "/cheques",
+    byChassisNo: (chassisNo: string) => `/cheques/${chassisNo}`,
+    unpaid: (chassisNo: string) => `/unpaid/${chassisNo}`,
+  },
+  detailsByChassisNo: (chassisNo: string) => `/cars/${chassisNo}/details`,
+  investmentByChassis: (chassisNo: string) => `/investment/${chassisNo}`,
 };
