@@ -26,13 +26,26 @@ interface ICarRes {
 interface IChequeRes {
   _id: string;
   CarChassisNo: number;
+  CustomerName: string;
+  CustomerNationalID: string;
+  AccountHolderName: string;
+  AccountHolderNationalID: string;
+  ChequeSeries: string;
   ChequeSerial: number;
   SayadiID: string;
   ChequeAmount: number;
   ChequeDueDate: string;
+  ChequeRegisterDate: string;
+  LastActionDate: string;
+  LastAction: string;
   ChequeStatus: string;
   ChequeType: string;
+  ChequeNotes: string;
   CirculationStage: string;
+  Bank: string;
+  Branch: string;
+  PrevChequeNo: number;
+  ShowroomAccountCard: string;
 }
 
 interface ITransactionRes {
@@ -47,4 +60,17 @@ interface ITransactionRes {
   TransactionDate: string;
   Notes: string;
   BankDocument: string;
+  Partner: string;
+  Broker: number;
+}
+
+interface IDetailsByChassis {
+  car: ICarRes;
+  cheques: IChequeRes[];
+  transactions: ITransactionRes[];
+}
+
+interface IInvestmentRes {
+  status: number;
+  data: ITransactionRes[];
 }

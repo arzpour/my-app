@@ -9,18 +9,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import useGetAllChassisNo from "@/hooks/useGetAllChassisNo";
+import { setChassisNo } from "@/redux/slices/carSlice";
+import { RootState } from "@/redux/store";
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 const Header = () => {
-  const [selectedChassis, setSelectedChassis] = React.useState<string>("");
+  const { chassisNo: chassisNoSaved } = useSelector(
+    (state: RootState) => state.cars
+  );
+  const [selectedChassis, setSelectedChassis] =
+    React.useState<string>(chassisNoSaved);
   const [carInfo, setCarInfo] = React.useState<ICarRes | null>(null);
   console.log("🚀 ~ Header ~ carInfo:", carInfo);
 
   const { data: chassisNo } = useGetAllChassisNo();
   const getCarByChassisNo = useGetCarByChassisNo();
+  const dispatch = useDispatch();
 
   const handleSelectChassis = async (chassisNo: string) => {
     setSelectedChassis(chassisNo);
+    dispatch(setChassisNo(chassisNo));
     try {
       const res = await getCarByChassisNo.mutateAsync(chassisNo);
       setCarInfo(res);
