@@ -1,11 +1,9 @@
-import Header from "@/components/header";
-import TabsComponent from "@/components/tabs";
+import Login from "@/components/login";
 
 export default function Home() {
   return (
-    <div dir="rtl" className="w-full p-4">
-      <Header />
-      <TabsComponent />
+    <div dir="rtl" className="w-full h-full">
+      <Login />
     </div>
   );
 }
