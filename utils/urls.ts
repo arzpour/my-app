@@ -1,5 +1,6 @@
 export const urls = {
-  cars: "cars",
+  cars: "/cars",
   transactions: "/transactions",
   cheques: "/cheques",
+  login: "/login",
 };
