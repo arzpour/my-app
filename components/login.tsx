@@ -1,4 +1,5 @@
 "use client";
+import { useLogin } from "@/apis/mutations/auth";
 import { loginSchema, loginSchemaType } from "@/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -16,15 +17,16 @@ const Login = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  // const showPasswordHandler = () => {
-  //   setShowPassword((prev) => !prev);
-  // };
+  const login = useLogin();
 
   const onSubmit: SubmitHandler<loginSchemaType> = async (data) => {
     console.log("🚀 ~ onSubmit ~ data:", data);
     if (!data) return;
-    router.push("/panel");
+
     try {
+      const res = await login.mutateAsync(data);
+      console.log("🚀 ~ onSubmit ~ res:", res);
+      router.push("/panel");
       toast("وارد شدید", {
         icon: "✅",
         className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
@@ -126,11 +128,11 @@ const Login = () => {
               required
             />
           </div>
-            {errors.password && (
-              <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                {errors.password.message}
-              </p>
-            )}
+          {errors.password && (
+            <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
+              {errors.password.message}
+            </p>
+          )}
 
           <div className="w-full flex items-center justify-between mt-8 text-gray-500/80">
             <div className="flex items-center gap-2">
