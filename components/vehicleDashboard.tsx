@@ -1,3 +1,10 @@
+"use client";
+import {
+  useGetChequeByChassisNo,
+  useGetUnpaidCheques,
+} from "@/apis/mutations/cheques";
+import { useGetDetailByChassisNo } from "@/apis/mutations/detailsByChassisNo";
+import { useGetInvestmentByChassis } from "@/apis/mutations/investment";
 import {
   Table,
   TableBody,
@@ -6,161 +13,94 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-const items = [
-  {
-    id: "1",
-    date: "1404/01/19",
-    price: "3999988",
-    nationalCode: "8765367838",
-    transactionReason: "خرید",
-    paymentWay: "سانتا",
-    operator: "",
-  },
-  {
-    id: "1",
-    date: "1404/01/19",
-    price: "3999988",
-    nationalCode: "8765367838",
-    transactionReason: "خرید",
-    paymentWay: "سانتا",
-    operator: "",
-  },
-  {
-    id: "1",
-    date: "1404/01/19",
-    price: "3999988",
-    nationalCode: "8765367838",
-    transactionReason: "خرید",
-    paymentWay: "سانتا",
-    operator: "",
-  },
-  {
-    id: "1",
-    date: "1404/01/19",
-    price: "3999988",
-    nationalCode: "8765367838",
-    transactionReason: "خرید",
-    paymentWay: "سانتا",
-    operator: "",
-  },
-  {
-    id: "1",
-    date: "1404/01/19",
-    price: "3999988",
-    nationalCode: "8765367838",
-    transactionReason: "خرید",
-    paymentWay: "سانتا",
-    operator: "",
-  },
-  {
-    id: "1",
-    date: "1404/01/19",
-    price: "3999988",
-    nationalCode: "8765367838",
-    transactionReason: "خرید",
-    paymentWay: "سانتا",
-    operator: "",
-  },
-  {
-    id: "1",
-    date: "1404/01/19",
-    price: "3999988",
-    nationalCode: "8765367838",
-    transactionReason: "خرید",
-    paymentWay: "سانتا",
-    operator: "",
-  },
-  {
-    id: "1",
-    date: "1404/01/19",
-    price: "3999988",
-    nationalCode: "8765367838",
-    transactionReason: "خرید",
-    paymentWay: "سانتا",
-    operator: "",
-  },
-  {
-    id: "1",
-    date: "1404/01/19",
-    price: "3999988",
-    nationalCode: "8765367838",
-    transactionReason: "خرید",
-    paymentWay: "سانتا",
-    operator: "",
-  },
-];
-
-const item2 = [
-  {
-    id: "",
-    date: "",
-    price: "",
-    associate: "",
-    transactionReason: "",
-    profit: "",
-    way: "",
-  },
-  {
-    id: "",
-    date: "",
-    price: "",
-    associate: "",
-    transactionReason: "",
-    profit: "",
-    way: "",
-  },
-  {
-    id: "",
-    date: "",
-    price: "",
-    associate: "",
-    transactionReason: "",
-    profit: "",
-    way: "",
-  },
-];
-
-const item3 = [
-  {
-    id: "",
-    customerName: "",
-    datebook: "",
-    checkStatus: "",
-    shenaseSayadi: "",
-    serialCheck: "",
-    bank: "",
-    price: "",
-  },
-  {
-    id: "",
-    customerName: "",
-    datebook: "",
-    checkStatus: "",
-    shenaseSayadi: "",
-    serialCheck: "",
-    bank: "",
-    price: "",
-  },
-  {
-    id: "",
-    customerName: "",
-    datebook: "",
-    checkStatus: "",
-    shenaseSayadi: "",
-    serialCheck: "",
-    bank: "",
-    price: "",
-  },
-];
+import { RootState } from "@/redux/store";
+import React from "react";
+import { useSelector } from "react-redux";
 
 const VehicleDashboard = () => {
+  const { chassisNo } = useSelector((state: RootState) => state.cars);
+  const [vehicleDetails, setVehicleDetails] =
+    React.useState<IDetailsByChassis | null>(null);
+  const [investment, setInvestment] = React.useState<IInvestmentRes | null>(
+    null
+  );
+  const [unpaidCheques, setUnpaidCheques] =
+    React.useState<IUnpaidCheque | null>(null);
+
+
+  const getDetailByChassisNo = useGetDetailByChassisNo();
+  const getInvestmentByChassis = useGetInvestmentByChassis();
+  const getUnpaidCheques = useGetUnpaidCheques();
+
+  const handleDataByChassisNoData = async (chassisNo: string) => {
+    try {
+      const details = await getDetailByChassisNo.mutateAsync(chassisNo);
+      const investment = await getInvestmentByChassis.mutateAsync(chassisNo);
+      const unpaidCheques = await getUnpaidCheques.mutateAsync(chassisNo);
+
+      setUnpaidCheques(unpaidCheques);
+
+      setVehicleDetails(details);
+      setInvestment(investment);
+    } catch (error) {
+      console.log("🚀 ~ handleSelectChassis ~ error:", error);
+      setVehicleDetails(null);
+      setInvestment(null);
+      setUnpaidCheques(null);
+    }
+  };
+
+  const totalPaid = vehicleDetails?.transactions.reduce(
+    (sum, t) => sum + t.TransactionAmount,
+    0
+  );
+  const remainingToSeller =
+    vehicleDetails?.car.PurchaseAmount && totalPaid
+      ? vehicleDetails?.car.PurchaseAmount - totalPaid
+      : "";
+
+  const totalPaidToAll = vehicleDetails?.transactions.reduce(
+    (sum, t) => sum + t.TransactionAmount,
+    0
+  );
+
+  const totalPaidToSeller = vehicleDetails?.transactions
+    .filter((t) => t.TransactionReason === "فروش")
+    .reduce((sum, t) => sum + t.TransactionAmount, 0);
+
+  const receiveTransactions = vehicleDetails?.transactions.filter(
+    (t) => t.TransactionType === "دریافت"
+  );
+
+  const totalReceived = receiveTransactions?.reduce(
+    (sum, t) => sum + t.TransactionAmount,
+    0
+  );
+
+  const remainingForBuyer =
+    vehicleDetails?.car.SaleAmount && totalReceived
+      ? vehicleDetails?.car.SaleAmount - totalReceived
+      : "";
+
+  const receivedTransactions = vehicleDetails?.transactions?.filter(
+    (t) => t.TransactionType === "دریافت"
+  );
+  const paidTransactions = vehicleDetails?.transactions?.filter(
+    (t) => t.TransactionType === "پرداخت"
+  );
+
+  const totalBroker = investment?.data.reduce((sum, t) => sum + t.Broker, 0);
+
+  React.useEffect(() => {
+    handleDataByChassisNoData(chassisNo);
+  }, [chassisNo]);
+
   return (
     <>
       <div className="my-5 mb-7">
         <div className="w-full flex justify-center gap-4">
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-red-500 absolute left-2 -top-5 bg-white py-2 px-4">
+            <p className="text-red-500 absolute right-2 -top-5 bg-white py-2 px-4">
               پرداخت های شما
             </p>
             <div className="overflow-hidden rounded-md border w-full">
@@ -182,48 +122,63 @@ const VehicleDashboard = () => {
                 </TableHeader>
 
                 <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-gray-50">
-                      <TableCell className="text-center">{item.id}</TableCell>
-                      <TableCell className="text-center">{item.date}</TableCell>
-                      <TableCell className="text-center">
-                        {item.price}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.nationalCode}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.transactionReason}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.paymentWay}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.operator}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {paidTransactions &&
+                    paidTransactions.length > 0 &&
+                    paidTransactions?.map((item, index) => (
+                      <TableRow
+                        key={`${item?._id}-${index}`}
+                        className="hover:bg-gray-50"
+                      >
+                        <TableCell className="text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.TransactionDate ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.TransactionAmount.toLocaleString() ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.CustomerNationalID ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.TransactionReason ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.TransactionMethod ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.ShowroomCard ?? ""}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </div>
-            <div className="grid grid-cols-3 gap-3 item-center mt-3">
-              <div>
+            <div className="grid grid-cols-3 gap-3 item?-center mt-3">
+              <div className="space-y-2">
                 <p className="text-xs">مانده مبلغ قابل پرداخت به فروشنده</p>
-                <p className="font-bold text-sm">0</p>
+                <p className="font-bold text-sm">
+                  {remainingToSeller.toLocaleString() ?? ""}
+                </p>
               </div>
-              <div>
+              <div className="space-y-2">
                 <p className="text-xs">مجموع پرداختی به فروشنده و کارگزاران</p>
-                <p className="text-red-500 text-sm">344430</p>
+                <p className="text-red-500 text-sm">
+                  {totalPaidToAll ? totalPaidToAll.toLocaleString() : ""}
+                </p>
               </div>
-              <div>
+              <div className="space-y-2">
                 <p className="text-xs">مجموع پرداختی به فروشنده</p>
-                <p className="text-red-500 text-sm">3345330</p>
+                <p className="text-red-500 text-sm">
+                  {totalPaidToSeller ? totalPaidToSeller.toLocaleString() : ""}
+                </p>
               </div>
             </div>
           </div>
 
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-green-500 absolute left-2 -top-5 bg-white py-2 px-4">
+            <p className="text-green-500 absolute right-2 -top-5 bg-white py-2 px-4">
               دریافت های شما
             </p>
             <div className="overflow-hidden rounded-md border w-full">
@@ -244,42 +199,52 @@ const VehicleDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item) => (
-                    <TableRow
-                      key={item.id}
-                      className="has-data-[state=checked]:bg-muted/50"
-                    >
-                      <TableCell className="text-center">{item.id}</TableCell>
-                      <TableCell className="text-center">{item.date}</TableCell>
-                      <TableCell className="text-center">
-                        {item.price}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.nationalCode}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.transactionReason}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.paymentWay}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.operator}
-                      </TableCell>{" "}
-                    </TableRow>
-                  ))}
+                  {receivedTransactions &&
+                    receivedTransactions.length > 0 &&
+                    receivedTransactions?.map((item, index) => (
+                      <TableRow
+                        key={`${item?._id}-${index}`}
+                        className="hover:bg-gray-50"
+                      >
+                        <TableCell className="text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.TransactionDate ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.TransactionAmount.toLocaleString() ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.CustomerNationalID ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.TransactionReason ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.TransactionMethod ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.ShowroomCard ?? ""}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </div>
-            <div className="grid grid-cols-2 gap-3 item-center mt-3">
-              <div>
+            <div className="grid grid-cols-2 gap-3 item?-center mt-3">
+              <div className="space-y-2">
                 <p className="text-xs">مانده مبلغ قابل پرداخت به خریدار</p>
-                <p className="font-bold text-sm">0</p>
+                <p className="font-bold text-sm">
+                  {remainingForBuyer.toLocaleString() ?? ""}
+                </p>
               </div>
 
-              <div>
+              <div className="space-y-2">
                 <p className="text-xs">مجموع دریافتی از خریدار</p>
-                <p className="text-green-500 text-sm">3345330</p>
+                <p className="text-green-500 text-sm">
+                  {totalReceived ? totalReceived.toLocaleString() : ""}
+                </p>
               </div>
             </div>
           </div>
@@ -289,7 +254,7 @@ const VehicleDashboard = () => {
       <div className="mt-7">
         <div className="w-full flex justify-center gap-4">
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-blue-300 absolute left-2 -top-5 bg-white py-2 px-4">
+            <p className="text-blue-300 absolute right-2 -top-5 bg-white py-2 px-4">
               افزایش سرمایه
             </p>
             <div className="overflow-hidden rounded-md border w-full">
@@ -310,39 +275,46 @@ const VehicleDashboard = () => {
                 </TableHeader>
 
                 <TableBody>
-                  {item2.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-gray-50">
-                      <TableCell className="text-center">{item.id}</TableCell>
-                      <TableCell className="text-center">{item.date}</TableCell>
+                  {investment?.data.map((item, index) => (
+                    <TableRow
+                      key={`${item?._id}-${index}`}
+                      className="hover:bg-gray-50"
+                    >
+                      <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell className="text-center">
-                        {item.price}
+                        {item?.TransactionDate ?? ""}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.associate}
+                        {item?.TransactionAmount.toLocaleString() ?? ""}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.profit}
+                        {item?.Partner ?? ""}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.transactionReason}
+                        {item?.Broker ?? ""}
                       </TableCell>
-                      <TableCell className="text-center">{item.way}</TableCell>
+                      <TableCell className="text-center">
+                        {item?.TransactionReason ?? ""}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {item?.TransactionMethod ?? ""}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </div>
-            <div className="flex gap-3 item-center justify-between mt-3">
+            <div className="flex gap-3 item?-center justify-between mt-3">
               <p className="text-sm">
                 در جدول بالا منظور از درصد، درصد مشارکت سرمایه گذار در تامین
                 سرمایه است.
               </p>
-              <p className="font-bold text-sm">0</p>
+              <p className="font-bold text-sm">{totalBroker ?? ""}</p>
             </div>
           </div>
 
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-blue-300 absolute left-2 -top-5 bg-white py-2 px-4">
+            <p className="text-blue-300 absolute right-2 -top-5 bg-white py-2 px-4">
               چک های صادره و وارده
             </p>
             <div className="overflow-hidden rounded-md border w-full">
@@ -360,39 +332,47 @@ const VehicleDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {item3.map((item) => (
+                  {unpaidCheques?.data?.cheques?.map((item, index) => (
                     <TableRow
-                      key={item.id}
+                      key={`${item?._id}-${index}`}
                       className="has-data-[state=checked]:bg-muted/50"
                     >
-                      <TableCell className="text-center">{item.id}</TableCell>
+                      <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell className="text-center">
-                        {item.customerName}
+                        {item?.CustomerName}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.price}
+                        {item?.ChequeAmount}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.datebook}
+                        {item?.ChequeDueDate}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.checkStatus}
+                        {item?.ChequeStatus}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.shenaseSayadi}
+                        {item?.SayadiID}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.serialCheck}
+                        {item?.ChequeSerial}
                       </TableCell>
-                      <TableCell className="text-center">{item.bank}</TableCell>
+                      <TableCell className="text-center">
+                        {item?.Bank}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </div>
-            <div className="flex gap-3 item-center justify-end mt-3">
-              <span className="text-xs">مجموع چک های صادره وصول نشده</span>
-              <span className="text-xs">مجموع چک های وارده وصول نشده</span>
+            <div className="flex gap-3 item??-center justify-end mt-3">
+              <p className="flex gap-2 items-center">
+                <span className="text-xs">مجموع چک های صادره وصول نشده</span>
+                <span>{unpaidCheques?.data.totals.issuedUnpaid}</span>
+              </p>
+              <p className="flex gap-2 items-center">
+                <span className="text-xs">مجموع چک های وارده وصول نشده</span>
+                <span>{unpaidCheques?.data.totals.receivedUnpaid}</span>
+              </p>
             </div>
           </div>
         </div>

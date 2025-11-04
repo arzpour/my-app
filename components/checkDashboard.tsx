@@ -1,3 +1,4 @@
+"use client";
 import {
   Select,
   SelectContent,
@@ -14,188 +15,198 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-const items = [
-  {
-    id: "1",
-    shenase: "شناسه صیادی",
-    customerName: "محسن تبزر",
-    checkSerial: "777444545",
-    datebookDate: "1403/03/30",
-    price: "777444545",
-    empty: "",
-  },
-  {
-    id: "1",
-    shenase: "شناسه صیادی",
-    customerName: "محسن تبزر",
-    checkSerial: "777444545",
-    datebookDate: "1403/03/30",
-    price: "777444545",
-    empty: "",
-  },
-  {
-    id: "1",
-    shenase: "شناسه صیادی",
-    customerName: "محسن تبزر",
-    checkSerial: "777444545",
-    datebookDate: "1403/03/30",
-    price: "777444545",
-    empty: "",
-  },
-  {
-    id: "1",
-    shenase: "شناسه صیادی",
-    customerName: "محسن تبزر",
-    checkSerial: "777444545",
-    datebookDate: "1403/03/30",
-    price: "777444545",
-    empty: "",
-  },
-  {
-    id: "1",
-    shenase: "شناسه صیادی",
-    customerName: "محسن تبزر",
-    checkSerial: "777444545",
-    datebookDate: "1403/03/30",
-    price: "777444545",
-    empty: "",
-  },
-  {
-    id: "1",
-    shenase: "شناسه صیادی",
-    customerName: "محسن تبزر",
-    checkSerial: "777444545",
-    datebookDate: "1403/03/30",
-    price: "777444545",
-    empty: "",
-  },
-  {
-    id: "1",
-    shenase: "شناسه صیادی",
-    customerName: "محسن تبزر",
-    checkSerial: "777444545",
-    datebookDate: "1403/03/30",
-    price: "777444545",
-    empty: "",
-  },
-  {
-    id: "1",
-    shenase: "شناسه صیادی",
-    customerName: "محسن تبزر",
-    checkSerial: "777444545",
-    datebookDate: "1403/03/30",
-    price: "777444545",
-    empty: "",
-  },
-  {
-    id: "1",
-    shenase: "شناسه صیادی",
-    customerName: "محسن تبزر",
-    checkSerial: "777444545",
-    datebookDate: "1403/03/30",
-    price: "777444545",
-    empty: "",
-  },
-  {
-    id: "1",
-    shenase: "شناسه صیادی",
-    customerName: "محسن تبزر",
-    checkSerial: "777444545",
-    datebookDate: "1403/03/30",
-    price: "777444545",
-    empty: "",
-  },
-  {
-    id: "1",
-    shenase: "شناسه صیادی",
-    customerName: "محسن تبزر",
-    checkSerial: "777444545",
-    datebookDate: "1403/03/30",
-    price: "777444545",
-    empty: "",
-  },
-  {
-    id: "1",
-    shenase: "شناسه صیادی",
-    customerName: "محسن تبزر",
-    checkSerial: "777444545",
-    datebookDate: "1403/03/30",
-    price: "777444545",
-    empty: "",
-  },
-  {
-    id: "1",
-    shenase: "شناسه صیادی",
-    customerName: "محسن تبزر",
-    checkSerial: "777444545",
-    datebookDate: "1403/03/30",
-    price: "777444545",
-    empty: "",
-  },
-];
-
-const check = ["همه", "همه", "همه", "همه"];
+import useGetAllCheques from "@/hooks/useGetAllCheques";
+import React, { useMemo } from "react";
+import SelectForFilterCheques from "./selectForFilterCheques";
 
 const CheckDashboard = () => {
+  const { data = [] } = useGetAllCheques();
+
+  const [stats, setStats] = React.useState({
+    pending: 0,
+    returned: 0,
+    importedThisMonth: 0,
+    issuedThisMonth: 0,
+  });
+  const [selectedChequeSerial, setSelectedChequeSerial] = React.useState("همه");
+  const [selectedSayadiId, setSelectedSayadiId] = React.useState("همه");
+  const [selectedCustomerType, setSelectedCustomerType] = React.useState("همه");
+  const [selectedCustomerName, setSelectedCustomerName] = React.useState("همه");
+  const [selectedNationalID, setSelectedNationalID] = React.useState("همه");
+  const [selectedBank, setSelectedBank] = React.useState("همه");
+  const [selectedBranch, setSelectedBranch] = React.useState("همه");
+  const [selectedChequeStatus, setSelectedChequeStatus] = React.useState("همه");
+  const [selectedOperationType, setSelectedOperationType] =
+    React.useState("همه");
+  const [fromDate, setFromDate] = React.useState(""); // YYYY/MM/DD
+  const [toDate, setToDate] = React.useState(""); // YYYY/MM/DD
+  const [maxAmount, setMaxAmount] = React.useState<number | undefined>();
+  const [appliedFilters, setAppliedFilters] = React.useState(false);
+
+  const getOptions = (key: string) => [
+    "همه",
+    ...(data?.map((d: any) => d[key] ?? "") ?? []),
+  ];
+
+  const chequeSerialOptions = getOptions("ChequeSerial").filter(Boolean);
+  const sayadiIdOptions = getOptions("SayadiID").filter(Boolean);
+  const customerTypeOptions = getOptions("ChequeType").filter(Boolean);
+  const customerNameOptions = getOptions("CustomerName")
+    .concat(getOptions("ShowroomAccountCard"))
+    .filter(Boolean);
+  const nationalIDOptions = getOptions("CustomerNationalID")
+    .concat(getOptions("AccountHolderNationalID"))
+    .filter(Boolean);
+  const bankOptions = getOptions("Bank").filter(Boolean);
+  const branchOptions = getOptions("Branch").filter(Boolean);
+  const chequeStatusOptions = getOptions("ChequeStatus").filter(Boolean);
+  const operationTypeOptions = getOptions("LastAction").filter(Boolean);
+
+  const filteredData = useMemo(() => {
+    if (!appliedFilters) return data;
+    return data?.filter((item) => {
+      if (
+        selectedChequeSerial !== "همه" &&
+        item.ChequeSerial?.toString() !== selectedChequeSerial
+      )
+        return false;
+      if (selectedSayadiId !== "همه" && item.SayadiID !== selectedSayadiId)
+        return false;
+      if (
+        selectedCustomerType !== "همه" &&
+        item.ChequeType !== selectedCustomerType
+      )
+        return false;
+      if (
+        selectedCustomerName !== "همه" &&
+        (item.CustomerName ?? item.ShowroomAccountCard) !== selectedCustomerName
+      )
+        return false;
+      if (
+        selectedNationalID !== "همه" &&
+        (item.CustomerNationalID ?? item.AccountHolderNationalID) !==
+          selectedNationalID
+      )
+        return false;
+      if (selectedBank !== "همه" && (item.Bank ?? "") !== selectedBank)
+        return false;
+      if (selectedBranch !== "همه" && (item.Branch ?? "") !== selectedBranch)
+        return false;
+      if (
+        selectedChequeStatus !== "همه" &&
+        (item.ChequeStatus ?? "") !== selectedChequeStatus
+      )
+        return false;
+      if (
+        selectedOperationType !== "همه" &&
+        (item.LastAction ?? "") !== selectedOperationType
+      )
+        return false;
+      if (maxAmount !== undefined && item.ChequeAmount > maxAmount)
+        return false;
+      if (fromDate && item.ChequeDueDate < fromDate) return false;
+      if (toDate && item.ChequeDueDate > toDate) return false;
+      return true;
+    });
+  }, [
+    data,
+    appliedFilters,
+    selectedChequeSerial,
+    selectedSayadiId,
+    selectedCustomerType,
+    selectedCustomerName,
+    selectedNationalID,
+    selectedBank,
+    selectedBranch,
+    selectedChequeStatus,
+    selectedOperationType,
+    maxAmount,
+    fromDate,
+    toDate,
+  ]);
+
+  const issued = useMemo(
+    () => filteredData?.filter((item) => item.ChequeType === "صادره"),
+    [filteredData]
+  );
+  const imported = useMemo(
+    () => filteredData?.filter((item) => item.ChequeType === "وارده"),
+    [filteredData]
+  );
+
+  const totalIssuedAmount = issued?.reduce((sum, t) => sum + t.ChequeAmount, 0);
+  const totalImportedAmount = imported?.reduce(
+    (sum, t) => sum + t.ChequeAmount,
+    0
+  );
+
+  const handleResetFilters = () => {
+    setSelectedChequeSerial("همه");
+    setSelectedSayadiId("همه");
+    setSelectedCustomerType("همه");
+    setSelectedCustomerName("همه");
+    setSelectedNationalID("همه");
+    setSelectedBank("همه");
+    setSelectedBranch("همه");
+    setSelectedChequeStatus("همه");
+    setSelectedOperationType("همه");
+    setFromDate("");
+    setToDate("");
+    setMaxAmount(undefined);
+    setAppliedFilters(false);
+  };
+
+  React.useEffect(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+
+    const pending =
+      filteredData?.filter((item) => item.ChequeStatus !== "وصول شد")?.length ||
+      0;
+    const returned =
+      filteredData?.filter((item) => item.ChequeStatus === "برگشتی")?.length ||
+      0;
+    const importedThisMonth =
+      imported?.filter((item) => {
+        const [year, month] = item.ChequeDueDate.split("/").map(Number);
+        return year === currentYear && month === currentMonth;
+      })?.length || 0;
+    const issuedThisMonth =
+      issued?.filter((item) => {
+        const [year, month] = item.ChequeDueDate.split("/").map(Number);
+        return year === currentYear && month === currentMonth;
+      })?.length || 0;
+
+    setStats({ pending, returned, importedThisMonth, issuedThisMonth });
+  }, [filteredData, imported, issued]);
+
   return (
     <div>
-      {/* <div className="overflow-x-auto"> */}
       <div className="grid [grid-template-columns:1fr_1fr_1fr_0.5fr_0.5fr] gap-6 items-start mt-4">
-        {/* <div className="flex gap-6 items-start mt-7 w-max"> */}
         <div className="space-y-6">
-          {/* <div className="space-y-3"> */}
           <div className="border border-gray-300 p-4 rounded-md relative">
             <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
               اطلاعات چک
             </p>
 
             <div className="flex gap-4 overflow-auto min-w-[140px] scrollbar-hide">
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">
-                  سریال چک:
-                </h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="همه" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">
-                  شناسه صیادی:
-                </h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="همه" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
+              <SelectForFilterCheques
+                data={chequeSerialOptions.filter(Boolean)}
+                title="سریال چک"
+                setSelectedSubject={setSelectedChequeSerial}
+              />
+              <SelectForFilterCheques
+                data={sayadiIdOptions.filter(Boolean)}
+                title="شناسه صیادی"
+                setSelectedSubject={setSelectedSayadiId}
+              />
             </div>
           </div>
           <div className="border border-gray-300 p-4 rounded-md relative">
             <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
               نوع تاریخ / مبلغ
             </p>
-
             <div className="flex gap-4 overflow-auto min-w-[140px] scrollbar-hide">
               <div className="space-y-1">
                 <h3 className="text-sm font-bold mb-2 text-blue-900">
@@ -203,25 +214,10 @@ const CheckDashboard = () => {
                 </h3>
                 <input type="text" className="border rounded w-[130px]" />
               </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">
-                  نوع عملیات تاریخ:
-                </h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="غیر فعال" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
+              <SelectForFilterCheques
+                data={["غیرفعال", "فعال"]}
+                title="نوع عملیات تاریخ"
+              />
             </div>
           </div>
         </div>
@@ -232,182 +228,50 @@ const CheckDashboard = () => {
             </p>
 
             <div className="flex gap-4 overflow-auto min-w-[140px]">
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">
-                  نوع کاربر:
-                </h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="همه" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">
-                  نام و نام خانوادگی:
-                </h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="همه" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">کدملی:</h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="همه" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
+              <SelectForFilterCheques
+                data={customerTypeOptions.filter(Boolean)}
+                title="نوع کاربر"
+                setSelectedSubject={setSelectedCustomerType}
+              />
+              <SelectForFilterCheques
+                data={customerNameOptions.filter(Boolean)}
+                title="نام و نام خانوادگی"
+                setSelectedSubject={setSelectedCustomerName}
+              />
+              <SelectForFilterCheques
+                data={nationalIDOptions.filter(Boolean)}
+                title="کدملی"
+                setSelectedSubject={setSelectedNationalID}
+              />
             </div>
           </div>{" "}
           <div className="border border-gray-300 p-4 rounded-md relative">
             <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
               بازه زمانی
             </p>
-
             <div className="flex gap-4 overflow-auto min-w-[140px]">
               <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">
-                  از روز:
+                <h3 className="text-sm font-bold mb-2 text-purple-700">
+                  از تاریخ:
                 </h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="همه" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <input
+                  type="date"
+                  className="border rounded w-[130px]"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                />
               </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">
-                  از ماه:
-                </h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="۰۸" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">
-                  از سال:
-                </h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="۱۴۰۴" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
+
               <div className="space-y-1">
                 <h3 className="text-sm font-bold mb-2 text-purple-700">
-                  تا روز:
+                  تا تاریخ:
                 </h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="همه" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-purple-700">
-                  تا ماه:
-                </h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="همه" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-purple-700">
-                  تا سال:
-                </h3>
-                <Select>
-                  <SelectTrigger className="w-full text-sm">
-                    <SelectValue placeholder="همه" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <input
+                  type="date"
+                  className="border rounded w-[130px]"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                />
               </div>
             </div>
           </div>
@@ -417,113 +281,67 @@ const CheckDashboard = () => {
             <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
               اطلاعات بانک
             </p>
-
             <div className="flex overflow-auto min-w-[140px] gap-4">
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">بانک:</h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="همه" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">شعبه:</h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="همه" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
+              <SelectForFilterCheques
+                data={bankOptions.filter(Boolean)}
+                title="بانک"
+                setSelectedSubject={setSelectedBank}
+              />
+              <SelectForFilterCheques
+                data={branchOptions.filter(Boolean)}
+                title="شعبه"
+                setSelectedSubject={setSelectedBranch}
+              />
             </div>
           </div>
           <div className="border border-gray-300 p-4 rounded-md relative">
             <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
               وضعیت و عملیات انجام شده
             </p>
-
-            <div className="flex gap-4 overflow-auto min-w-[140px]">
-              <div className="space-y-3">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">
-                  وضعیت چک:
-                </h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="همه" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-3">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">
-                  نوع عملیات:
-                </h3>
-                <Select>
-                  <SelectTrigger className="w-[130px] text-sm">
-                    <SelectValue placeholder="همه" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {check.map((item, index) => (
-                        <SelectItem key={`${item}-${index}`} value="همه">
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex overflow-auto min-w-[140px] gap-4">
+              <SelectForFilterCheques
+                data={chequeStatusOptions.filter(Boolean)}
+                title="وضعیت چک"
+                setSelectedSubject={setSelectedChequeStatus}
+              />
+              <SelectForFilterCheques
+                data={operationTypeOptions.filter(Boolean)}
+                title="نوع عملیات"
+                setSelectedSubject={setSelectedOperationType}
+              />
             </div>
           </div>
         </div>
         <div className="space-y-3 flex flex-col w-40">
-          <button className="border rounded-lg px-4 py-2 w-32">جستجو</button>
-          <button className="border rounded-lg shadow-lg px-4 py-2 w-32">
+          <button
+            onClick={() => setAppliedFilters(true)}
+            className="border rounded-lg px-4 py-2 w-32 cursor-pointer"
+          >
+            جستجو
+          </button>
+          <button
+            onClick={handleResetFilters}
+            className="border rounded-lg shadow-lg px-4 py-2 w-32 cursor-pointer"
+          >
             حدف تمام فیلترها
           </button>
         </div>
         <div className="space-y-3 border p-4 w-72 rounded">
           <div className="flex items-center justify-between">
             <p>تعداد چک های وصول نشده:</p>
-            <span></span>
+            <span>{stats.pending}</span>
           </div>
           <div className="flex items-center justify-between">
             <p>تعداد چک های برگشتی:</p>
-            <span></span>
+            <span>{stats.returned}</span>
           </div>
           <div className="flex items-center justify-between">
             <p>تعداد چک های وارده ماه جاری:</p>
-            <span></span>
+            <span>{stats.importedThisMonth}</span>
           </div>
           <div className="flex items-center justify-between">
             <p>تعداد چک های صادره ماه جاری:</p>
-            <span></span>
+            <span>{stats.issuedThisMonth}</span>
           </div>
         </div>
       </div>
@@ -548,30 +366,29 @@ const CheckDashboard = () => {
                       تاریخ سررسید
                     </TableHead>
                     <TableHead className="w-12 text-center">مبلغ</TableHead>
-                    <TableHead className="w-12 text-center"></TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-gray-50">
+                  {issued?.map((item, index) => (
+                    <TableRow
+                      key={`${item?.ChequeSerial}-${index}`}
+                      className="hover:bg-gray-50"
+                    >
                       <TableCell className="text-center">
-                        {item.shenase}
+                        {item.SayadiID}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.customerName}
+                        {item.ShowroomAccountCard ?? item.CustomerName}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.checkSerial}
+                        {item.ChequeSerial}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.datebookDate}
+                        {item.ChequeDueDate}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.price}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.empty}
+                        {item.ChequeAmount}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -579,7 +396,11 @@ const CheckDashboard = () => {
               </Table>
             </div>
           </div>
-          <p className="text-green-400 font-bold mt-3 text-left">346,677,888</p>
+          {totalIssuedAmount && (
+            <p className="text-green-400 font-bold mt-3 text-left">
+              {totalIssuedAmount}
+            </p>
+          )}
         </div>
         <div>
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
@@ -606,25 +427,25 @@ const CheckDashboard = () => {
                 </TableHeader>
 
                 <TableBody>
-                  {items.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-gray-50">
+                  {imported?.map((item, index) => (
+                    <TableRow
+                      key={`${item?.ChequeSerial}-${index}`}
+                      className="hover:bg-gray-50"
+                    >
                       <TableCell className="text-center">
-                        {item.shenase}
+                        {item.SayadiID}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.customerName}
+                        {item.ShowroomAccountCard ?? item.CustomerName}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.checkSerial}
+                        {item.ChequeSerial}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.datebookDate}
+                        {item.ChequeDueDate}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.price}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.empty}
+                        {item.ChequeAmount}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -632,11 +453,14 @@ const CheckDashboard = () => {
               </Table>
             </div>
           </div>
-          <p className="text-red-400 font-bold mt-3 text-left">346,677,888</p>
+          {totalImportedAmount && (
+            <p className="text-red-400 font-bold mt-3 text-left">
+              {totalImportedAmount}
+            </p>
+          )}
         </div>
       </div>
     </div>
-    // </div>
   );
 };
 
