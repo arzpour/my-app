@@ -6,7 +6,7 @@ export const urls = {
     byNationalId: (nationalId: string) =>
       `/transactions/byNationalId/${nationalId}`,
     usersData: "/cars/userData",
-    filterByUser: "/cars/filterByUser"
+    filterByUser: "/cars/filterByUser",
   },
   detailsByChassisNo: (chassisNo: string) => `/cars/${chassisNo}/details`,
   transactions: {
@@ -20,6 +20,9 @@ export const urls = {
   },
   investmentByChassis: (chassisNo: string) =>
     `/transactions/investment/${chassisNo}`,
-  operatorPercent: "/brokers",
+  others: {
+    brokers: "/others/brokers",
+    transactionFormOptions: "/others/transaction-form-options",
+  },
   login: "/auth/login",
 };
