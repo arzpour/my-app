@@ -1,9 +1,11 @@
 "use client";
 import { useLogin } from "@/apis/mutations/auth";
+import { setRole } from "@/redux/slices/carSlice";
 import { loginSchema, loginSchemaType } from "@/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { useDispatch } from "react-redux";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -18,15 +20,16 @@ const Login = () => {
   });
 
   const login = useLogin();
+  const dispatch = useDispatch()
 
   const onSubmit: SubmitHandler<loginSchemaType> = async (data) => {
     console.log("🚀 ~ onSubmit ~ data:", data);
     if (!data) return;
-
     try {
       const res = await login.mutateAsync(data);
       console.log("🚀 ~ onSubmit ~ res:", res);
       router.push("/panel");
+      dispatch(setRole(res.data.user.role));
       toast("وارد شدید", {
         icon: "✅",
         className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
@@ -48,30 +51,10 @@ const Login = () => {
           className="md:w-96 w-80 flex flex-col items-center justify-center"
         >
           <h2 className="text-4xl text-gray-900 font-medium">ورود به پنل</h2>
-          <p className="text-sm text-gray-500/90 mt-3">
+          <p className="text-sm text-gray-500/90 my-3">
             {/* Welcome back! Please sign in to continue */}
             خوش آمدید! برای ادامه وارد شوید
           </p>
-
-          <button
-            type="button"
-            className="w-full mt-8 bg-gray-500/10 flex items-center justify-center h-12 rounded-full"
-          >
-            <img
-              src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/login/googleLogo.svg"
-              alt="googleLogo"
-            />
-            {/* <img src="/photo-1496917756835-20cb06e75b4e.jpg" alt="googleLogo" /> */}
-          </button>
-
-          <div className="flex items-center gap-4 w-full my-5">
-            <div className="w-full h-px bg-gray-300/90"></div>
-            <p className="w-full text-nowrap text-sm text-gray-500/90">
-              {/* or sign in with email */}
-              یا با حساب گوگل وارد شوید
-            </p>
-            <div className="w-full h-px bg-gray-300/90"></div>
-          </div>
 
           <div className="flex pr-5 items-center w-full bg-transparent border border-gray-300/60 h-12 rounded-full overflow-hidden pl-6 gap-2">
             <svg
@@ -149,7 +132,7 @@ const Login = () => {
 
           <button
             type="submit"
-            className="mt-8 w-full h-11 flex justify-center items-center font-semibold rounded-full text-white bg-indigo-500 hover:opacity-90 transition-opacity"
+            className="mt-8 w-full h-11 cursor-pointer flex justify-center items-center font-semibold rounded-full text-white bg-indigo-500 hover:opacity-90 transition-opacity"
           >
             ورود
           </button>

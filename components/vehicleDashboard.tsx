@@ -27,29 +27,41 @@ const VehicleDashboard = () => {
   const [unpaidCheques, setUnpaidCheques] =
     React.useState<IUnpaidCheque | null>(null);
 
-
   const getDetailByChassisNo = useGetDetailByChassisNo();
   const getInvestmentByChassis = useGetInvestmentByChassis();
   const getUnpaidCheques = useGetUnpaidCheques();
 
-  const handleDataByChassisNoData = async (chassisNo: string) => {
+  const handleCarDetailDataByChassisNoData = async (chassisNo: string) => {
     try {
       const details = await getDetailByChassisNo.mutateAsync(chassisNo);
-      const investment = await getInvestmentByChassis.mutateAsync(chassisNo);
-      const unpaidCheques = await getUnpaidCheques.mutateAsync(chassisNo);
-
-      setUnpaidCheques(unpaidCheques);
 
       setVehicleDetails(details);
-      setInvestment(investment);
     } catch (error) {
       console.log("🚀 ~ handleSelectChassis ~ error:", error);
       setVehicleDetails(null);
+    }
+  };
+  const handleInvestmentDataByChassisNoData = async (chassisNo: string) => {
+    try {
+      const investment = await getInvestmentByChassis.mutateAsync(chassisNo);
+
+      setInvestment(investment);
+    } catch (error) {
+      console.log("🚀 ~ handleSelectChassis ~ error:", error);
       setInvestment(null);
-      setUnpaidCheques(null);
     }
   };
 
+  const handleUnpaidDataByChassisNoData = async (chassisNo: string) => {
+    try {
+      const unpaidCheques = await getUnpaidCheques.mutateAsync(chassisNo);
+
+      setUnpaidCheques(unpaidCheques);
+    } catch (error) {
+      console.log("🚀 ~ handleSelectChassis ~ error:", error);
+      setUnpaidCheques(null);
+    }
+  };
   const totalPaid = vehicleDetails?.transactions.reduce(
     (sum, t) => sum + t.TransactionAmount,
     0
@@ -92,7 +104,9 @@ const VehicleDashboard = () => {
   const totalBroker = investment?.data.reduce((sum, t) => sum + t.Broker, 0);
 
   React.useEffect(() => {
-    handleDataByChassisNoData(chassisNo);
+    handleUnpaidDataByChassisNoData(chassisNo);
+    handleCarDetailDataByChassisNoData(chassisNo);
+    handleInvestmentDataByChassisNoData(chassisNo);
   }, [chassisNo]);
 
   return (

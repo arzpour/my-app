@@ -124,11 +124,11 @@ const CustomersDashboard = () => {
         </div>
       </div>
       <div className="grid grid-cols-3 gap-5 items-start mt-8">
-        <div className="border border-gray-300 p-4 rounded-md relative w-full">
+        <div className="h-[33.7rem] max-h-[33.7rem] border border-gray-300 p-4 rounded-md relative w-full">
           <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
             اسامی مشتری
           </p>
-          <div className="max-h-[28rem] overflow-y-auto rounded-md border w-full">
+          <div className="max-h-[30rem] overflow-y-auto rounded-md border w-full">
             <Table className="min-w-full table-fixed text-right border-collapse">
               <TableHeader>
                 <TableRow className="bg-gray-100">
@@ -165,11 +165,11 @@ const CustomersDashboard = () => {
           </div>
         </div>
         <div className="space-y-6">
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
+          <div className="h-[16rem] max-h-[16rem] border border-gray-300 p-4 rounded-md relative w-full">
             <p className="text-blue-500 absolute right-2 -top-6 bg-white py-2 px-4">
               فروشنده خودرو
             </p>
-            <div className="max-h-40 overflow-y-auto rounded-md border w-full">
+            <div className="h-[12rem] max-h-[12rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader>
                   <TableRow className="bg-gray-100">
@@ -221,11 +221,11 @@ const CustomersDashboard = () => {
               </p>
             ) : null}
           </div>
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
+          <div className="h-[16rem] max-h-[16rem] border border-gray-300 p-4 rounded-md relative w-full">
             <p className="text-blue-500 absolute right-2 -top-6 bg-white py-2 px-4">
               خریدار خودرو
             </p>
-            <div className="max-h-40 overflow-y-auto rounded-md border w-full">
+            <div className="h-[12rem] max-h-[12rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader>
                   <TableRow className="bg-gray-100">
@@ -278,11 +278,11 @@ const CustomersDashboard = () => {
           </div>
         </div>
         <div className="space-y-6">
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
+          <div className="h-[16rem] max-h-[16rem] border border-gray-300 p-4 rounded-md relative w-full">
             <p className="text-blue-500 absolute right-2 -top-6 bg-white py-2 px-4">
               دریافت و پرداخت
             </p>
-            <div className="max-h-40 overflow-y-auto rounded-md border w-full">
+            <div className="h-[12rem] max-h-[12rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader>
                   <TableRow className="bg-gray-100">
@@ -331,11 +331,11 @@ const CustomersDashboard = () => {
               </div>
             )}
           </div>
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
+          <div className="h-[16rem] max-h-[16rem] border border-gray-300 p-4 rounded-md relative w-full">
             <p className="text-blue-500 absolute right-2 -top-6 bg-white py-2 px-4">
               وضعیت چک ها
             </p>
-            <div className="max-h-[195px] overflow-y-auto rounded-md border w-full">
+            <div className="h-[12rem] max-h-[12rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader>
                   <TableRow className="bg-gray-100">
