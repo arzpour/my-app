@@ -74,3 +74,18 @@ interface IInvestmentRes {
   status: number;
   data: ITransactionRes[];
 }
+
+interface IUnpaidCheque {
+  status: number;
+  data: {
+    cheques: IChequeRes[];
+    totals: {
+      issuedUnpaid: number;
+      receivedUnpaid: number;
+    };
+  };
+}
+
+interface IOperatorPercent {
+  data: { name: string; buyPercent: number; sellPercent: number }[];
+}

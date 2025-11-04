@@ -1,5 +1,8 @@
 "use client";
-import { useGetChequeByChassisNo, useGetUnpaidCheques } from "@/apis/mutations/cheques";
+import {
+  useGetChequeByChassisNo,
+  useGetUnpaidCheques,
+} from "@/apis/mutations/cheques";
 import { useGetDetailByChassisNo } from "@/apis/mutations/detailsByChassisNo";
 import { useGetInvestmentByChassis } from "@/apis/mutations/investment";
 import {
@@ -14,69 +17,6 @@ import { RootState } from "@/redux/store";
 import React from "react";
 import { useSelector } from "react-redux";
 
-const item2 = [
-  {
-    id: "",
-    date: "",
-    price: "",
-    associate: "",
-    transactionReason: "",
-    profit: "",
-    way: "",
-  },
-  {
-    id: "",
-    date: "",
-    price: "",
-    associate: "",
-    transactionReason: "",
-    profit: "",
-    way: "",
-  },
-  {
-    id: "",
-    date: "",
-    price: "",
-    associate: "",
-    transactionReason: "",
-    profit: "",
-    way: "",
-  },
-];
-
-const item3 = [
-  {
-    id: "",
-    customerName: "",
-    datebook: "",
-    checkStatus: "",
-    shenaseSayadi: "",
-    serialCheck: "",
-    bank: "",
-    price: "",
-  },
-  {
-    id: "",
-    customerName: "",
-    datebook: "",
-    checkStatus: "",
-    shenaseSayadi: "",
-    serialCheck: "",
-    bank: "",
-    price: "",
-  },
-  {
-    id: "",
-    customerName: "",
-    datebook: "",
-    checkStatus: "",
-    shenaseSayadi: "",
-    serialCheck: "",
-    bank: "",
-    price: "",
-  },
-];
-
 const VehicleDashboard = () => {
   const { chassisNo } = useSelector((state: RootState) => state.cars);
   const [vehicleDetails, setVehicleDetails] =
@@ -84,33 +24,29 @@ const VehicleDashboard = () => {
   const [investment, setInvestment] = React.useState<IInvestmentRes | null>(
     null
   );
-  // const [cheques, setCheques] = React.useState<IChequeRes | null>(null);
-  // console.log("🚀 ~ VehicleDashboard ~ cheques:", cheques)
-  console.log("🚀 ~ VehicleDashboard ~ investment:", investment);
+  const [unpaidCheques, setUnpaidCheques] =
+    React.useState<IUnpaidCheque | null>(null);
+
 
   const getDetailByChassisNo = useGetDetailByChassisNo();
   const getInvestmentByChassis = useGetInvestmentByChassis();
-  const getUnpaidCheques = useGetUnpaidCheques()
-  // const getChequeByChassisNo = useGetChequeByChassisNo();
+  const getUnpaidCheques = useGetUnpaidCheques();
 
   const handleChequeByChassisNoData = async (chassisNo: string) => {
     try {
-      const details = await getDetailByChassisNo.mutateAsync("1009392");
-      const investment = await getInvestmentByChassis.mutateAsync("1009392");
-      const unpaidCheques = await getUnpaidCheques.mutateAsync("1009392");
-      console.log("🚀 ~ handleChequeByChassisNoData ~ unpaidCheques:", unpaidCheques)
+      const details = await getDetailByChassisNo.mutateAsync(chassisNo);
+      const investment = await getInvestmentByChassis.mutateAsync(chassisNo);
+      const unpaidCheques = await getUnpaidCheques.mutateAsync(chassisNo);
 
-      // const cheques = await getChequeByChassisNo.mutateAsync(chassisNo);
-      // console.log("🚀 ~ handleChequeByChassisNoData ~ cheques:", cheques);
+      setUnpaidCheques(unpaidCheques);
 
       setVehicleDetails(details);
       setInvestment(investment);
-      // setCheques(cheques);
     } catch (error) {
       console.log("🚀 ~ handleSelectChassis ~ error:", error);
       setVehicleDetails(null);
       setInvestment(null);
-      // setCheques(null);
+      setUnpaidCheques(null);
     }
   };
 
@@ -153,7 +89,6 @@ const VehicleDashboard = () => {
     (t) => t.TransactionType === "پرداخت"
   );
 
-  ///////
   const totalBroker = investment?.data.reduce((sum, t) => sum + t.Broker, 0);
 
   React.useEffect(() => {
@@ -165,7 +100,7 @@ const VehicleDashboard = () => {
       <div className="my-5 mb-7">
         <div className="w-full flex justify-center gap-4">
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-red-500 absolute left-2 -top-5 bg-white py-2 px-4">
+            <p className="text-red-500 absolute right-2 -top-5 bg-white py-2 px-4">
               پرداخت های شما
             </p>
             <div className="overflow-hidden rounded-md border w-full">
@@ -191,49 +126,49 @@ const VehicleDashboard = () => {
                     paidTransactions.length > 0 &&
                     paidTransactions?.map((item, index) => (
                       <TableRow
-                        key={`${item._id}-${index}`}
+                        key={`${item?._id}-${index}`}
                         className="hover:bg-gray-50"
                       >
                         <TableCell className="text-center">
                           {index + 1}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.TransactionDate ?? ""}
+                          {item?.TransactionDate ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.TransactionAmount.toLocaleString() ?? ""}
+                          {item?.TransactionAmount.toLocaleString() ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.CustomerNationalID ?? ""}
+                          {item?.CustomerNationalID ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.TransactionReason ?? ""}
+                          {item?.TransactionReason ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.TransactionMethod ?? ""}
+                          {item?.TransactionMethod ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.ShowroomCard ?? ""}
+                          {item?.ShowroomCard ?? ""}
                         </TableCell>
                       </TableRow>
                     ))}
                 </TableBody>
               </Table>
             </div>
-            <div className="grid grid-cols-3 gap-3 item-center mt-3">
-              <div>
+            <div className="grid grid-cols-3 gap-3 item?-center mt-3">
+              <div className="space-y-2">
                 <p className="text-xs">مانده مبلغ قابل پرداخت به فروشنده</p>
                 <p className="font-bold text-sm">
                   {remainingToSeller.toLocaleString() ?? ""}
                 </p>
               </div>
-              <div>
+              <div className="space-y-2">
                 <p className="text-xs">مجموع پرداختی به فروشنده و کارگزاران</p>
                 <p className="text-red-500 text-sm">
                   {totalPaidToAll ? totalPaidToAll.toLocaleString() : ""}
                 </p>
               </div>
-              <div>
+              <div className="space-y-2">
                 <p className="text-xs">مجموع پرداختی به فروشنده</p>
                 <p className="text-red-500 text-sm">
                   {totalPaidToSeller ? totalPaidToSeller.toLocaleString() : ""}
@@ -243,7 +178,7 @@ const VehicleDashboard = () => {
           </div>
 
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-green-500 absolute left-2 -top-5 bg-white py-2 px-4">
+            <p className="text-green-500 absolute right-2 -top-5 bg-white py-2 px-4">
               دریافت های شما
             </p>
             <div className="overflow-hidden rounded-md border w-full">
@@ -268,44 +203,44 @@ const VehicleDashboard = () => {
                     receivedTransactions.length > 0 &&
                     receivedTransactions?.map((item, index) => (
                       <TableRow
-                        key={`${item._id}-${index}`}
+                        key={`${item?._id}-${index}`}
                         className="hover:bg-gray-50"
                       >
                         <TableCell className="text-center">
                           {index + 1}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.TransactionDate ?? ""}
+                          {item?.TransactionDate ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.TransactionAmount.toLocaleString() ?? ""}
+                          {item?.TransactionAmount.toLocaleString() ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.CustomerNationalID ?? ""}
+                          {item?.CustomerNationalID ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.TransactionReason ?? ""}
+                          {item?.TransactionReason ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.TransactionMethod ?? ""}
+                          {item?.TransactionMethod ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.ShowroomCard ?? ""}
+                          {item?.ShowroomCard ?? ""}
                         </TableCell>
                       </TableRow>
                     ))}
                 </TableBody>
               </Table>
             </div>
-            <div className="grid grid-cols-2 gap-3 item-center mt-3">
-              <div>
+            <div className="grid grid-cols-2 gap-3 item?-center mt-3">
+              <div className="space-y-2">
                 <p className="text-xs">مانده مبلغ قابل پرداخت به خریدار</p>
                 <p className="font-bold text-sm">
                   {remainingForBuyer.toLocaleString() ?? ""}
                 </p>
               </div>
 
-              <div>
+              <div className="space-y-2">
                 <p className="text-xs">مجموع دریافتی از خریدار</p>
                 <p className="text-green-500 text-sm">
                   {totalReceived ? totalReceived.toLocaleString() : ""}
@@ -319,7 +254,7 @@ const VehicleDashboard = () => {
       <div className="mt-7">
         <div className="w-full flex justify-center gap-4">
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-blue-300 absolute left-2 -top-5 bg-white py-2 px-4">
+            <p className="text-blue-300 absolute right-2 -top-5 bg-white py-2 px-4">
               افزایش سرمایه
             </p>
             <div className="overflow-hidden rounded-md border w-full">
@@ -342,34 +277,34 @@ const VehicleDashboard = () => {
                 <TableBody>
                   {investment?.data.map((item, index) => (
                     <TableRow
-                      key={`${item._id}-${index}`}
+                      key={`${item?._id}-${index}`}
                       className="hover:bg-gray-50"
                     >
                       <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell className="text-center">
-                        {item.TransactionDate ?? ""}
+                        {item?.TransactionDate ?? ""}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.TransactionAmount.toLocaleString() ?? ""}
+                        {item?.TransactionAmount.toLocaleString() ?? ""}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.Partner ?? ""}
+                        {item?.Partner ?? ""}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.Broker ?? ""}
+                        {item?.Broker ?? ""}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.TransactionReason ?? ""}
+                        {item?.TransactionReason ?? ""}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.TransactionMethod ?? ""}
+                        {item?.TransactionMethod ?? ""}
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </div>
-            <div className="flex gap-3 item-center justify-between mt-3">
+            <div className="flex gap-3 item?-center justify-between mt-3">
               <p className="text-sm">
                 در جدول بالا منظور از درصد، درصد مشارکت سرمایه گذار در تامین
                 سرمایه است.
@@ -379,7 +314,7 @@ const VehicleDashboard = () => {
           </div>
 
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-blue-300 absolute left-2 -top-5 bg-white py-2 px-4">
+            <p className="text-blue-300 absolute right-2 -top-5 bg-white py-2 px-4">
               چک های صادره و وارده
             </p>
             <div className="overflow-hidden rounded-md border w-full">
@@ -397,39 +332,47 @@ const VehicleDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {item3.map((item) => (
+                  {unpaidCheques?.data?.cheques?.map((item, index) => (
                     <TableRow
-                      key={item.id}
+                      key={`${item?._id}-${index}`}
                       className="has-data-[state=checked]:bg-muted/50"
                     >
-                      <TableCell className="text-center">{item.id}</TableCell>
+                      <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell className="text-center">
-                        {item.customerName}
+                        {item?.CustomerName}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.price}
+                        {item?.ChequeAmount}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.datebook}
+                        {item?.ChequeDueDate}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.checkStatus}
+                        {item?.ChequeStatus}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.shenaseSayadi}
+                        {item?.SayadiID}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.serialCheck}
+                        {item?.ChequeSerial}
                       </TableCell>
-                      <TableCell className="text-center">{item.bank}</TableCell>
+                      <TableCell className="text-center">
+                        {item?.Bank}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </div>
-            <div className="flex gap-3 item-center justify-end mt-3">
-              <span className="text-xs">مجموع چک های صادره وصول نشده</span>
-              <span className="text-xs">مجموع چک های وارده وصول نشده</span>
+            <div className="flex gap-3 item??-center justify-end mt-3">
+              <p className="flex gap-2 items-center">
+                <span className="text-xs">مجموع چک های صادره وصول نشده</span>
+                <span>{unpaidCheques?.data.totals.issuedUnpaid}</span>
+              </p>
+              <p className="flex gap-2 items-center">
+                <span className="text-xs">مجموع چک های وارده وصول نشده</span>
+                <span>{unpaidCheques?.data.totals.receivedUnpaid}</span>
+              </p>
             </div>
           </div>
         </div>

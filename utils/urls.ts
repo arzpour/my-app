@@ -15,4 +15,5 @@ export const urls = {
   },
   detailsByChassisNo: (chassisNo: string) => `/cars/${chassisNo}/details`,
   investmentByChassis: (chassisNo: string) => `/investment/${chassisNo}`,
+  operatorPercent: "/brokers"
 };

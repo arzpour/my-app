@@ -15,7 +15,7 @@ export const getChequeByChassis: getChequeByChassisType = async (
   return response.data;
 };
 
-type getUnpaidChequesType = (chassisNo: string) => Promise<IChequeRes>;
+type getUnpaidChequesType = (chassisNo: string) => Promise<IUnpaidCheque>;
 export const getUnpaidCheques: getUnpaidChequesType = async (
   chassisNo: string
 ) => {
