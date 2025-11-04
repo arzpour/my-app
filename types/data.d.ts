@@ -21,6 +21,8 @@ interface ICarRes {
   Secretary: string;
   DocumentsCopy: string;
   SellerNationalID: number;
+  BuyerNationalID: number;
+  status?: string;
 }
 
 interface IChequeRes {
@@ -62,6 +64,7 @@ interface ITransactionRes {
   BankDocument: string;
   Partner: string;
   Broker: number;
+  status?: string;
 }
 
 interface IDetailsByChassis {
@@ -88,4 +91,21 @@ interface IUnpaidCheque {
 
 interface IOperatorPercent {
   data: { name: string; buyPercent: number; sellPercent: number }[];
+}
+
+interface IUserWithStatus extends ICarRes {
+  name: string;
+  nationalId?: string | number;
+  status: "خریدار" | "فروشنده" | "خریدار / فروشنده";
+}
+
+interface IUniqeUsersData {
+  name: string;
+  nationalId: string;
+  roles: string[];
+}
+
+interface ICarDataByNationalIdOrName {
+  purchases: ICarRes[];
+  sales: ICarRes[];
 }

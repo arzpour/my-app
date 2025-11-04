@@ -22,10 +22,8 @@ const Header = () => {
   const [selectedChassis, setSelectedChassis] =
     React.useState<string>(chassisNoSaved);
   const [carInfo, setCarInfo] = React.useState<ICarRes | null>(null);
-  console.log("🚀 ~ Header ~ carInfo:", carInfo);
   const [operatorPercent, setOperatorPercent] =
     React.useState<IOperatorPercent | null>(null);
-  console.log("🚀 ~ Header ~ operatorPercent:", operatorPercent);
 
   const { data: chassisNo } = useGetAllChassisNo();
   const getCarByChassisNo = useGetCarByChassisNo();
@@ -38,7 +36,6 @@ const Header = () => {
     try {
       const res = await getCarByChassisNo.mutateAsync(chassisNo);
       const percents = await getOperatorPercent.mutateAsync();
-      console.log("🚀 ~ handleSelectChassis ~ percents:", percents);
       setOperatorPercent(percents);
       setCarInfo(res);
     } catch (error) {
@@ -81,9 +78,7 @@ const Header = () => {
     <div className="border border-b-2 border-gray-300 rounded flex flex-col gap-2 p-4 pb-2.5 relative">
       <div className="grid grid-cols-9 gap-3 items-start justify-start">
         <div className="space-y-1">
-          <h3 className="text-sm font-bold mb-2 text-blue-900">
-            شاسی:
-          </h3>
+          <h3 className="text-sm font-bold mb-2 text-blue-900">شاسی:</h3>
           <Select onValueChange={handleSelectChassis} value={selectedChassis}>
             <SelectTrigger className="w-[120px] text-sm">
               <SelectValue placeholder="انتخاب شاسی" />
@@ -183,7 +178,7 @@ const Header = () => {
         </div>
       </div>
       <hr />
-      <div className="grid grid-cols-4 gap-8 items-start justify-start">
+      <div className="grid grid-cols-4 gap-8 items-center justify-start">
         <div className="flex gap-2 items-right items-baseline text-sm">
           <p className="text-sm">وضعیت خودرو:</p>
           <p className="px-7 bg-green-400 text-red-900 rounded py-1 text-sm">

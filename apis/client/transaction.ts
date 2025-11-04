@@ -1,7 +1,7 @@
 import { urls } from "@/utils/urls";
 import { axiosInstance } from "./instance";
 
-type getAllTransactionsType = () => Promise<ITransactionRes>;
+type getAllTransactionsType = () => Promise<ITransactionRes[]>;
 export const getAllTransactions: getAllTransactionsType = async () => {
   const response = await axiosInstance.get(urls.transactions.list);
   return response.data;
@@ -9,7 +9,7 @@ export const getAllTransactions: getAllTransactionsType = async () => {
 
 type getTransactionByChassisType = (
   chassisNo: string
-) => Promise<IChequeRes[]>;
+) => Promise<ITransactionRes[]>;
 export const getTransactionByChassis: getTransactionByChassisType = async (
   chassisNo: string
 ) => {

@@ -42,9 +42,9 @@ const tabs = [
 const TabsComponent = () => {
   return (
     <Tabs
-      defaultValue="vehicleDashboard"
+      defaultValue="customersDashboard"
       orientation="vertical"
-      className="h-full w-full flex justify-end items-end"
+      className="h-full w-full flex justify-start items-start"
       dir="rtl"
     >
       <TabsList>

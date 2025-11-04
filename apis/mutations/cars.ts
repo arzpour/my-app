@@ -1,6 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { getCarByChassisNo } from "../client/cars";
-
+import { getCarByChassisNo, getCarByNationalId } from "../client/cars";
 
 export const useGetCarByChassisNo = () => {
   return useMutation({
@@ -8,3 +7,11 @@ export const useGetCarByChassisNo = () => {
     mutationFn: getCarByChassisNo,
   });
 };
+
+export const useGetCarByNationalId = () => {
+  return useMutation({
+    mutationKey: ["get-car-by-national-id"],
+    mutationFn: getCarByNationalId,
+  });
+};
+

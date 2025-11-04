@@ -32,7 +32,7 @@ const VehicleDashboard = () => {
   const getInvestmentByChassis = useGetInvestmentByChassis();
   const getUnpaidCheques = useGetUnpaidCheques();
 
-  const handleChequeByChassisNoData = async (chassisNo: string) => {
+  const handleDataByChassisNoData = async (chassisNo: string) => {
     try {
       const details = await getDetailByChassisNo.mutateAsync(chassisNo);
       const investment = await getInvestmentByChassis.mutateAsync(chassisNo);
@@ -92,7 +92,7 @@ const VehicleDashboard = () => {
   const totalBroker = investment?.data.reduce((sum, t) => sum + t.Broker, 0);
 
   React.useEffect(() => {
-    handleChequeByChassisNoData(chassisNo);
+    handleDataByChassisNoData(chassisNo);
   }, [chassisNo]);
 
   return (

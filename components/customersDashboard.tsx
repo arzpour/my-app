@@ -1,3 +1,7 @@
+"use client";
+import { getFilterByUserData } from "@/apis/client/cars";
+import { useGetChequeByChassisNo } from "@/apis/mutations/cheques";
+import { useGetTransactionByChassisNo } from "@/apis/mutations/transaction";
 import {
   Table,
   TableBody,
@@ -6,588 +10,123 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-const items = [
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-  {
-    id: "1",
-    fullName: "محسن تبزر",
-    nationalCode: "۲۳۶۲۶۴۷۴۶۴",
-    role: "فروشنده",
-  },
-];
-
-const item1 = [
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-  {
-    id: "1",
-    chassis: "23232",
-    model: "پارس",
-    date: "1404/02/12",
-    price: "2930000",
-    empty: "",
-  },
-];
-
-const item2 = [
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-  {
-    id: "1",
-    date: "1402/03/11",
-    price: "2389112",
-    transaction: "پرداخت - خرید",
-    empty: "",
-  },
-];
-
-const item3 = [
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-  {
-    id: "1",
-    checkSerial: "324433",
-    shenaseSayadi: "شناسه صیادی",
-    price: "223333",
-    datebookDate: "1402/12/02",
-  },
-];
+import useGetUniqUsersData from "@/hooks/useGetUserData";
+import { RootState } from "@/redux/store";
+import React from "react";
+import { useSelector } from "react-redux";
 
 const CustomersDashboard = () => {
+  const [carDataByNationalCode, setCarDataByNationalCode] =
+    React.useState<ICarDataByNationalIdOrName | null>(null);
+  const [chequeByChassis, setChequeByChassis] = React.useState<
+    IChequeRes[] | null
+  >(null);
+  const [transactionByChassis, setTransactionByChassis] = React.useState<
+    ITransactionRes[] | null
+  >(null);
+
+  const { chassisNo } = useSelector((state: RootState) => state.cars);
+  const getChequeByChassisNo = useGetChequeByChassisNo();
+  const getTransactionByChassisNo = useGetTransactionByChassisNo();
+  const { data: allUniqUsers } = useGetUniqUsersData();
+
+  const handleCarDataByNationalId = async (
+    nationalId: string,
+    userName: string
+  ) => {
+    try {
+      const res = await getFilterByUserData({ nationalId, userName });
+      setCarDataByNationalCode(res);
+    } catch (error) {
+      console.log("🚀 ~ handleSelectChassis ~ error:", error);
+      setCarDataByNationalCode(null);
+    }
+  };
+
+  const handleTransationDataByChassisNo = async (chassisNo: string) => {
+    try {
+      const res = await getTransactionByChassisNo.mutateAsync(chassisNo);
+      setTransactionByChassis(res);
+    } catch (error) {
+      console.log("🚀 ~ handleSelectChassis ~ error:", error);
+    }
+  };
+
+  const handleChequeDataByChassisNo = async (chassisNo: string) => {
+    try {
+      const res = await getChequeByChassisNo.mutateAsync(chassisNo);
+      setChequeByChassis(res);
+    } catch (error) {
+      console.log("🚀 ~ handleSelectChassis ~ error:", error);
+    }
+  };
+
+  const totalBuyAmount = carDataByNationalCode?.purchases?.reduce(
+    (sum, t) => sum + t.PurchaseAmount,
+    0
+  );
+  const totalSellAmount = carDataByNationalCode?.sales?.reduce(
+    (sum, t) => sum + t.SaleAmount,
+    0
+  );
+  const diffBuySell = (totalSellAmount || 0) - (totalBuyAmount || 0);
+
+  const totalReceived = transactionByChassis
+    ?.filter((t) => t.TransactionType === "دریافت")
+    .reduce((sum, t) => sum + t.TransactionAmount, 0);
+  const totalPayment = transactionByChassis
+    ?.filter((t) => t.TransactionType === "پرداخت")
+    .reduce((sum, t) => sum + t.TransactionAmount, 0);
+
+  const diffPaymentReceived = (totalPayment || 0) - (totalReceived || 0);
+
+  const uniqeUsersRole = (userRole: string[]) => {
+    let role;
+    if (userRole.includes("buyer")) {
+      role = "خریدار";
+    } else if (userRole.includes("seller")) {
+      role = "فروشنده";
+    } else if (userRole.includes("seller") && userRole.includes("seller")) {
+      role = "خریدار / فروشنده";
+    } else {
+      role = "";
+    }
+    return role;
+  };
+
+  React.useEffect(() => {
+    handleTransationDataByChassisNo(chassisNo);
+    handleChequeDataByChassisNo(chassisNo);
+  }, [chassisNo]);
+
   return (
     <>
-      <div className="grid grid-cols-3 gap-9 justify-between items-center">
+      <div className="grid grid-cols-3 gap-9 justify-between items-center mt-3">
         <div className="flex justify-between items-center">
           <p className="text-sm">
             مورد جستجو میتواند بخشی از نام و یا کد ملی مشتری باشد.
           </p>
-          <input type="text" className="w-32 border border-gray-600 p-0 h-7" />
+          <input
+            type="text"
+            placeholder="اینجا تایپ کنید..."
+            className="w-32 border border-gray-600 p-0 h-7 rounded-md pr-2"
+          />
         </div>
         <div className="flex justify-between items-center">
           <p className="text-sm">تفاضل مبالغ خرید و فروش مشتری(فروش - خرید):</p>
-          <p className="text-yellow-900">-28392833892</p>
+          <p className="text-yellow-900">{diffBuySell}</p>
         </div>
         <div className="flex justify-between items-center">
           <p className="text-sm">
             تفاضل مبالغ دریافتی و پرداختی(پرداخت - دریافت):
           </p>
-          <p className="text-yellow-900">-2245392833892</p>
+          <p className="text-yellow-900">{diffPaymentReceived}</p>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-5 items-start mt-8">
         <div className="border border-gray-300 p-4 rounded-md relative w-full">
-          <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
-            چک های مشتری
+          <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
+            اسامی مشتری
           </p>
           <div className="max-h-[28rem] overflow-y-auto rounded-md border w-full">
             <Table className="min-w-full table-fixed text-right border-collapse">
@@ -601,16 +140,24 @@ const CustomersDashboard = () => {
               </TableHeader>
 
               <TableBody>
-                {items.map((item) => (
-                  <TableRow key={item.id} className="hover:bg-gray-50">
-                    <TableCell className="text-center">{item.id}</TableCell>
+                {allUniqUsers?.map((item, index) => (
+                  <TableRow
+                    key={`${item?.name}-${index}`}
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={() => {
+                      handleCarDataByNationalId(item.nationalId, item.name);
+                    }}
+                  >
+                    <TableCell className="text-center">{index + 1}</TableCell>
                     <TableCell className="text-center">
-                      {item.fullName}
+                      {item.name ?? "__"}
                     </TableCell>
                     <TableCell className="text-center">
-                      {item.nationalCode}
+                      {item.nationalId ?? "__"}
                     </TableCell>
-                    <TableCell className="text-center">{item.role}</TableCell>
+                    <TableCell className="text-center">
+                      {uniqeUsersRole(item.roles) ?? "__"}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -619,7 +166,7 @@ const CustomersDashboard = () => {
         </div>
         <div className="space-y-6">
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-blue-500 absolute left-2 -top-6 bg-white py-2 px-4">
+            <p className="text-blue-500 absolute right-2 -top-6 bg-white py-2 px-4">
               فروشنده خودرو
             </p>
             <div className="max-h-40 overflow-y-auto rounded-md border w-full">
@@ -631,38 +178,51 @@ const CustomersDashboard = () => {
                     <TableHead className="w-12 text-center">مدل</TableHead>
                     <TableHead className="w-12 text-center">تاریخ</TableHead>
                     <TableHead className="w-12 text-center">قیمت</TableHead>
-                    <TableHead className="w-12 text-center">{""}</TableHead>
+                    {/* <TableHead className="w-12 text-center">{"-"}</TableHead> */}
                   </TableRow>
                 </TableHeader>
 
-                <TableBody>
-                  {item1.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-gray-50">
-                      <TableCell className="text-center">{item.id}</TableCell>
-                      <TableCell className="text-center">
-                        {item.chassis}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.model}
-                      </TableCell>
-                      <TableCell className="text-center">{item.date}</TableCell>
-                      <TableCell className="text-center">
-                        {item.price}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.empty}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                {carDataByNationalCode?.sales?.length &&
+                carDataByNationalCode?.sales?.length > 0 ? (
+                  <TableBody>
+                    {carDataByNationalCode?.sales?.map((item, index) => (
+                      <TableRow
+                        key={`${item?._id}-${index}`}
+                        onClick={() => {
+                          handleChequeDataByChassisNo(item.ChassisNo);
+                          handleTransationDataByChassisNo(item.ChassisNo);
+                        }}
+                        className="hover:bg-gray-50 cursor-pointer"
+                      >
+                        <TableCell className="text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item.ChassisNo}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item.CarModel}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item.SaleDate}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item.SaleAmount}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                ) : null}
               </Table>
             </div>
-            <p className="text-green-400 mt-3 flex justify-end">
-              33328888940000
-            </p>
+            {totalSellAmount && Number(totalSellAmount) > 0 ? (
+              <p className="text-green-400 mt-3 flex justify-end">
+                {totalSellAmount}
+              </p>
+            ) : null}
           </div>
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-blue-500 absolute left-2 -top-6 bg-white py-2 px-4">
+            <p className="text-blue-500 absolute right-2 -top-6 bg-white py-2 px-4">
               خریدار خودرو
             </p>
             <div className="max-h-40 overflow-y-auto rounded-md border w-full">
@@ -674,40 +234,52 @@ const CustomersDashboard = () => {
                     <TableHead className="w-12 text-center">مدل</TableHead>
                     <TableHead className="w-12 text-center">تاریخ</TableHead>
                     <TableHead className="w-12 text-center">قیمت</TableHead>
-                    <TableHead className="w-12 text-center">{""}</TableHead>
                   </TableRow>
                 </TableHeader>
 
-                <TableBody>
-                  {item1.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-gray-50">
-                      <TableCell className="text-center">{item.id}</TableCell>
-                      <TableCell className="text-center">
-                        {item.chassis}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.model}
-                      </TableCell>
-                      <TableCell className="text-center">{item.date}</TableCell>
-                      <TableCell className="text-center">
-                        {item.price}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.empty}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                {carDataByNationalCode?.purchases?.length &&
+                carDataByNationalCode?.purchases?.length > 0 ? (
+                  <TableBody>
+                    {carDataByNationalCode?.purchases?.map((item, index) => (
+                      <TableRow
+                        key={`${item?._id}-${index}`}
+                        onClick={() => {
+                          handleChequeDataByChassisNo(item.ChassisNo);
+                          handleTransationDataByChassisNo(item.ChassisNo);
+                        }}
+                        className="hover:bg-gray-50 cursor-pointer"
+                      >
+                        <TableCell className="text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item.ChassisNo}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item.CarModel}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item.PurchaseDate}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item.PurchaseAmount}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                ) : null}
               </Table>
             </div>
-            <p className="text-yellow-600 mt-3 flex justify-end">
-              33328888940000
-            </p>
+            {totalBuyAmount && Number(totalBuyAmount) > 0 ? (
+              <p className="text-yellow-600 mt-3 flex justify-end">
+                {totalBuyAmount}
+              </p>
+            ) : null}
           </div>
         </div>
         <div className="space-y-6">
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-blue-500 absolute left-2 -top-6 bg-white py-2 px-4">
+            <p className="text-blue-500 absolute right-2 -top-6 bg-white py-2 px-4">
               دریافت و پرداخت
             </p>
             <div className="max-h-40 overflow-y-auto rounded-md border w-full">
@@ -718,46 +290,49 @@ const CustomersDashboard = () => {
                     <TableHead className="w-12 text-center">تاریخ</TableHead>
                     <TableHead className="w-12 text-center">مبلغ</TableHead>
                     <TableHead className="w-12 text-center">تراکنش</TableHead>
-                    <TableHead className="w-12 text-center">{""}</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                  {item2.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-gray-50">
-                      <TableCell className="text-center">{item.id}</TableCell>
-                      <TableCell className="text-center">{item.date}</TableCell>
+                  {transactionByChassis?.map((item, index) => (
+                    <TableRow
+                      key={`${item?._id}-${index}`}
+                      className="hover:bg-gray-50 cursor-pointer"
+                    >
+                      <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell className="text-center">
-                        {item.price}
+                        {item.TransactionDate}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.transaction}
+                        {item.TransactionAmount}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.empty}
+                        {item.TransactionType} - {item.TransactionReason}
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </div>
-            <div className="flex justify-between items-center gap-2">
-              <div className="flex gap-6 items-baseline">
-                <p className="text-sm">پرداخت</p>
-                <p className="text-red-500 mt-3 flex justify-end">
-                  33328888940000
-                </p>
+            {transactionByChassis && (
+              <div className="flex justify-between items-center gap-2">
+                <div className="flex gap-3 items-baseline">
+                  <p className="text-sm">پرداخت</p>
+                  <p className="text-red-500 mt-3 flex justify-end">
+                    {totalPayment}
+                  </p>
+                </div>
+                <div className="flex gap-3 items-baseline">
+                  <p className="text-sm">دریافت</p>
+                  <p className="text-blue-500 mt-3 flex justify-end">
+                    {totalReceived}
+                  </p>
+                </div>
               </div>
-              <div className="flex gap-6 items-baseline">
-                <p className="text-blue-500 mt-3 flex justify-end">
-                  33328888940000
-                </p>
-                <p className="text-sm">دریافت</p>
-              </div>
-            </div>
+            )}
           </div>
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-blue-500 absolute left-2 -top-6 bg-white py-2 px-4">
+            <p className="text-blue-500 absolute right-2 -top-6 bg-white py-2 px-4">
               وضعیت چک ها
             </p>
             <div className="max-h-[195px] overflow-y-auto rounded-md border w-full">
@@ -777,20 +352,23 @@ const CustomersDashboard = () => {
                 </TableHeader>
 
                 <TableBody>
-                  {item3.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-gray-50">
-                      <TableCell className="text-center">{item.id}</TableCell>
+                  {chequeByChassis?.map((item, index) => (
+                    <TableRow
+                      key={`${item?._id}-${index}`}
+                      className="hover:bg-gray-50 cursor-pointer"
+                    >
+                      <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell className="text-center">
-                        {item.checkSerial}
+                        {item.ChequeSerial}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.shenaseSayadi}
+                        {item.SayadiID}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.price}
+                        {item.ChequeAmount}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.datebookDate}
+                        {item.ChequeDueDate}
                       </TableCell>
                     </TableRow>
                   ))}
