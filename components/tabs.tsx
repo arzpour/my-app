@@ -42,7 +42,7 @@ const tabs = [
 const TabsComponent = () => {
   return (
     <Tabs
-      defaultValue="customersDashboard"
+      defaultValue="checkDashboard"
       orientation="vertical"
       className="h-full w-full flex justify-start items-start"
       dir="rtl"
