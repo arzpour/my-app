@@ -109,7 +109,7 @@ const CustomersDashboard = () => {
           <input
             type="text"
             placeholder="اینجا تایپ کنید..."
-            className="w-32 border border-gray-600 p-0 h-7 rounded-md pr-2"
+            className="w-32 border border-gray-600 p-0 h-7 rounded-md pr-2 placeholder:text-sm"
           />
         </div>
         <div className="flex justify-between items-center">
@@ -132,10 +132,12 @@ const CustomersDashboard = () => {
             <Table className="min-w-full table-fixed text-right border-collapse">
               <TableHeader>
                 <TableRow className="bg-gray-100">
-                  <TableHead className="w-12 text-center">ردیف</TableHead>
-                  <TableHead className="w-12 text-center">نام کامل</TableHead>
-                  <TableHead className="w-12 text-center">کدملی</TableHead>
-                  <TableHead className="w-12 text-center">نقش</TableHead>
+                  <TableHead className="w-[15%] text-center">ردیف</TableHead>
+                  <TableHead className="w-[65%] text-center">
+                    نام کامل
+                  </TableHead>
+                  <TableHead className="w-[30%] text-center">کدملی</TableHead>
+                  <TableHead className="w-[30%] text-center">نقش</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -149,13 +151,13 @@ const CustomersDashboard = () => {
                     }}
                   >
                     <TableCell className="text-center">{index + 1}</TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center break-words">
                       {item.name ?? "__"}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center break-words">
                       {item.nationalId ?? "__"}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center break-words">
                       {uniqeUsersRole(item.roles) ?? "__"}
                     </TableCell>
                   </TableRow>
@@ -173,12 +175,11 @@ const CustomersDashboard = () => {
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader>
                   <TableRow className="bg-gray-100">
-                    <TableHead className="w-12 text-center">ردیف</TableHead>
-                    <TableHead className="w-12 text-center">شاسی</TableHead>
-                    <TableHead className="w-12 text-center">مدل</TableHead>
-                    <TableHead className="w-12 text-center">تاریخ</TableHead>
-                    <TableHead className="w-12 text-center">قیمت</TableHead>
-                    {/* <TableHead className="w-12 text-center">{"-"}</TableHead> */}
+                    <TableHead className="w-[15%] text-center">ردیف</TableHead>
+                    <TableHead className="w-[35%] text-center">شاسی</TableHead>
+                    <TableHead className="w-[55%] text-center">مدل</TableHead>
+                    <TableHead className="w-[35%] text-center">تاریخ</TableHead>
+                    <TableHead className="w-[30%] text-center">قیمت</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -229,11 +230,11 @@ const CustomersDashboard = () => {
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader>
                   <TableRow className="bg-gray-100">
-                    <TableHead className="w-12 text-center">ردیف</TableHead>
-                    <TableHead className="w-12 text-center">شاسی</TableHead>
-                    <TableHead className="w-12 text-center">مدل</TableHead>
-                    <TableHead className="w-12 text-center">تاریخ</TableHead>
-                    <TableHead className="w-12 text-center">قیمت</TableHead>
+                    <TableHead className="w-[15%] text-center">ردیف</TableHead>
+                    <TableHead className="w-[35%] text-center">شاسی</TableHead>
+                    <TableHead className="w-[55%] text-center">مدل</TableHead>
+                    <TableHead className="w-[35%] text-center">تاریخ</TableHead>
+                    <TableHead className="w-[30%] text-center">قیمت</TableHead>
                   </TableRow>
                 </TableHeader>
 
