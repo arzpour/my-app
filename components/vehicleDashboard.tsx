@@ -13,9 +13,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { setTotalVehicleCost } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
 import React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const VehicleDashboard = () => {
   const { chassisNo } = useSelector((state: RootState) => state.cars);
@@ -27,29 +28,43 @@ const VehicleDashboard = () => {
   const [unpaidCheques, setUnpaidCheques] =
     React.useState<IUnpaidCheque | null>(null);
 
+  const dispatch = useDispatch();
 
   const getDetailByChassisNo = useGetDetailByChassisNo();
   const getInvestmentByChassis = useGetInvestmentByChassis();
   const getUnpaidCheques = useGetUnpaidCheques();
 
-  const handleDataByChassisNoData = async (chassisNo: string) => {
+  const handleCarDetailDataByChassisNoData = async (chassisNo: string) => {
     try {
       const details = await getDetailByChassisNo.mutateAsync(chassisNo);
-      const investment = await getInvestmentByChassis.mutateAsync(chassisNo);
-      const unpaidCheques = await getUnpaidCheques.mutateAsync(chassisNo);
-
-      setUnpaidCheques(unpaidCheques);
 
       setVehicleDetails(details);
-      setInvestment(investment);
     } catch (error) {
       console.log("🚀 ~ handleSelectChassis ~ error:", error);
       setVehicleDetails(null);
+    }
+  };
+  const handleInvestmentDataByChassisNoData = async (chassisNo: string) => {
+    try {
+      const investment = await getInvestmentByChassis.mutateAsync(chassisNo);
+
+      setInvestment(investment);
+    } catch (error) {
+      console.log("🚀 ~ handleSelectChassis ~ error:", error);
       setInvestment(null);
-      setUnpaidCheques(null);
     }
   };
 
+  const handleUnpaidDataByChassisNoData = async (chassisNo: string) => {
+    try {
+      const unpaidCheques = await getUnpaidCheques.mutateAsync(chassisNo);
+
+      setUnpaidCheques(unpaidCheques);
+    } catch (error) {
+      console.log("🚀 ~ handleSelectChassis ~ error:", error);
+      setUnpaidCheques(null);
+    }
+  };
   const totalPaid = vehicleDetails?.transactions.reduce(
     (sum, t) => sum + t.TransactionAmount,
     0
@@ -92,7 +107,9 @@ const VehicleDashboard = () => {
   const totalBroker = investment?.data.reduce((sum, t) => sum + t.Broker, 0);
 
   React.useEffect(() => {
-    handleDataByChassisNoData(chassisNo);
+    handleUnpaidDataByChassisNoData(chassisNo);
+    handleCarDetailDataByChassisNoData(chassisNo);
+    handleInvestmentDataByChassisNoData(chassisNo);
   }, [chassisNo]);
 
   return (
@@ -124,34 +141,59 @@ const VehicleDashboard = () => {
                 <TableBody>
                   {paidTransactions &&
                     paidTransactions.length > 0 &&
-                    paidTransactions?.map((item, index) => (
-                      <TableRow
-                        key={`${item?._id}-${index}`}
-                        className="hover:bg-gray-50"
-                      >
-                        <TableCell className="text-center">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item?.TransactionDate ?? ""}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item?.TransactionAmount.toLocaleString() ?? ""}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item?.CustomerNationalID ?? ""}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item?.TransactionReason ?? ""}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item?.TransactionMethod ?? ""}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item?.ShowroomCard ?? ""}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    paidTransactions?.map((item, index) => {
+                      const totalVehicleCost = paidTransactions
+                        ?.filter(
+                          (item) =>
+                            item?.TransactionReason?.replace(
+                              /\s/g,
+                              ""
+                            ).includes("هزینهوسیله") ||
+                            item?.TransactionReason?.replace(
+                              /\s/g,
+                              ""
+                            ).includes("هزينهوسیله")
+                        )
+                        ?.reduce(
+                          (sum, item) => sum + (item.TransactionAmount || 0),
+                          0
+                        );
+                      console.log(
+                        "🚀 ~ VehicleDashboard ~ totalVehicleCost:",
+                        totalVehicleCost
+                      );
+
+                      dispatch(setTotalVehicleCost(totalVehicleCost));
+
+                      return (
+                        <TableRow
+                          key={`${item?._id}-${index}`}
+                          className="hover:bg-gray-50"
+                        >
+                          <TableCell className="text-center">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.TransactionDate ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.TransactionAmount.toLocaleString() ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.CustomerNationalID ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.TransactionReason ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.TransactionMethod ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.ShowroomCard ?? ""}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                 </TableBody>
               </Table>
             </div>

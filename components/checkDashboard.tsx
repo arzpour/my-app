@@ -22,12 +22,6 @@ import SelectForFilterCheques from "./selectForFilterCheques";
 const CheckDashboard = () => {
   const { data = [] } = useGetAllCheques();
 
-  const [stats, setStats] = React.useState({
-    pending: 0,
-    returned: 0,
-    importedThisMonth: 0,
-    issuedThisMonth: 0,
-  });
   const [selectedChequeSerial, setSelectedChequeSerial] = React.useState("همه");
   const [selectedSayadiId, setSelectedSayadiId] = React.useState("همه");
   const [selectedCustomerType, setSelectedCustomerType] = React.useState("همه");
@@ -43,10 +37,11 @@ const CheckDashboard = () => {
   const [maxAmount, setMaxAmount] = React.useState<number | undefined>();
   const [appliedFilters, setAppliedFilters] = React.useState(false);
 
-  const getOptions = (key: string) => [
-    "همه",
-    ...(data?.map((d: any) => d[key] ?? "") ?? []),
-  ];
+  const getOptions = (key: string) => {
+    const values = data?.map((d: any) => d[key] ?? "") ?? [];
+    const uniqueValues = Array.from(new Set(values.filter(Boolean)));
+    return ["همه", ...uniqueValues];
+  };
 
   const chequeSerialOptions = getOptions("ChequeSerial").filter(Boolean);
   const sayadiIdOptions = getOptions("SayadiID").filter(Boolean);
@@ -156,37 +151,33 @@ const CheckDashboard = () => {
     setAppliedFilters(false);
   };
 
-  React.useEffect(() => {
+  const stats = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth() + 1;
     const currentYear = now.getFullYear();
-
     const pending =
-      filteredData?.filter((item) => item.ChequeStatus !== "وصول شد")?.length ||
-      0;
+      filteredData?.filter((i) => i.ChequeStatus !== "وصول شد")?.length || 0;
     const returned =
-      filteredData?.filter((item) => item.ChequeStatus === "برگشتی")?.length ||
-      0;
+      filteredData?.filter((i) => i.ChequeStatus === "برگشتی")?.length || 0;
     const importedThisMonth =
-      imported?.filter((item) => {
-        const [year, month] = item.ChequeDueDate.split("/").map(Number);
+      imported?.filter((i) => {
+        const [year, month] = i.ChequeDueDate.split("/").map(Number);
         return year === currentYear && month === currentMonth;
       })?.length || 0;
     const issuedThisMonth =
-      issued?.filter((item) => {
-        const [year, month] = item.ChequeDueDate.split("/").map(Number);
+      issued?.filter((i) => {
+        const [year, month] = i.ChequeDueDate.split("/").map(Number);
         return year === currentYear && month === currentMonth;
       })?.length || 0;
-
-    setStats({ pending, returned, importedThisMonth, issuedThisMonth });
+    return { pending, returned, importedThisMonth, issuedThisMonth };
   }, [filteredData, imported, issued]);
 
   return (
     <div>
       <div className="grid [grid-template-columns:1fr_1fr_1fr_0.5fr_0.5fr] gap-6 items-start mt-4">
         <div className="space-y-6">
-          <div className="border border-gray-300 p-4 rounded-md relative">
-            <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
+          <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
+            <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
               اطلاعات چک
             </p>
 
@@ -195,19 +186,21 @@ const CheckDashboard = () => {
                 data={chequeSerialOptions.filter(Boolean)}
                 title="سریال چک"
                 setSelectedSubject={setSelectedChequeSerial}
+                selectedValue={selectedChequeSerial}
               />
               <SelectForFilterCheques
                 data={sayadiIdOptions.filter(Boolean)}
                 title="شناسه صیادی"
                 setSelectedSubject={setSelectedSayadiId}
+                selectedValue={selectedSayadiId}
               />
             </div>
           </div>
-          <div className="border border-gray-300 p-4 rounded-md relative">
-            <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
+          <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
+            <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
               نوع تاریخ / مبلغ
             </p>
-            <div className="flex gap-4 overflow-auto min-w-[140px] scrollbar-hide">
+            <div className="flex gap-4 items-center overflow-auto min-w-[140px] scrollbar-hide">
               <div className="space-y-1">
                 <h3 className="text-sm font-bold mb-2 text-blue-900">
                   حداکثر مبلغ:
@@ -217,13 +210,14 @@ const CheckDashboard = () => {
               <SelectForFilterCheques
                 data={["غیرفعال", "فعال"]}
                 title="نوع عملیات تاریخ"
+                selectedValue="غیرفعال"
               />
             </div>
           </div>
         </div>
         <div className="space-y-6 min-w-[140px] w-[340px]">
-          <div className="border border-gray-300 p-4 rounded-md relative">
-            <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
+          <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
+            <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
               اطلاعات مشتری/صاحب چک
             </p>
 
@@ -232,21 +226,24 @@ const CheckDashboard = () => {
                 data={customerTypeOptions.filter(Boolean)}
                 title="نوع کاربر"
                 setSelectedSubject={setSelectedCustomerType}
+                selectedValue={selectedCustomerType}
               />
               <SelectForFilterCheques
                 data={customerNameOptions.filter(Boolean)}
                 title="نام و نام خانوادگی"
                 setSelectedSubject={setSelectedCustomerName}
+                selectedValue={selectedCustomerName}
               />
               <SelectForFilterCheques
                 data={nationalIDOptions.filter(Boolean)}
                 title="کدملی"
                 setSelectedSubject={setSelectedNationalID}
+                selectedValue={selectedNationalID}
               />
             </div>
           </div>{" "}
-          <div className="border border-gray-300 p-4 rounded-md relative">
-            <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
+          <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
+            <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
               بازه زمانی
             </p>
             <div className="flex gap-4 overflow-auto min-w-[140px]">
@@ -277,8 +274,8 @@ const CheckDashboard = () => {
           </div>
         </div>
         <div className="space-y-6">
-          <div className="border border-gray-300 p-4 rounded-md relative">
-            <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
+          <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
+            <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
               اطلاعات بانک
             </p>
             <div className="flex overflow-auto min-w-[140px] gap-4">
@@ -286,16 +283,18 @@ const CheckDashboard = () => {
                 data={bankOptions.filter(Boolean)}
                 title="بانک"
                 setSelectedSubject={setSelectedBank}
+                selectedValue={selectedBank}
               />
               <SelectForFilterCheques
                 data={branchOptions.filter(Boolean)}
                 title="شعبه"
                 setSelectedSubject={setSelectedBranch}
+                selectedValue={selectedBranch}
               />
             </div>
           </div>
-          <div className="border border-gray-300 p-4 rounded-md relative">
-            <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
+          <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
+            <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
               وضعیت و عملیات انجام شده
             </p>
             <div className="flex overflow-auto min-w-[140px] gap-4">
@@ -303,25 +302,27 @@ const CheckDashboard = () => {
                 data={chequeStatusOptions.filter(Boolean)}
                 title="وضعیت چک"
                 setSelectedSubject={setSelectedChequeStatus}
+                selectedValue={selectedChequeStatus}
               />
               <SelectForFilterCheques
                 data={operationTypeOptions.filter(Boolean)}
                 title="نوع عملیات"
                 setSelectedSubject={setSelectedOperationType}
+                selectedValue={selectedOperationType}
               />
             </div>
           </div>
         </div>
-        <div className="space-y-3 flex flex-col w-40">
+        <div className="space-y-3 flex flex-col w-32">
           <button
             onClick={() => setAppliedFilters(true)}
-            className="border rounded-lg px-4 py-2 w-32 cursor-pointer"
+            className="border rounded-lg px-4 py-2 w-36 shadow-md cursor-pointer"
           >
             جستجو
           </button>
           <button
             onClick={handleResetFilters}
-            className="border rounded-lg shadow-lg px-4 py-2 w-32 cursor-pointer"
+            className="border rounded-lg shadow-lg px-4 py-2 w-36 whitespace-nowrap cursor-pointer"
           >
             حدف تمام فیلترها
           </button>
@@ -329,43 +330,45 @@ const CheckDashboard = () => {
         <div className="space-y-3 border p-4 w-72 rounded">
           <div className="flex items-center justify-between">
             <p>تعداد چک های وصول نشده:</p>
-            <span>{stats.pending}</span>
+            <span className="text-sm">{stats.pending}</span>
           </div>
           <div className="flex items-center justify-between">
             <p>تعداد چک های برگشتی:</p>
-            <span>{stats.returned}</span>
+            <span className="text-sm">{stats.returned}</span>
           </div>
           <div className="flex items-center justify-between">
             <p>تعداد چک های وارده ماه جاری:</p>
-            <span>{stats.importedThisMonth}</span>
+            <span className="text-sm">{stats.importedThisMonth}</span>
           </div>
           <div className="flex items-center justify-between">
             <p>تعداد چک های صادره ماه جاری:</p>
-            <span>{stats.issuedThisMonth}</span>
+            <span className="text-sm">{stats.issuedThisMonth}</span>
           </div>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-6 items-start mt-7">
         <div>
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
+          <div className="border border-gray-300 p-4 rounded-md relative w-full h-[30rem]">
+            <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
               چک های صادره
             </p>
             <div className="max-h-[28rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader>
                   <TableRow className="bg-gray-100">
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[30%] text-center">
                       شناسه صیادی
                     </TableHead>
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[50%] text-center">
                       نام مشتری
                     </TableHead>
-                    <TableHead className="w-12 text-center">سریال چک</TableHead>
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[50%] text-center">
+                      سریال چک
+                    </TableHead>
+                    <TableHead className="w-[30%] text-center">
                       تاریخ سررسید
                     </TableHead>
-                    <TableHead className="w-12 text-center">مبلغ</TableHead>
+                    <TableHead className="w-[30%] text-center">مبلغ</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -397,32 +400,33 @@ const CheckDashboard = () => {
             </div>
           </div>
           {totalIssuedAmount && (
-            <p className="text-green-400 font-bold mt-3 text-left">
+            <p className="text-green-400 font-bold text-sm mt-3 text-left">
               {totalIssuedAmount}
             </p>
           )}
         </div>
         <div>
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-red-500 absolute left-2 -top-5 bg-white py-2 px-4">
+          <div className="border border-gray-300 p-4 rounded-md relative w-full h-[30rem]">
+            <p className="text-red-500 absolute right-2 -top-5 bg-white py-2 px-4">
               چک های دریافتی
             </p>
             <div className="max-h-[28rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader>
                   <TableRow className="bg-gray-100">
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[30%] text-center">
                       شناسه صیادی
                     </TableHead>
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[50%] text-center">
                       نام مشتری
                     </TableHead>
-                    <TableHead className="w-12 text-center">سریال چک</TableHead>
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[50%] text-center">
+                      سریال چک
+                    </TableHead>
+                    <TableHead className="w-[30%] text-center">
                       تاریخ سررسید
                     </TableHead>
-                    <TableHead className="w-12 text-center">مبلغ</TableHead>
-                    <TableHead className="w-12 text-center"></TableHead>
+                    <TableHead className="w-[30%] text-center">مبلغ</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -454,7 +458,7 @@ const CheckDashboard = () => {
             </div>
           </div>
           {totalImportedAmount && (
-            <p className="text-red-400 font-bold mt-3 text-left">
+            <p className="text-red-400 font-bold text-sm mt-3 text-left">
               {totalImportedAmount}
             </p>
           )}

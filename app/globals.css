@@ -129,9 +129,11 @@ body {
   /* font-family: "IBM Plex Sans", sans-serif; */
   /* font-family: "IRANSansX", "Inter", sans-serif; */
   /* font-family: "Vazirmatn", "Inter", sans-serif; */
-  font-family: "Shabnam", "Inter", sans-serif;
+  /* font-family: "Shabnam", "Inter", sans-serif; */
   /* font-family: "Vazirmatn", "Inter", sans-serif; */
-  font-feature-settings: "tnum";
+  /* font-feature-settings: "tnum"; */
+  /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif */
+  font-family: "Tahoma", sans-serif;
 }
 
 .scrollWebkit::-webkit-scrollbar {

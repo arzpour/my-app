@@ -13,6 +13,15 @@ export const getDetailsByChassisNo: getDetailsByChassisNoType = async (
 
 type getIOperatorPercentType = () => Promise<IOperatorPercent>;
 export const getIOperatorPercent: getIOperatorPercentType = async () => {
-  const response = await axiosInstance.get(urls.operatorPercent);
+  const response = await axiosInstance.get(urls.others.brokers);
   return response.data;
 };
+
+type getTransactionFormOptionsType = () => Promise<IOperatorPercent>;
+export const getTransactionFormOptions: getTransactionFormOptionsType =
+  async () => {
+    const response = await axiosInstance.get(
+      urls.others.transactionFormOptions
+    );
+    return response.data;
+  };

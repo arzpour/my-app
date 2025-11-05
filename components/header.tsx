@@ -29,6 +29,9 @@ const Header = () => {
   const getCarByChassisNo = useGetCarByChassisNo();
   const getOperatorPercent = useGetOperatorPercent();
   const dispatch = useDispatch();
+  const { totalVehicleCost } = useSelector(
+    (state: RootState) => state.cars
+  );
 
   const handleSelectChassis = async (chassisNo: string) => {
     setSelectedChassis(chassisNo);
@@ -60,12 +63,11 @@ const Header = () => {
   const purchaseAmount = carInfo?.PurchaseAmount ?? 0;
   const saleAmount = carInfo?.SaleAmount ?? 0;
 
-  const purchaseBrokerCost = (purchaseAmount * buyPercent) / 100;
-  const saleBrokerCost = (saleAmount * sellPercent) / 100;
+  const purchaseBrokerCost = purchaseAmount * (buyPercent / 100);
+  const saleBrokerCost = saleAmount * (sellPercent / 100);
 
   const grossProfit = saleAmount - purchaseAmount;
-  const netProfit = grossProfit - purchaseBrokerCost - saleBrokerCost;
-  const totalCost = purchaseBrokerCost + saleBrokerCost;
+  const netProfit = grossProfit - (purchaseBrokerCost + saleBrokerCost);
 
   React.useEffect(() => {
     const initialChassis = selectedChassis || chassisNoSaved;
@@ -76,8 +78,8 @@ const Header = () => {
 
   return (
     <div className="border border-b-2 border-gray-300 rounded flex flex-col gap-2 p-4 pb-2.5 relative">
-      <div className="grid grid-cols-9 gap-3 items-start justify-start">
-        <div className="space-y-1">
+      <div className="grid grid-cols-9 gap-3 auto-rows-min items-start justify-start place-items-stretch">
+        <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm font-bold mb-2 text-blue-900">شاسی:</h3>
           <Select onValueChange={handleSelectChassis} value={selectedChassis}>
             <SelectTrigger className="w-[120px] text-sm">
@@ -94,82 +96,80 @@ const Header = () => {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1">
+        <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">مدل وسیله نقلیه</h3>
           <h4 className="text-sm">{carInfo?.CarModel ?? "—"}</h4>
           <span className="text-xs text-green-600">
             {carInfo?.LicensePlate ?? "—"}
           </span>
         </div>
-        <div>
+        <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">
-            {":مبلغ فروش(خرید شما)"}
+            {"مبلغ فروش(خرید شما):"}
           </h3>
           <h4 className="text-sm">{carInfo?.SaleAmount ?? "—"}</h4>
           <span className="text-sm text-blue-500">
             {carInfo?.SaleDate ?? "—"}
           </span>
         </div>
-        <div className="space-y-1">
+        <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">
-            {":مبلغ خرید(فروش شما)"}
+            {"مبلغ خرید(فروش شما):"}
           </h3>
           <h4 className="text-sm">{carInfo?.PurchaseAmount ?? "—"}</h4>
           <span className="text-sm text-blue-500">
             {carInfo?.PurchaseDate ?? "—"}
           </span>
         </div>
-        <div className="space-y-1">
+        <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">سود:</h3>
           <p className="text-sm text-green-700">
             ناخالص:{" "}
-            <strong className="line-through text-black">
+            <strong className="line-through text-black text-sm">
               {/* {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"} */}
               {grossProfit ?? "—"}
             </strong>
           </p>
           <p className="text-sm text-green-700">
             خالص:{" "}
-            <strong className="text-black">
+            <strong className="text-black text-sm">
               {/* {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"} */}
               {netProfit ?? "—"}
             </strong>
           </p>
         </div>
-        <div className="space-y-1">
+        <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">
             کارگزار خرید:{" "}
-            <span className="text-green-700">
-              {carInfo?.PurchaseBroker ?? "-"}
-            </span>
+            <span className="text-green-700 text-xs">{buyPercent}/ %</span>
           </h3>
-          <p className="text-sm">بهادر شامل</p>
+          <p className="text-sm">{carInfo?.PurchaseBroker ?? "-"}</p>
           <p className="text-sm text-green-700 font-bold">
             {carInfo ? carInfo.PurchaseAmount : "—"}
           </p>
         </div>
-        <div className="space-y-1">
+        <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">
             کارگزار فروش:{" "}
-            <span className="text-green-700">{carInfo?.SaleBroker ?? "-"}</span>
+            <span className="text-green-700 text-xs">{sellPercent}/ %</span>
           </h3>
-          <p className="text-sm">بهادر شامل</p>
+          <p className="text-sm">{carInfo?.SaleBroker ?? "-"}</p>
           <p className="text-sm text-green-700 font-bold">
             {carInfo ? carInfo.SaleAmount : "—"}
           </p>
         </div>
-        <div className="space-y-1">
+        <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">
-            فروشنده: <span>{sellPercent}/ %</span>
+            فروشنده: <span></span>
           </h3>
           <p className="text-sm">{carInfo?.SellerName ?? "-"}</p>
           <p className="text-sm text-orange-500">
             {carInfo?.SellerMobile ?? "-"}
           </p>
         </div>
-        <div className="space-y-1">
+        <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">
-            خریدار: <span>{buyPercent}/ %</span>
+            خریدار: <span></span>
           </h3>
           <p className="text-sm">{carInfo?.BuyerName ?? "-"}</p>
           <p className="text-sm text-orange-500">
@@ -178,7 +178,7 @@ const Header = () => {
         </div>
       </div>
       <hr />
-      <div className="grid grid-cols-4 gap-8 items-center justify-start">
+      <div className="grid grid-cols-4 gap-8 items-center justify-start place-items-stretch">
         <div className="flex gap-2 items-right items-baseline text-sm">
           <p className="text-sm">وضعیت خودرو:</p>
           <p className="px-7 bg-green-400 text-red-900 rounded py-1 text-sm">
@@ -191,7 +191,7 @@ const Header = () => {
         </div>
         <div className="flex gap-2 items-right items-center text-sm">
           <p className="text-sm text-blue-800">مجموع هزینه ها:</p>
-          <p className="text-sm text-orange-800">{totalCost ?? "—"}</p>
+          <p className="text-sm text-orange-800">{totalVehicleCost ?? "—"}</p>
         </div>
         <div className="flex gap-2 items-right items-baseline text-sm">
           <p className="text-blue-800">وضعیت تسویه حساب:</p>

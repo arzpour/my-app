@@ -109,7 +109,7 @@ const CustomersDashboard = () => {
           <input
             type="text"
             placeholder="اینجا تایپ کنید..."
-            className="w-32 border border-gray-600 p-0 h-7 rounded-md pr-2"
+            className="w-32 border border-gray-600 p-0 h-7 rounded-md pr-2 placeholder:text-sm"
           />
         </div>
         <div className="flex justify-between items-center">
@@ -124,18 +124,20 @@ const CustomersDashboard = () => {
         </div>
       </div>
       <div className="grid grid-cols-3 gap-5 items-start mt-8">
-        <div className="border border-gray-300 p-4 rounded-md relative w-full">
+        <div className="h-[33.7rem] max-h-[33.7rem] border border-gray-300 p-4 rounded-md relative w-full">
           <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
             اسامی مشتری
           </p>
-          <div className="max-h-[28rem] overflow-y-auto rounded-md border w-full">
+          <div className="max-h-[30rem] overflow-y-auto rounded-md border w-full">
             <Table className="min-w-full table-fixed text-right border-collapse">
               <TableHeader>
                 <TableRow className="bg-gray-100">
-                  <TableHead className="w-12 text-center">ردیف</TableHead>
-                  <TableHead className="w-12 text-center">نام کامل</TableHead>
-                  <TableHead className="w-12 text-center">کدملی</TableHead>
-                  <TableHead className="w-12 text-center">نقش</TableHead>
+                  <TableHead className="w-[15%] text-center">ردیف</TableHead>
+                  <TableHead className="w-[65%] text-center">
+                    نام کامل
+                  </TableHead>
+                  <TableHead className="w-[30%] text-center">کدملی</TableHead>
+                  <TableHead className="w-[30%] text-center">نقش</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -149,13 +151,13 @@ const CustomersDashboard = () => {
                     }}
                   >
                     <TableCell className="text-center">{index + 1}</TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center break-words">
                       {item.name ?? "__"}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center break-words">
                       {item.nationalId ?? "__"}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center break-words">
                       {uniqeUsersRole(item.roles) ?? "__"}
                     </TableCell>
                   </TableRow>
@@ -165,20 +167,19 @@ const CustomersDashboard = () => {
           </div>
         </div>
         <div className="space-y-6">
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
+          <div className="h-[16rem] max-h-[16rem] border border-gray-300 p-4 rounded-md relative w-full">
             <p className="text-blue-500 absolute right-2 -top-6 bg-white py-2 px-4">
               فروشنده خودرو
             </p>
-            <div className="max-h-40 overflow-y-auto rounded-md border w-full">
+            <div className="h-[12rem] max-h-[12rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader>
                   <TableRow className="bg-gray-100">
-                    <TableHead className="w-12 text-center">ردیف</TableHead>
-                    <TableHead className="w-12 text-center">شاسی</TableHead>
-                    <TableHead className="w-12 text-center">مدل</TableHead>
-                    <TableHead className="w-12 text-center">تاریخ</TableHead>
-                    <TableHead className="w-12 text-center">قیمت</TableHead>
-                    {/* <TableHead className="w-12 text-center">{"-"}</TableHead> */}
+                    <TableHead className="w-[15%] text-center">ردیف</TableHead>
+                    <TableHead className="w-[35%] text-center">شاسی</TableHead>
+                    <TableHead className="w-[55%] text-center">مدل</TableHead>
+                    <TableHead className="w-[35%] text-center">تاریخ</TableHead>
+                    <TableHead className="w-[30%] text-center">قیمت</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -221,19 +222,19 @@ const CustomersDashboard = () => {
               </p>
             ) : null}
           </div>
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
+          <div className="h-[16rem] max-h-[16rem] border border-gray-300 p-4 rounded-md relative w-full">
             <p className="text-blue-500 absolute right-2 -top-6 bg-white py-2 px-4">
               خریدار خودرو
             </p>
-            <div className="max-h-40 overflow-y-auto rounded-md border w-full">
+            <div className="h-[12rem] max-h-[12rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader>
                   <TableRow className="bg-gray-100">
-                    <TableHead className="w-12 text-center">ردیف</TableHead>
-                    <TableHead className="w-12 text-center">شاسی</TableHead>
-                    <TableHead className="w-12 text-center">مدل</TableHead>
-                    <TableHead className="w-12 text-center">تاریخ</TableHead>
-                    <TableHead className="w-12 text-center">قیمت</TableHead>
+                    <TableHead className="w-[15%] text-center">ردیف</TableHead>
+                    <TableHead className="w-[35%] text-center">شاسی</TableHead>
+                    <TableHead className="w-[55%] text-center">مدل</TableHead>
+                    <TableHead className="w-[35%] text-center">تاریخ</TableHead>
+                    <TableHead className="w-[30%] text-center">قیمت</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -278,11 +279,11 @@ const CustomersDashboard = () => {
           </div>
         </div>
         <div className="space-y-6">
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
+          <div className="h-[16rem] max-h-[16rem] border border-gray-300 p-4 rounded-md relative w-full">
             <p className="text-blue-500 absolute right-2 -top-6 bg-white py-2 px-4">
               دریافت و پرداخت
             </p>
-            <div className="max-h-40 overflow-y-auto rounded-md border w-full">
+            <div className="h-[12rem] max-h-[12rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader>
                   <TableRow className="bg-gray-100">
@@ -331,11 +332,11 @@ const CustomersDashboard = () => {
               </div>
             )}
           </div>
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
+          <div className="h-[16rem] max-h-[16rem] border border-gray-300 p-4 rounded-md relative w-full">
             <p className="text-blue-500 absolute right-2 -top-6 bg-white py-2 px-4">
               وضعیت چک ها
             </p>
-            <div className="max-h-[195px] overflow-y-auto rounded-md border w-full">
+            <div className="h-[12rem] max-h-[12rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader>
                   <TableRow className="bg-gray-100">
