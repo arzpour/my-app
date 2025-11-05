@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/select";
 
 interface ISelectForFilterCheques {
-  setSelectedSubject?: any;
-  data: any;
+  setSelectedSubject?: (value: string) => void;
+  data: string[];
   title: string;
   selectedValue: string;
 }

@@ -18,9 +18,8 @@ import { useSelector } from "react-redux";
 const CustomersDashboard = () => {
   const [carDataByNationalCode, setCarDataByNationalCode] =
     React.useState<ICarDataByNationalIdOrName | null>(null);
-  const [chequeByChassis, setChequeByChassis] = React.useState<
-    IChequeRes[] | null
-  >(null);
+  const [chequeByChassis, setChequeByChassis] =
+    React.useState<IChequeRes[] | null>(null);
   const [transactionByChassis, setTransactionByChassis] = React.useState<
     ITransactionRes[] | null
   >(null);
