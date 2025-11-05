@@ -25,4 +25,7 @@ export const urls = {
     transactionFormOptions: "/others/transaction-form-options",
   },
   login: "/auth/login",
+  settings: {
+    list: "/settings",
+  },
 };
