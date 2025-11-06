@@ -1,31 +1,31 @@
 export const urls = {
   cars: {
-    list: "/api/cars",
-    byChassisNo: (chassisNo: string) => `/api/cars/${chassisNo}`,
-    chassisNo: "/api/cars/chassisNo",
+    list: "/cars",
+    byChassisNo: (chassisNo: string) => `/cars/${chassisNo}`,
+    chassisNo: "/cars/chassisNo",
     byNationalId: (nationalId: string) =>
-      `/api/transactions/byNationalId/${nationalId}`,
-    usersData: "/api/cars/userData",
-    filterByUser: "/api/cars/filterByUser",
+      `/transactions/byNationalId/${nationalId}`,
+    usersData: "/cars/userData",
+    filterByUser: "/cars/filterByUser",
   },
-  detailsByChassisNo: (chassisNo: string) => `/api/cars/${chassisNo}/details`,
+  detailsByChassisNo: (chassisNo: string) => `/cars/${chassisNo}/details`,
   transactions: {
-    list: "/api/transactions",
-    byChassisNo: (chassisNo: string) => `/api/transactions/${chassisNo}`,
+    list: "/transactions",
+    byChassisNo: (chassisNo: string) => `/transactions/${chassisNo}`,
   },
   cheques: {
-    list: "/api/cheques",
-    byChassisNo: (chassisNo: string) => `/api/cheques/${chassisNo}`,
-    unpaid: (chassisNo: string) => `/api/cheques/unpaid/${chassisNo}`,
+    list: "/cheques",
+    byChassisNo: (chassisNo: string) => `/cheques/${chassisNo}`,
+    unpaid: (chassisNo: string) => `/cheques/unpaid/${chassisNo}`,
   },
   investmentByChassis: (chassisNo: string) =>
-    `/api/transactions/investment/${chassisNo}`,
+    `/transactions/investment/${chassisNo}`,
   others: {
-    brokers: "/api/others/brokers",
-    transactionFormOptions: "/api/others/transaction-form-options",
+    brokers: "/others/brokers",
+    transactionFormOptions: "/others/transaction-form-options",
   },
-  login: "/api/auth/login",
+  login: "/auth/login",
   settings: {
-    list: "/api/settings",
+    list: "/settings",
   },
 };
