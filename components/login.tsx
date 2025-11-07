@@ -23,11 +23,9 @@ const Login = () => {
   const dispatch = useDispatch()
 
   const onSubmit: SubmitHandler<loginSchemaType> = async (data) => {
-    console.log("🚀 ~ onSubmit ~ data:", data);
     if (!data) return;
     try {
       const res = await login.mutateAsync(data);
-      console.log("🚀 ~ onSubmit ~ res:", res);
       router.push("/panel");
       dispatch(setRole(res.data.user.role));
       toast("وارد شدید", {

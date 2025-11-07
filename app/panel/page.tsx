@@ -1,11 +1,11 @@
 import Header from "@/components/header";
-import TabsComponent from "@/components/tabs";
+import PanelMenu from "@/containers/panelMenu";
 
 const Panel = () => {
   return (
     <div dir="rtl" className="w-full p-4">
       <Header />
-      <TabsComponent />
+      <PanelMenu />
     </div>
   );
 };
