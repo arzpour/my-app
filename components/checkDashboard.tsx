@@ -18,6 +18,7 @@ import {
 import useGetAllCheques from "@/hooks/useGetAllCheques";
 import React, { useMemo } from "react";
 import SelectForFilterCheques from "./selectForFilterCheques";
+import PersianDatePicker from "./global/persianDatePicker";
 
 const CheckDashboard = () => {
   const { data = [] } = useGetAllCheques();
@@ -251,24 +252,14 @@ const CheckDashboard = () => {
                 <h3 className="text-sm font-bold mb-2 text-purple-700">
                   از تاریخ:
                 </h3>
-                <input
-                  type="date"
-                  className="border rounded w-[130px]"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                />
+                <PersianDatePicker />
               </div>
 
               <div className="space-y-1">
                 <h3 className="text-sm font-bold mb-2 text-purple-700">
                   تا تاریخ:
                 </h3>
-                <input
-                  type="date"
-                  className="border rounded w-[130px]"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                />
+                <PersianDatePicker />
               </div>
             </div>
           </div>
@@ -354,7 +345,7 @@ const CheckDashboard = () => {
             </p>
             <div className="max-h-[28rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
-                <TableHeader>
+                <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
                     <TableHead className="w-[30%] text-center">
                       شناسه صیادی
@@ -391,7 +382,7 @@ const CheckDashboard = () => {
                         {item.ChequeDueDate}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.ChequeAmount}
+                        {item.ChequeAmount?.toLocaleString("en-US")}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -401,7 +392,7 @@ const CheckDashboard = () => {
           </div>
           {totalIssuedAmount && (
             <p className="text-green-400 font-bold text-sm mt-3 text-left">
-              {totalIssuedAmount}
+              {totalIssuedAmount?.toLocaleString("en-US")}
             </p>
           )}
         </div>
@@ -412,7 +403,7 @@ const CheckDashboard = () => {
             </p>
             <div className="max-h-[28rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
-                <TableHeader>
+                <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
                     <TableHead className="w-[30%] text-center">
                       شناسه صیادی
@@ -449,7 +440,7 @@ const CheckDashboard = () => {
                         {item.ChequeDueDate}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.ChequeAmount}
+                        {item.ChequeAmount?.toLocaleString("en-US")}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -459,7 +450,7 @@ const CheckDashboard = () => {
           </div>
           {totalImportedAmount && (
             <p className="text-red-400 font-bold text-sm mt-3 text-left">
-              {totalImportedAmount}
+              {totalImportedAmount?.toLocaleString("en-US")}
             </p>
           )}
         </div>

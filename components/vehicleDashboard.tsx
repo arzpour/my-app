@@ -35,6 +35,7 @@ const VehicleDashboard = () => {
   const getUnpaidCheques = useGetUnpaidCheques();
 
   const handleCarDetailDataByChassisNoData = async (chassisNo: string) => {
+    if (!chassisNo) return;
     try {
       const details = await getDetailByChassisNo.mutateAsync(chassisNo);
 
@@ -45,6 +46,8 @@ const VehicleDashboard = () => {
     }
   };
   const handleInvestmentDataByChassisNoData = async (chassisNo: string) => {
+    if (!chassisNo) return;
+
     try {
       const investment = await getInvestmentByChassis.mutateAsync(chassisNo);
 
@@ -56,6 +59,8 @@ const VehicleDashboard = () => {
   };
 
   const handleUnpaidDataByChassisNoData = async (chassisNo: string) => {
+    if (!chassisNo) return;
+
     try {
       const unpaidCheques = await getUnpaidCheques.mutateAsync(chassisNo);
 
@@ -65,25 +70,25 @@ const VehicleDashboard = () => {
       setUnpaidCheques(null);
     }
   };
-  const totalPaid = vehicleDetails?.transactions.reduce(
+  const totalPaid = vehicleDetails?.transactions?.reduce(
     (sum, t) => sum + t.TransactionAmount,
     0
   );
   const remainingToSeller =
-    vehicleDetails?.car.PurchaseAmount && totalPaid
-      ? vehicleDetails?.car.PurchaseAmount - totalPaid
+    vehicleDetails?.car?.PurchaseAmount && totalPaid
+      ? vehicleDetails?.car?.PurchaseAmount - totalPaid
       : "";
 
-  const totalPaidToAll = vehicleDetails?.transactions.reduce(
+  const totalPaidToAll = vehicleDetails?.transactions?.reduce(
     (sum, t) => sum + t.TransactionAmount,
     0
   );
 
   const totalPaidToSeller = vehicleDetails?.transactions
-    .filter((t) => t.TransactionReason === "فروش")
-    .reduce((sum, t) => sum + t.TransactionAmount, 0);
+    ?.filter((t) => t.TransactionReason === "فروش")
+    ?.reduce((sum, t) => sum + t.TransactionAmount, 0);
 
-  const receiveTransactions = vehicleDetails?.transactions.filter(
+  const receiveTransactions = vehicleDetails?.transactions?.filter(
     (t) => t.TransactionType === "دریافت"
   );
 
@@ -93,8 +98,8 @@ const VehicleDashboard = () => {
   );
 
   const remainingForBuyer =
-    vehicleDetails?.car.SaleAmount && totalReceived
-      ? vehicleDetails?.car.SaleAmount - totalReceived
+    vehicleDetails?.car?.SaleAmount && totalReceived
+      ? vehicleDetails?.car?.SaleAmount - totalReceived
       : "";
 
   const receivedTransactions = vehicleDetails?.transactions?.filter(
@@ -104,7 +109,7 @@ const VehicleDashboard = () => {
     (t) => t.TransactionType === "پرداخت"
   );
 
-  const totalBroker = investment?.data.reduce((sum, t) => sum + t.Broker, 0);
+  const totalBroker = investment?.data?.reduce((sum, t) => sum + t.Broker, 0);
 
   React.useEffect(() => {
     handleUnpaidDataByChassisNoData(chassisNo);
@@ -122,7 +127,7 @@ const VehicleDashboard = () => {
             </p>
             <div className="overflow-hidden rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
-                <TableHeader>
+                <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
                     <TableHead className="w-12 text-center">ردیف</TableHead>
                     <TableHead className="w-12 text-center">تاریخ</TableHead>
@@ -140,7 +145,7 @@ const VehicleDashboard = () => {
 
                 <TableBody>
                   {paidTransactions &&
-                    paidTransactions.length > 0 &&
+                    paidTransactions?.length > 0 &&
                     paidTransactions?.map((item, index) => {
                       const totalVehicleCost = paidTransactions
                         ?.filter(
@@ -158,10 +163,6 @@ const VehicleDashboard = () => {
                           (sum, item) => sum + (item.TransactionAmount || 0),
                           0
                         );
-                      console.log(
-                        "🚀 ~ VehicleDashboard ~ totalVehicleCost:",
-                        totalVehicleCost
-                      );
 
                       dispatch(setTotalVehicleCost(totalVehicleCost));
 
@@ -177,7 +178,8 @@ const VehicleDashboard = () => {
                             {item?.TransactionDate ?? ""}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.TransactionAmount.toLocaleString() ?? ""}
+                            {item?.TransactionAmount?.toLocaleString("en-US") ??
+                              ""}
                           </TableCell>
                           <TableCell className="text-center">
                             {item?.CustomerNationalID ?? ""}
@@ -201,19 +203,21 @@ const VehicleDashboard = () => {
               <div className="space-y-2">
                 <p className="text-xs">مانده مبلغ قابل پرداخت به فروشنده</p>
                 <p className="font-bold text-sm">
-                  {remainingToSeller.toLocaleString() ?? ""}
+                  {remainingToSeller.toLocaleString("en-US") ?? ""}
                 </p>
               </div>
               <div className="space-y-2">
                 <p className="text-xs">مجموع پرداختی به فروشنده و کارگزاران</p>
                 <p className="text-red-500 text-sm">
-                  {totalPaidToAll ? totalPaidToAll.toLocaleString() : ""}
+                  {totalPaidToAll ? totalPaidToAll.toLocaleString("en-US") : ""}
                 </p>
               </div>
               <div className="space-y-2">
                 <p className="text-xs">مجموع پرداختی به فروشنده</p>
                 <p className="text-red-500 text-sm">
-                  {totalPaidToSeller ? totalPaidToSeller.toLocaleString() : ""}
+                  {totalPaidToSeller
+                    ? totalPaidToSeller.toLocaleString("en-US")
+                    : ""}
                 </p>
               </div>
             </div>
@@ -225,7 +229,7 @@ const VehicleDashboard = () => {
             </p>
             <div className="overflow-hidden rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
-                <TableHeader>
+                <TableHeader className="top-0 sticky">
                   <TableRow className="hover:bg-transparent bg-gray-100">
                     <TableHead className="w-12 text-center">ردیف</TableHead>
                     <TableHead className="w-12 text-center">تاریخ</TableHead>
@@ -237,7 +241,7 @@ const VehicleDashboard = () => {
                     <TableHead className="w-12 text-center">
                       روش پرداخت
                     </TableHead>
-                    <TableHead className="w-12 text-center">کارگزار</TableHead>{" "}
+                    <TableHead className="w-12 text-center">کارگزار</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -255,7 +259,8 @@ const VehicleDashboard = () => {
                           {item?.TransactionDate ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item?.TransactionAmount.toLocaleString() ?? ""}
+                          {item?.TransactionAmount.toLocaleString("en-US") ??
+                            ""}
                         </TableCell>
                         <TableCell className="text-center">
                           {item?.CustomerNationalID ?? ""}
@@ -278,14 +283,14 @@ const VehicleDashboard = () => {
               <div className="space-y-2">
                 <p className="text-xs">مانده مبلغ قابل پرداخت به خریدار</p>
                 <p className="font-bold text-sm">
-                  {remainingForBuyer.toLocaleString() ?? ""}
+                  {remainingForBuyer.toLocaleString("en-US") ?? ""}
                 </p>
               </div>
 
               <div className="space-y-2">
                 <p className="text-xs">مجموع دریافتی از خریدار</p>
                 <p className="text-green-500 text-sm">
-                  {totalReceived ? totalReceived.toLocaleString() : ""}
+                  {totalReceived ? totalReceived.toLocaleString("en-US") : ""}
                 </p>
               </div>
             </div>
@@ -304,7 +309,7 @@ const VehicleDashboard = () => {
                 className="min-w-full table-fixed text-right border-collapse"
                 dir="rtl"
               >
-                <TableHeader>
+                <TableHeader className="top-0 sticky">
                   <TableRow className="hover:bg-transparent bg-gray-100">
                     <TableHead className="text-center">ردیف</TableHead>
                     <TableHead className="text-center">تاریخ</TableHead>
@@ -327,7 +332,7 @@ const VehicleDashboard = () => {
                         {item?.TransactionDate ?? ""}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item?.TransactionAmount.toLocaleString() ?? ""}
+                        {item?.TransactionAmount.toLocaleString("en-US") ?? ""}
                       </TableCell>
                       <TableCell className="text-center">
                         {item?.Partner ?? ""}
@@ -351,7 +356,9 @@ const VehicleDashboard = () => {
                 در جدول بالا منظور از درصد، درصد مشارکت سرمایه گذار در تامین
                 سرمایه است.
               </p>
-              <p className="font-bold text-sm">{totalBroker ?? ""}</p>
+              <p className="font-semibold text-sm">
+                {totalBroker?.toLocaleString("en-US") ?? ""}
+              </p>
             </div>
           </div>
 
@@ -361,7 +368,7 @@ const VehicleDashboard = () => {
             </p>
             <div className="overflow-hidden rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
-                <TableHeader>
+                <TableHeader className="top-0 sticky">
                   <TableRow className="hover:bg-transparent bg-gray-100">
                     <TableHead className="text-center">ردیف</TableHead>
                     <TableHead className="text-center">نام مشتری</TableHead>
@@ -384,7 +391,7 @@ const VehicleDashboard = () => {
                         {item?.CustomerName}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item?.ChequeAmount}
+                        {item?.ChequeAmount.toLocaleString("en-US")}
                       </TableCell>
                       <TableCell className="text-center">
                         {item?.ChequeDueDate}
@@ -409,11 +416,19 @@ const VehicleDashboard = () => {
             <div className="flex gap-3 item??-center justify-end mt-3">
               <p className="flex gap-2 items-center">
                 <span className="text-xs">مجموع چک های صادره وصول نشده</span>
-                <span>{unpaidCheques?.data.totals.issuedUnpaid}</span>
+                <span>
+                  {unpaidCheques?.data?.totals?.issuedUnpaid?.toLocaleString(
+                    "en-US"
+                  )}
+                </span>
               </p>
               <p className="flex gap-2 items-center">
                 <span className="text-xs">مجموع چک های وارده وصول نشده</span>
-                <span>{unpaidCheques?.data.totals.receivedUnpaid}</span>
+                <span>
+                  {unpaidCheques?.data?.totals?.receivedUnpaid?.toLocaleString(
+                    "en-US"
+                  )}
+                </span>
               </p>
             </div>
           </div>

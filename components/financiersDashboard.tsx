@@ -331,7 +331,7 @@ const FinanciersDashboard = () => {
           </p>
           <div className="max-h-[28rem] overflow-y-auto rounded-md border w-full">
             <Table className="min-w-full table-fixed text-right border-collapse">
-              <TableHeader>
+              <TableHeader className="top-0 sticky">
                 <TableRow className="bg-gray-100">
                   <TableHead className="w-24 text-center">تاریخ</TableHead>
                   <TableHead className="w-12 text-center">شاسی</TableHead>
@@ -371,7 +371,7 @@ const FinanciersDashboard = () => {
           </p>
           <div className="max-h-[28rem] h-[28rem] overflow-y-auto rounded-md border w-full">
             <Table className="min-w-full table-fixed text-right border-collapse">
-              <TableHeader>
+              <TableHeader className="top-0 sticky">
                 <TableRow className="bg-gray-100">
                   <TableHead className="w-12 text-center">ردیف</TableHead>
                   <TableHead className="w-12 text-center">شاسی</TableHead>

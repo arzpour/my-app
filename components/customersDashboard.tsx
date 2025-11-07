@@ -18,8 +18,9 @@ import { useSelector } from "react-redux";
 const CustomersDashboard = () => {
   const [carDataByNationalCode, setCarDataByNationalCode] =
     React.useState<ICarDataByNationalIdOrName | null>(null);
-  const [chequeByChassis, setChequeByChassis] =
-    React.useState<IChequeRes[] | null>(null);
+  const [chequeByChassis, setChequeByChassis] = React.useState<
+    IChequeRes[] | null
+  >(null);
   const [transactionByChassis, setTransactionByChassis] = React.useState<
     ITransactionRes[] | null
   >(null);
@@ -113,13 +114,17 @@ const CustomersDashboard = () => {
         </div>
         <div className="flex justify-between items-center">
           <p className="text-sm">تفاضل مبالغ خرید و فروش مشتری(فروش - خرید):</p>
-          <p className="text-yellow-900">{diffBuySell}</p>
+          <p className="text-yellow-900">
+            {diffBuySell?.toLocaleString("en-US")}
+          </p>
         </div>
         <div className="flex justify-between items-center">
           <p className="text-sm">
             تفاضل مبالغ دریافتی و پرداختی(پرداخت - دریافت):
           </p>
-          <p className="text-yellow-900">{diffPaymentReceived}</p>
+          <p className="text-yellow-900">
+            {diffPaymentReceived?.toLocaleString("en-US")}
+          </p>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-5 items-start mt-8">
@@ -129,7 +134,7 @@ const CustomersDashboard = () => {
           </p>
           <div className="max-h-[30rem] overflow-y-auto rounded-md border w-full">
             <Table className="min-w-full table-fixed text-right border-collapse">
-              <TableHeader>
+              <TableHeader className="top-0 sticky">
                 <TableRow className="bg-gray-100">
                   <TableHead className="w-[15%] text-center">ردیف</TableHead>
                   <TableHead className="w-[65%] text-center">
@@ -172,7 +177,7 @@ const CustomersDashboard = () => {
             </p>
             <div className="h-[12rem] max-h-[12rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
-                <TableHeader>
+                <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
                     <TableHead className="w-[15%] text-center">ردیف</TableHead>
                     <TableHead className="w-[35%] text-center">شاسی</TableHead>
@@ -207,7 +212,7 @@ const CustomersDashboard = () => {
                           {item.SaleDate}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.SaleAmount}
+                          {item.SaleAmount?.toLocaleString("en-US")}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -217,7 +222,7 @@ const CustomersDashboard = () => {
             </div>
             {totalSellAmount && Number(totalSellAmount) > 0 ? (
               <p className="text-green-400 mt-3 flex justify-end">
-                {totalSellAmount}
+                {totalSellAmount?.toLocaleString("en-US")}
               </p>
             ) : null}
           </div>
@@ -227,7 +232,7 @@ const CustomersDashboard = () => {
             </p>
             <div className="h-[12rem] max-h-[12rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
-                <TableHeader>
+                <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
                     <TableHead className="w-[15%] text-center">ردیف</TableHead>
                     <TableHead className="w-[35%] text-center">شاسی</TableHead>
@@ -262,7 +267,7 @@ const CustomersDashboard = () => {
                           {item.PurchaseDate}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.PurchaseAmount}
+                          {item.PurchaseAmount?.toLocaleString("en-US")}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -272,7 +277,7 @@ const CustomersDashboard = () => {
             </div>
             {totalBuyAmount && Number(totalBuyAmount) > 0 ? (
               <p className="text-yellow-600 mt-3 flex justify-end">
-                {totalBuyAmount}
+                {totalBuyAmount?.toLocaleString("en-US")}
               </p>
             ) : null}
           </div>
@@ -284,7 +289,7 @@ const CustomersDashboard = () => {
             </p>
             <div className="h-[12rem] max-h-[12rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
-                <TableHeader>
+                <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
                     <TableHead className="w-12 text-center">ردیف</TableHead>
                     <TableHead className="w-12 text-center">تاریخ</TableHead>
@@ -304,7 +309,7 @@ const CustomersDashboard = () => {
                         {item.TransactionDate}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.TransactionAmount}
+                        {item.TransactionAmount?.toLocaleString("en-US")}
                       </TableCell>
                       <TableCell className="text-center">
                         {item.TransactionType} - {item.TransactionReason}
@@ -319,13 +324,13 @@ const CustomersDashboard = () => {
                 <div className="flex gap-3 items-baseline">
                   <p className="text-sm">پرداخت</p>
                   <p className="text-red-500 mt-3 flex justify-end">
-                    {totalPayment}
+                    {totalPayment?.toLocaleString("en-US")}
                   </p>
                 </div>
                 <div className="flex gap-3 items-baseline">
                   <p className="text-sm">دریافت</p>
                   <p className="text-blue-500 mt-3 flex justify-end">
-                    {totalReceived}
+                    {totalReceived?.toLocaleString("en-US")}
                   </p>
                 </div>
               </div>
@@ -337,7 +342,7 @@ const CustomersDashboard = () => {
             </p>
             <div className="h-[12rem] max-h-[12rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
-                <TableHeader>
+                <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
                     <TableHead className="w-12 text-center">ردیف</TableHead>
                     <TableHead className="w-12 text-center">سریال چک</TableHead>
@@ -365,7 +370,7 @@ const CustomersDashboard = () => {
                         {item.SayadiID}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.ChequeAmount}
+                        {item.ChequeAmount?.toLocaleString("en-US")}
                       </TableCell>
                       <TableCell className="text-center">
                         {item.ChequeDueDate}

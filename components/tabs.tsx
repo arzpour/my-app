@@ -8,9 +8,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const tabs = [
   {
-    id: "transactionDashboard",
-    title: "گزارش تراکنش ها",
-    content: <TransactionDashboard />,
+    id: "vehicleDashboard",
+    title: "داشبورد وسیله نقلیه",
+    content: <VehicleDashboard />,
+  },
+  {
+    id: "customersDashboard",
+    title: "داشبورد مشتریان",
+    content: <CustomersDashboard />,
   },
   {
     id: "checkDashboard",
@@ -28,21 +33,16 @@ const tabs = [
     content: <FinanciersDashboard />,
   },
   {
-    id: "customersDashboard",
-    title: "داشبورد مشتریان",
-    content: <CustomersDashboard />,
-  },
-  {
-    id: "vehicleDashboard",
-    title: "داشبورد وسیله نقلیه",
-    content: <VehicleDashboard />,
+    id: "transactionDashboard",
+    title: "گزارش تراکنش ها",
+    content: <TransactionDashboard />,
   },
 ];
 
 const TabsComponent = () => {
   return (
     <Tabs
-      defaultValue="checkDashboard"
+      defaultValue="vehicleDashboard"
       orientation="vertical"
       className="h-full w-full flex justify-start items-start"
       dir="rtl"
