@@ -5,12 +5,20 @@ import OperatorsDashboard from "@/components/operatorsDashboard";
 import TransactionDashboard from "@/components/transactionDashboard";
 import VehicleDashboard from "@/components/vehicleDashboard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import TransactionForm from "./forms/transactionForm";
+import ChequeForm from "./forms/chequeForm";
+import OptionForm from "./forms/optionForm";
 
 const tabs = [
   {
-    id: "transactionDashboard",
-    title: "گزارش تراکنش ها",
-    content: <TransactionDashboard />,
+    id: "vehicleDashboard",
+    title: "داشبورد وسیله نقلیه",
+    content: <VehicleDashboard />,
+  },
+  {
+    id: "customersDashboard",
+    title: "داشبورد مشتریان",
+    content: <CustomersDashboard />,
   },
   {
     id: "checkDashboard",
@@ -28,38 +36,72 @@ const tabs = [
     content: <FinanciersDashboard />,
   },
   {
-    id: "customersDashboard",
-    title: "داشبورد مشتریان",
-    content: <CustomersDashboard />,
+    id: "transactionDashboard",
+    title: "گزارش تراکنش ها",
+    content: <TransactionDashboard />,
+  },
+];
+
+const formTabs = [
+  {
+    id: "transactionTab",
+    title: "فرم تراکنش",
+    content: <TransactionForm />,
   },
   {
-    id: "vehicleDashboard",
-    title: "داشبورد وسیله نقلیه",
-    content: <VehicleDashboard />,
+    id: "chequeTab",
+    title: "فرم چک",
+    content: <ChequeForm />,
+  },
+  {
+    id: "optionTab",
+    title: "فرم آپشن",
+    content: <OptionForm />,
   },
 ];
 
 const TabsComponent = () => {
   return (
     <Tabs
-      defaultValue="checkDashboard"
+      defaultValue="vehicleDashboard"
       orientation="vertical"
       className="h-full w-full flex justify-start items-start"
       dir="rtl"
     >
       <TabsList>
-        {tabs.map((tab) => (
-          <TabsTrigger
-            key={tab.id}
-            value={tab.id}
-            className="bg-gray-100 cursor-pointer"
-          >
-            {tab.title}
-          </TabsTrigger>
-        ))}
+        <div className="flex justify-between items-center">
+          {tabs.map((tab) => (
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              className="bg-gray-100 cursor-pointer"
+            >
+              {tab.title}
+            </TabsTrigger>
+          ))}
+
+          {formTabs.map((tab) => (
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              className="bg-gray-100 cursor-pointer"
+            >
+              {tab.title}
+            </TabsTrigger>
+          ))}
+        </div>
       </TabsList>
 
       {tabs.map((tab) => (
+        <TabsContent
+          key={tab.id}
+          value={tab.id}
+          className="w-full bg-white rounded-2xl"
+        >
+          {tab.content}
+        </TabsContent>
+      ))}
+      {formTabs.map((tab) => (
         <TabsContent
           key={tab.id}
           value={tab.id}

@@ -29,9 +29,7 @@ const Header = () => {
   const getCarByChassisNo = useGetCarByChassisNo();
   const getOperatorPercent = useGetOperatorPercent();
   const dispatch = useDispatch();
-  const { totalVehicleCost } = useSelector(
-    (state: RootState) => state.cars
-  );
+  const { totalVehicleCost } = useSelector((state: RootState) => state.cars);
 
   const handleSelectChassis = async (chassisNo: string) => {
     setSelectedChassis(chassisNo);
@@ -50,24 +48,33 @@ const Header = () => {
   const normalize = (str?: string) =>
     str ? str.trim().toLowerCase().replace(/\s+/g, " ") : "";
 
-  const buyPercentObj = operatorPercent?.data.find(
+  const buyPercentObj = operatorPercent?.data?.find(
     (item) => normalize(item.name) === normalize(carInfo?.PurchaseBroker)
   );
-  const sellPercentObj = operatorPercent?.data.find(
+  const sellPercentObj = operatorPercent?.data?.find(
     (item) => normalize(item.name) === normalize(carInfo?.SaleBroker)
   );
 
   const buyPercent = buyPercentObj?.buyPercent ?? 0;
   const sellPercent = sellPercentObj?.sellPercent ?? 0;
 
-  const purchaseAmount = carInfo?.PurchaseAmount ?? 0;
-  const saleAmount = carInfo?.SaleAmount ?? 0;
+  let grossProfit: number | null = null;
+  let netProfit: number | null = null;
+  let buyAmountWithPercent: number | null = null;
+  let sellAmountWithPercent: number | null = null;
 
-  const purchaseBrokerCost = purchaseAmount * (buyPercent / 100);
-  const saleBrokerCost = saleAmount * (sellPercent / 100);
+  if (carInfo?.PurchaseAmount && carInfo?.SaleAmount) {
+    grossProfit = carInfo.PurchaseAmount - carInfo.SaleAmount;
+    const amountWithoutPercent = grossProfit - totalVehicleCost;
 
-  const grossProfit = saleAmount - purchaseAmount;
-  const netProfit = grossProfit - (purchaseBrokerCost + saleBrokerCost);
+    buyAmountWithPercent = amountWithoutPercent * (buyPercent / 100);
+    sellAmountWithPercent = amountWithoutPercent * (sellPercent / 100);
+
+    const sumAmounts =
+      buyAmountWithPercent + sellAmountWithPercent + totalVehicleCost;
+
+    netProfit = grossProfit - sumAmounts;
+  }
 
   React.useEffect(() => {
     const initialChassis = selectedChassis || chassisNoSaved;
@@ -107,7 +114,7 @@ const Header = () => {
           <h3 className="text-sm text-blue-900 font-bold">
             {"مبلغ فروش(خرید شما):"}
           </h3>
-          <h4 className="text-sm">{carInfo?.SaleAmount ?? "—"}</h4>
+          <h4 className="text-sm">{carInfo?.SaleAmount?.toLocaleString("en-US") ?? "—"}</h4>
           <span className="text-sm text-blue-500">
             {carInfo?.SaleDate ?? "—"}
           </span>
@@ -116,7 +123,7 @@ const Header = () => {
           <h3 className="text-sm text-blue-900 font-bold">
             {"مبلغ خرید(فروش شما):"}
           </h3>
-          <h4 className="text-sm">{carInfo?.PurchaseAmount ?? "—"}</h4>
+          <h4 className="text-sm">{carInfo?.PurchaseAmount?.toLocaleString("en-US") ?? "—"}</h4>
           <span className="text-sm text-blue-500">
             {carInfo?.PurchaseDate ?? "—"}
           </span>
@@ -127,14 +134,14 @@ const Header = () => {
             ناخالص:{" "}
             <strong className="line-through text-black text-sm">
               {/* {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"} */}
-              {grossProfit ?? "—"}
+              {grossProfit?.toLocaleString("en-US") ?? "—"}
             </strong>
           </p>
           <p className="text-sm text-green-700">
             خالص:{" "}
             <strong className="text-black text-sm">
               {/* {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"} */}
-              {netProfit ?? "—"}
+              {netProfit?.toLocaleString("en-US") ?? "—"}
             </strong>
           </p>
         </div>
@@ -145,7 +152,7 @@ const Header = () => {
           </h3>
           <p className="text-sm">{carInfo?.PurchaseBroker ?? "-"}</p>
           <p className="text-sm text-green-700 font-bold">
-            {carInfo ? carInfo.PurchaseAmount : "—"}
+            {buyAmountWithPercent?.toLocaleString("en-US") ?? "—"}
           </p>
         </div>
         <div className="flex flex-col justify-between h-full space-y-1">
@@ -155,7 +162,7 @@ const Header = () => {
           </h3>
           <p className="text-sm">{carInfo?.SaleBroker ?? "-"}</p>
           <p className="text-sm text-green-700 font-bold">
-            {carInfo ? carInfo.SaleAmount : "—"}
+            {sellAmountWithPercent?.toLocaleString("en-US") ?? "—"}
           </p>
         </div>
         <div className="flex flex-col justify-between h-full space-y-1">
@@ -191,7 +198,7 @@ const Header = () => {
         </div>
         <div className="flex gap-2 items-right items-center text-sm">
           <p className="text-sm text-blue-800">مجموع هزینه ها:</p>
-          <p className="text-sm text-orange-800">{totalVehicleCost ?? "—"}</p>
+          <p className="text-sm text-orange-800">{totalVehicleCost?.toLocaleString("en-US") ?? "—"}</p>
         </div>
         <div className="flex gap-2 items-right items-baseline text-sm">
           <p className="text-blue-800">وضعیت تسویه حساب:</p>

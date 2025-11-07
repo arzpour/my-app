@@ -5,9 +5,13 @@ export const transactionSchema = z.object({
   transactionReason: z.string("دلیل تراکنش الزامی است"),
   transactionWay: z.string("روش تراکنش الزامی است"),
   showRoomCard: z.string("کارت نمایشگاه الزامی است"),
+  showRoomCardTitle: z.string("عناوین کارت نمایشگاه الزامی است"),
   customerNationalCode: z.string("کد ملی مشتری الزامی است"),
   transactionAmount: z.string("مبلغ تراکنش الزامی است"),
   transactionDate: z.string("تاریخ تراکنش الزامی است"),
+  financier: z.string("سرمایه گذار الزامی است").optional(),
+  financierPercent: z.string("درصد سرمایه گذار الزامی است").optional(),
+  operator: z.string("کارگزار الزامی است").optional(),
 });
 
 export type transactionSchemaType = z.infer<typeof transactionSchema>;

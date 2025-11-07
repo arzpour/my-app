@@ -186,7 +186,7 @@ const TabsTableComponent = () => {
     <div className="max-h-[28rem] h-[28rem] overflow-y-auto rounded-md border w-full">
       <div className="overflow-x-auto">
         <Table className="min-w-max text-right border-collapse">
-          <TableHeader>
+          <TableHeader className="top-0 sticky">
             <TableRow className="bg-gray-100">
               <TableHead className="w-12 text-center">ردیف</TableHead>
               <TableHead className="w-32 text-center">مبلغ</TableHead>
