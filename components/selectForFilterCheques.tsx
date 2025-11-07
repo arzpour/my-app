@@ -13,6 +13,7 @@ interface ISelectForFilterCheques {
   data: string[];
   title: string;
   selectedValue: string;
+  className?: string;
 }
 
 const SelectForFilterCheques: React.FC<ISelectForFilterCheques> = ({
@@ -20,6 +21,7 @@ const SelectForFilterCheques: React.FC<ISelectForFilterCheques> = ({
   setSelectedSubject,
   title,
   selectedValue = "همه",
+  className,
 }) => {
   return (
     <div className="space-y-1">
@@ -28,7 +30,7 @@ const SelectForFilterCheques: React.FC<ISelectForFilterCheques> = ({
         value={selectedValue}
         onValueChange={(value) => setSelectedSubject?.(value)}
       >
-        <SelectTrigger className="w-[130px] text-sm">
+        <SelectTrigger className={`w-[130px] text-sm ${className}`}>
           <SelectValue placeholder="انتخاب کنید">{selectedValue}</SelectValue>{" "}
         </SelectTrigger>
         <SelectContent>

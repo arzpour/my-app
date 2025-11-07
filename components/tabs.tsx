@@ -5,6 +5,9 @@ import OperatorsDashboard from "@/components/operatorsDashboard";
 import TransactionDashboard from "@/components/transactionDashboard";
 import VehicleDashboard from "@/components/vehicleDashboard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import TransactionForm from "./forms/transactionForm";
+import ChequeForm from "./forms/chequeForm";
+import OptionForm from "./forms/optionForm";
 
 const tabs = [
   {
@@ -39,6 +42,24 @@ const tabs = [
   },
 ];
 
+const formTabs = [
+  {
+    id: "transactionTab",
+    title: "فرم تراکنش",
+    content: <TransactionForm />,
+  },
+  {
+    id: "chequeTab",
+    title: "فرم چک",
+    content: <ChequeForm />,
+  },
+  {
+    id: "optionTab",
+    title: "فرم آپشن",
+    content: <OptionForm />,
+  },
+];
+
 const TabsComponent = () => {
   return (
     <Tabs
@@ -48,18 +69,39 @@ const TabsComponent = () => {
       dir="rtl"
     >
       <TabsList>
-        {tabs.map((tab) => (
-          <TabsTrigger
-            key={tab.id}
-            value={tab.id}
-            className="bg-gray-100 cursor-pointer"
-          >
-            {tab.title}
-          </TabsTrigger>
-        ))}
+        <div className="flex justify-between items-center">
+          {tabs.map((tab) => (
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              className="bg-gray-100 cursor-pointer"
+            >
+              {tab.title}
+            </TabsTrigger>
+          ))}
+
+          {formTabs.map((tab) => (
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              className="bg-gray-100 cursor-pointer"
+            >
+              {tab.title}
+            </TabsTrigger>
+          ))}
+        </div>
       </TabsList>
 
       {tabs.map((tab) => (
+        <TabsContent
+          key={tab.id}
+          value={tab.id}
+          className="w-full bg-white rounded-2xl"
+        >
+          {tab.content}
+        </TabsContent>
+      ))}
+      {formTabs.map((tab) => (
         <TabsContent
           key={tab.id}
           value={tab.id}
