@@ -1,6 +1,9 @@
 "use client";
 import { useGetCarByChassisNo } from "@/apis/mutations/cars";
-import { useGetOperatorPercent } from "@/apis/mutations/detailsByChassisNo";
+import {
+  useGetDetailByChassisNo,
+  useGetOperatorPercent,
+} from "@/apis/mutations/detailsByChassisNo";
 import {
   Select,
   SelectContent,
@@ -10,29 +13,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import useGetAllChassisNo from "@/hooks/useGetAllChassisNo";
-import { setChassisNo } from "@/redux/slices/carSlice";
+import { setChassisNo, setTotalVehicleCost } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 const Header = () => {
-  const { chassisNo: chassisNoSaved } = useSelector(
+  const { totalVehicleCost, chassisNo: chassisNoSaved } = useSelector(
     (state: RootState) => state.cars
   );
-  const [selectedChassis, setSelectedChassis] =
-    React.useState<string>(chassisNoSaved);
+  // const [selectedChassis, setSelectedChassis] =
+  //   React.useState<string>(chassisNoSaved);
   const [carInfo, setCarInfo] = React.useState<ICarRes | null>(null);
   const [operatorPercent, setOperatorPercent] =
     React.useState<IOperatorPercent | null>(null);
+  const [totalVehicleCostAmount, setTotalVehicleCostAmount] = React.useState<
+    number | null
+  >(null);
 
   const { data: chassisNo } = useGetAllChassisNo();
   const getCarByChassisNo = useGetCarByChassisNo();
   const getOperatorPercent = useGetOperatorPercent();
+  const getDetailByChassisNo = useGetDetailByChassisNo();
   const dispatch = useDispatch();
-  const { totalVehicleCost } = useSelector((state: RootState) => state.cars);
 
   const handleSelectChassis = async (chassisNo: string) => {
-    setSelectedChassis(chassisNo);
+    // setSelectedChassis(chassisNo);
     dispatch(setChassisNo(chassisNo));
     try {
       const res = await getCarByChassisNo.mutateAsync(chassisNo);
@@ -65,22 +71,56 @@ const Header = () => {
 
   if (carInfo?.PurchaseAmount && carInfo?.SaleAmount) {
     grossProfit = carInfo.PurchaseAmount - carInfo.SaleAmount;
-    const amountWithoutPercent = grossProfit - totalVehicleCost;
+    const amountWithoutPercent =
+      grossProfit - (totalVehicleCostAmount ?? totalVehicleCost);
 
     buyAmountWithPercent = amountWithoutPercent * (buyPercent / 100);
     sellAmountWithPercent = amountWithoutPercent * (sellPercent / 100);
 
     const sumAmounts =
-      buyAmountWithPercent + sellAmountWithPercent + totalVehicleCost;
+      buyAmountWithPercent +
+      sellAmountWithPercent +
+      (totalVehicleCostAmount ?? totalVehicleCost);
 
     netProfit = grossProfit - sumAmounts;
   }
 
+  const handleCarDetailDataByChassisNoData = async (chassisNo: string) => {
+    if (!chassisNo) return;
+    try {
+      const details = await getDetailByChassisNo.mutateAsync(chassisNo);
+
+      const paidTransactions = details?.transactions?.filter(
+        (t) => t.TransactionType === "پرداخت"
+      );
+
+      const totalVehicleCost = paidTransactions
+        ?.filter(
+          (item) =>
+            item?.TransactionReason?.replace(/\s/g, "").includes(
+              "هزینهوسیله"
+            ) ||
+            item?.TransactionReason?.replace(/\s/g, "").includes("هزينهوسیله")
+        )
+        ?.reduce((sum, item) => sum + (item.TransactionAmount || 0), 0);
+
+      dispatch(setTotalVehicleCost(totalVehicleCost));
+      setTotalVehicleCostAmount(totalVehicleCost);
+    } catch (error) {
+      console.log("🚀 ~ handleSelectChassis ~ error:", error);
+      setTotalVehicleCostAmount(null);
+    }
+  };
+
   React.useEffect(() => {
-    const initialChassis = selectedChassis || chassisNoSaved;
+    const initialChassis = chassisNoSaved;
     if (initialChassis) {
       handleSelectChassis(initialChassis);
     }
+  }, [chassisNoSaved]);
+
+  React.useEffect(() => {
+    handleCarDetailDataByChassisNoData(chassisNoSaved);
   }, [chassisNoSaved]);
 
   return (
@@ -88,7 +128,7 @@ const Header = () => {
       <div className="grid grid-cols-9 gap-3 auto-rows-min items-start justify-start place-items-stretch">
         <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm font-bold mb-2 text-blue-900">شاسی:</h3>
-          <Select onValueChange={handleSelectChassis} value={selectedChassis}>
+          <Select onValueChange={handleSelectChassis} value={chassisNoSaved}>
             <SelectTrigger className="w-[120px] text-sm">
               <SelectValue placeholder="انتخاب شاسی" />
             </SelectTrigger>
@@ -114,7 +154,9 @@ const Header = () => {
           <h3 className="text-sm text-blue-900 font-bold">
             {"مبلغ فروش(خرید شما):"}
           </h3>
-          <h4 className="text-sm">{carInfo?.SaleAmount?.toLocaleString("en-US") ?? "—"}</h4>
+          <h4 className="text-sm">
+            {carInfo?.SaleAmount?.toLocaleString("en-US") ?? "—"}
+          </h4>
           <span className="text-sm text-blue-500">
             {carInfo?.SaleDate ?? "—"}
           </span>
@@ -123,7 +165,9 @@ const Header = () => {
           <h3 className="text-sm text-blue-900 font-bold">
             {"مبلغ خرید(فروش شما):"}
           </h3>
-          <h4 className="text-sm">{carInfo?.PurchaseAmount?.toLocaleString("en-US") ?? "—"}</h4>
+          <h4 className="text-sm">
+            {carInfo?.PurchaseAmount?.toLocaleString("en-US") ?? "—"}
+          </h4>
           <span className="text-sm text-blue-500">
             {carInfo?.PurchaseDate ?? "—"}
           </span>
@@ -198,7 +242,11 @@ const Header = () => {
         </div>
         <div className="flex gap-2 items-right items-center text-sm">
           <p className="text-sm text-blue-800">مجموع هزینه ها:</p>
-          <p className="text-sm text-orange-800">{totalVehicleCost?.toLocaleString("en-US") ?? "—"}</p>
+          <p className="text-sm text-orange-800">
+            {totalVehicleCostAmount?.toLocaleString("en-US") ??
+              totalVehicleCost?.toLocaleString("en-US") ??
+              "—"}
+          </p>
         </div>
         <div className="flex gap-2 items-right items-baseline text-sm">
           <p className="text-blue-800">وضعیت تسویه حساب:</p>
