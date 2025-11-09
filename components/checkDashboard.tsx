@@ -175,7 +175,7 @@ const CheckDashboard = () => {
 
   return (
     <div>
-      <div className="grid [grid-template-columns:1fr_1fr_1fr_0.5fr_0.5fr] gap-6 items-start mt-4">
+      <div className="grid [grid-template-columns:1fr_1fr_1fr_0.5fr_0.5fr] gap-6 items-start justify-start mt-4">
         <div className="space-y-6">
           <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
             <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">

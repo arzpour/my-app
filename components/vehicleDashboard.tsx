@@ -34,7 +34,7 @@ const VehicleDashboard = () => {
   const getInvestmentByChassis = useGetInvestmentByChassis();
   const getUnpaidCheques = useGetUnpaidCheques();
 
-  const handleCarDetailDataByChassisNoData = async (chassisNo: string) => {
+   const handleCarDetailDataByChassisNoData = async (chassisNo: string) => {
     if (!chassisNo) return;
     try {
       const details = await getDetailByChassisNo.mutateAsync(chassisNo);
@@ -116,6 +116,10 @@ const VehicleDashboard = () => {
     handleCarDetailDataByChassisNoData(chassisNo);
     handleInvestmentDataByChassisNoData(chassisNo);
   }, [chassisNo]);
+
+
+
+
 
   return (
     <>

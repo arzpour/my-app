@@ -11,9 +11,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import useGetUniqUsersData from "@/hooks/useGetUserData";
+import { setChassisNo } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
 import React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const CustomersDashboard = () => {
   const [carDataByNationalCode, setCarDataByNationalCode] =
@@ -29,6 +30,7 @@ const CustomersDashboard = () => {
   const getChequeByChassisNo = useGetChequeByChassisNo();
   const getTransactionByChassisNo = useGetTransactionByChassisNo();
   const { data: allUniqUsers } = useGetUniqUsersData();
+  const dispatch = useDispatch()
 
   const handleCarDataByNationalId = async (
     nationalId: string,
@@ -95,7 +97,6 @@ const CustomersDashboard = () => {
   };
 
   React.useEffect(() => {
-    handleTransationDataByChassisNo(chassisNo);
     handleChequeDataByChassisNo(chassisNo);
   }, [chassisNo]);
 
@@ -196,6 +197,7 @@ const CustomersDashboard = () => {
                         onClick={() => {
                           handleChequeDataByChassisNo(item.ChassisNo);
                           handleTransationDataByChassisNo(item.ChassisNo);
+                          dispatch(setChassisNo(item.ChassisNo));
                         }}
                         className="hover:bg-gray-50 cursor-pointer"
                       >
@@ -251,6 +253,7 @@ const CustomersDashboard = () => {
                         onClick={() => {
                           handleChequeDataByChassisNo(item.ChassisNo);
                           handleTransationDataByChassisNo(item.ChassisNo);
+                          dispatch(setChassisNo(item.ChassisNo));
                         }}
                         className="hover:bg-gray-50 cursor-pointer"
                       >
