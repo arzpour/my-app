@@ -11,9 +11,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import useGetUniqUsersData from "@/hooks/useGetUserData";
+import { setChassisNo } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
 import React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const CustomersDashboard = () => {
   const [carDataByNationalCode, setCarDataByNationalCode] =
@@ -24,16 +25,21 @@ const CustomersDashboard = () => {
   const [transactionByChassis, setTransactionByChassis] = React.useState<
     ITransactionRes[] | null
   >(null);
+  const [selectedNationalIdOrName, setSelectedNationalIdOrName] =
+    React.useState<string | null>(null);
+  const [searchValue, setSearchValue] = React.useState<string>("");
 
   const { chassisNo } = useSelector((state: RootState) => state.cars);
   const getChequeByChassisNo = useGetChequeByChassisNo();
   const getTransactionByChassisNo = useGetTransactionByChassisNo();
   const { data: allUniqUsers } = useGetUniqUsersData();
+  const dispatch = useDispatch();
 
   const handleCarDataByNationalId = async (
     nationalId: string,
     userName: string
   ) => {
+    setSelectedNationalIdOrName(nationalId ?? userName);
     try {
       const res = await getFilterByUserData({ nationalId, userName });
       setCarDataByNationalCode(res);
@@ -61,6 +67,18 @@ const CustomersDashboard = () => {
     }
   };
 
+  const filteredUsers = React.useMemo(() => {
+    if (!searchValue) return allUniqUsers;
+
+    const lowerSearch = searchValue.toLowerCase().trim();
+
+    return allUniqUsers?.filter(
+      (user) =>
+        user.name?.toLowerCase().includes(lowerSearch) ||
+        user.nationalId?.includes(lowerSearch)
+    );
+  }, [searchValue, allUniqUsers]);
+
   const totalBuyAmount = carDataByNationalCode?.purchases?.reduce(
     (sum, t) => sum + t.PurchaseAmount,
     0
@@ -72,30 +90,37 @@ const CustomersDashboard = () => {
   const diffBuySell = (totalSellAmount || 0) - (totalBuyAmount || 0);
 
   const totalReceived = transactionByChassis
-    ?.filter((t) => t.TransactionType === "دریافت")
+    ?.filter((t) => {
+      console.log("🚀 ~ CustomersDashboard ~ t:", t);
+      return (
+        t.TransactionType === "دریافت" &&
+        (t.TransactionReason === "فروش" || t.TransactionReason === "خرید")
+      );
+    })
     .reduce((sum, t) => sum + t.TransactionAmount, 0);
   const totalPayment = transactionByChassis
-    ?.filter((t) => t.TransactionType === "پرداخت")
+    ?.filter(
+      (t) =>
+        t.TransactionType === "پرداخت" &&
+        (t.TransactionReason === "خرید" || t.TransactionReason === "فروش")
+    )
     .reduce((sum, t) => sum + t.TransactionAmount, 0);
 
   const diffPaymentReceived = (totalPayment || 0) - (totalReceived || 0);
 
   const uniqeUsersRole = (userRole: string[]) => {
-    let role;
-    if (userRole.includes("buyer")) {
-      role = "خریدار";
+    if (userRole.includes("buyer") && userRole.includes("seller")) {
+      return "خریدار / فروشنده";
+    } else if (userRole.includes("buyer")) {
+      return "خریدار";
     } else if (userRole.includes("seller")) {
-      role = "فروشنده";
-    } else if (userRole.includes("seller") && userRole.includes("seller")) {
-      role = "خریدار / فروشنده";
+      return "فروشنده";
     } else {
-      role = "";
+      return "—";
     }
-    return role;
   };
 
   React.useEffect(() => {
-    handleTransationDataByChassisNo(chassisNo);
     handleChequeDataByChassisNo(chassisNo);
   }, [chassisNo]);
 
@@ -110,6 +135,8 @@ const CustomersDashboard = () => {
             type="text"
             placeholder="اینجا تایپ کنید..."
             className="w-32 border border-gray-600 p-0 h-7 rounded-md pr-2 placeholder:text-sm"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
           />
         </div>
         <div className="flex justify-between items-center">
@@ -130,7 +157,7 @@ const CustomersDashboard = () => {
       <div className="grid grid-cols-3 gap-5 items-start mt-8">
         <div className="h-[33.7rem] max-h-[33.7rem] border border-gray-300 p-4 rounded-md relative w-full">
           <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
-            اسامی مشتری
+            لیست مشتریان
           </p>
           <div className="max-h-[30rem] overflow-y-auto rounded-md border w-full">
             <Table className="min-w-full table-fixed text-right border-collapse">
@@ -146,26 +173,49 @@ const CustomersDashboard = () => {
               </TableHeader>
 
               <TableBody>
-                {allUniqUsers?.map((item, index) => (
-                  <TableRow
-                    key={`${item?.name}-${index}`}
-                    className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() => {
-                      handleCarDataByNationalId(item.nationalId, item.name);
-                    }}
-                  >
-                    <TableCell className="text-center">{index + 1}</TableCell>
-                    <TableCell className="text-center break-words">
-                      {item.name ?? "__"}
-                    </TableCell>
-                    <TableCell className="text-center break-words">
-                      {item.nationalId ?? "__"}
-                    </TableCell>
-                    <TableCell className="text-center break-words">
-                      {uniqeUsersRole(item.roles) ?? "__"}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {/* {allUniqUsers?.map((item, index) => {
+                  return (
+                    <TableRow
+                      key={`${item?.name}-${index}`}
+                      onClick={() => {
+                        handleCarDataByNationalId(item.nationalId, item.name);
+                        setTransactionByChassis(null);
+                      }}
+                      className={`cursor-pointer ${
+                        selectedNationalIdOrName ===
+                        (item.name || item.nationalId)
+                          ? "bg-gray-200"
+                          : "bg-white"
+                      }`}
+                    // > */}
+                {filteredUsers?.map((item, index) => {
+                  return (
+                    <TableRow
+                      key={`${item?.name}-${index}`}
+                      onClick={() => {
+                        handleCarDataByNationalId(item.nationalId, item.name);
+                        setTransactionByChassis(null);
+                      }}
+                      className={`cursor-pointer ${
+                        selectedNationalIdOrName ===
+                        (item.name || item.nationalId)
+                          ? "bg-gray-200"
+                          : "bg-white"
+                      }`}
+                    >
+                      <TableCell className="text-center">{index + 1}</TableCell>
+                      <TableCell className="text-center break-words">
+                        {item.name ?? "__"}
+                      </TableCell>
+                      <TableCell className="text-center break-words">
+                        {item.nationalId ?? "__"}
+                      </TableCell>
+                      <TableCell className="text-center break-words">
+                        {uniqeUsersRole(item.roles) ?? "__"}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -196,6 +246,7 @@ const CustomersDashboard = () => {
                         onClick={() => {
                           handleChequeDataByChassisNo(item.ChassisNo);
                           handleTransationDataByChassisNo(item.ChassisNo);
+                          dispatch(setChassisNo(item.ChassisNo));
                         }}
                         className="hover:bg-gray-50 cursor-pointer"
                       >
@@ -251,6 +302,7 @@ const CustomersDashboard = () => {
                         onClick={() => {
                           handleChequeDataByChassisNo(item.ChassisNo);
                           handleTransationDataByChassisNo(item.ChassisNo);
+                          dispatch(setChassisNo(item.ChassisNo));
                         }}
                         className="hover:bg-gray-50 cursor-pointer"
                       >
@@ -338,7 +390,7 @@ const CustomersDashboard = () => {
           </div>
           <div className="h-[16rem] max-h-[16rem] border border-gray-300 p-4 rounded-md relative w-full">
             <p className="text-blue-500 absolute right-2 -top-6 bg-white py-2 px-4">
-              وضعیت چک ها
+              لیست چک ها
             </p>
             <div className="h-[12rem] max-h-[12rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">

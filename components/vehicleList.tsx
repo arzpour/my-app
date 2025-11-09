@@ -64,7 +64,7 @@ const VehicleList = () => {
                   </TableCell>
                   <TableCell className="text-center flex gap-3 items-center justify-center">
                     <Pencil className="w-4 h-4 cursor-pointer" />
-                    <Trash2 className="w-4 h-4 cursor-pointer" />
+                    {/* <Trash2 className="w-4 h-4 cursor-pointer" /> */}
                   </TableCell>
                 </TableRow>
               ))}

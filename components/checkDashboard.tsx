@@ -1,13 +1,5 @@
 "use client";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -19,6 +11,15 @@ import useGetAllCheques from "@/hooks/useGetAllCheques";
 import React, { useMemo } from "react";
 import SelectForFilterCheques from "./selectForFilterCheques";
 import PersianDatePicker from "./global/persianDatePicker";
+
+// const parsePersianDate = (date: string) => {
+//   if (!date) return 0;
+//   const parts = date.split("/");
+//   const eng = parts.map((p) =>
+//     p.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+//   );
+//   return Number(eng.join(""));
+// };
 
 const CheckDashboard = () => {
   const { data = [] } = useGetAllCheques();
@@ -36,7 +37,6 @@ const CheckDashboard = () => {
   const [fromDate, setFromDate] = React.useState(""); // YYYY/MM/DD
   const [toDate, setToDate] = React.useState(""); // YYYY/MM/DD
   const [maxAmount, setMaxAmount] = React.useState<number | undefined>();
-  const [appliedFilters, setAppliedFilters] = React.useState(false);
 
   const getOptions = (key: string) => {
     const values = data?.map((d: any) => d[key] ?? "") ?? [];
@@ -59,7 +59,6 @@ const CheckDashboard = () => {
   const operationTypeOptions = getOptions("LastAction").filter(Boolean);
 
   const filteredData = useMemo(() => {
-    if (!appliedFilters) return data;
     return data?.filter((item) => {
       if (
         selectedChequeSerial !== "همه" &&
@@ -106,7 +105,6 @@ const CheckDashboard = () => {
     });
   }, [
     data,
-    appliedFilters,
     selectedChequeSerial,
     selectedSayadiId,
     selectedCustomerType,
@@ -149,7 +147,6 @@ const CheckDashboard = () => {
     setFromDate("");
     setToDate("");
     setMaxAmount(undefined);
-    setAppliedFilters(false);
   };
 
   const stats = useMemo(() => {
@@ -175,7 +172,7 @@ const CheckDashboard = () => {
 
   return (
     <div>
-      <div className="grid [grid-template-columns:1fr_1fr_1fr_0.5fr_0.5fr] gap-6 items-start mt-4">
+      <div className="grid [grid-template-columns:1fr_1fr_1fr_0.5fr_0.5fr] gap-6 items-start justify-start mt-4">
         <div className="space-y-6">
           <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
             <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
@@ -305,12 +302,6 @@ const CheckDashboard = () => {
           </div>
         </div>
         <div className="space-y-3 flex flex-col w-32">
-          <button
-            onClick={() => setAppliedFilters(true)}
-            className="border rounded-lg px-4 py-2 w-36 shadow-md cursor-pointer"
-          >
-            جستجو
-          </button>
           <button
             onClick={handleResetFilters}
             className="border rounded-lg shadow-lg px-4 py-2 w-36 whitespace-nowrap cursor-pointer"
