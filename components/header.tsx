@@ -22,8 +22,8 @@ const Header = () => {
   const { totalVehicleCost, chassisNo: chassisNoSaved } = useSelector(
     (state: RootState) => state.cars
   );
-  const [selectedChassis, setSelectedChassis] =
-    React.useState<string>(chassisNoSaved);
+  // const [selectedChassis, setSelectedChassis] =
+  //   React.useState<string>(chassisNoSaved);
   const [carInfo, setCarInfo] = React.useState<ICarRes | null>(null);
   const [operatorPercent, setOperatorPercent] =
     React.useState<IOperatorPercent | null>(null);
@@ -38,7 +38,7 @@ const Header = () => {
   const dispatch = useDispatch();
 
   const handleSelectChassis = async (chassisNo: string) => {
-    setSelectedChassis(chassisNo);
+    // setSelectedChassis(chassisNo);
     dispatch(setChassisNo(chassisNo));
     try {
       const res = await getCarByChassisNo.mutateAsync(chassisNo);
@@ -113,7 +113,7 @@ const Header = () => {
   };
 
   React.useEffect(() => {
-    const initialChassis = selectedChassis || chassisNoSaved;
+    const initialChassis = chassisNoSaved;
     if (initialChassis) {
       handleSelectChassis(initialChassis);
     }

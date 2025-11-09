@@ -53,11 +53,11 @@ const formTabs = [
     title: "فرم چک",
     content: <ChequeForm />,
   },
-  {
-    id: "optionTab",
-    title: "فرم آپشن",
-    content: <OptionForm />,
-  },
+  // {
+  //   id: "optionTab",
+  //   title: "فرم آپشن",
+  //   content: <OptionForm />,
+  // },
 ];
 
 const TabsComponent = () => {

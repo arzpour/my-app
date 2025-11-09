@@ -34,7 +34,7 @@ const VehicleDashboard = () => {
   const getInvestmentByChassis = useGetInvestmentByChassis();
   const getUnpaidCheques = useGetUnpaidCheques();
 
-   const handleCarDetailDataByChassisNoData = async (chassisNo: string) => {
+  const handleCarDetailDataByChassisNoData = async (chassisNo: string) => {
     if (!chassisNo) return;
     try {
       const details = await getDetailByChassisNo.mutateAsync(chassisNo);
@@ -117,19 +117,15 @@ const VehicleDashboard = () => {
     handleInvestmentDataByChassisNoData(chassisNo);
   }, [chassisNo]);
 
-
-
-
-
   return (
     <>
       <div className="my-5 mb-7">
         <div className="w-full flex justify-center gap-4">
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
+          <div className="h-[28rem] max-h-[28rem] border border-gray-300 p-4 rounded-md relative w-full">
             <p className="text-red-500 absolute right-2 -top-5 bg-white py-2 px-4">
               پرداخت های شما
             </p>
-            <div className="overflow-hidden rounded-md border w-full">
+            <div className="h-[23rem] max-h-[23rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
@@ -227,11 +223,11 @@ const VehicleDashboard = () => {
             </div>
           </div>
 
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
+          <div className="h-[28rem] max-h-[28rem] border border-gray-300 p-4 rounded-md relative w-full">
             <p className="text-green-500 absolute right-2 -top-5 bg-white py-2 px-4">
               دریافت های شما
             </p>
-            <div className="overflow-hidden rounded-md border w-full">
+            <div className="h-[23rem] max-h-[23rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader className="top-0 sticky">
                   <TableRow className="hover:bg-transparent bg-gray-100">
@@ -304,11 +300,11 @@ const VehicleDashboard = () => {
 
       <div className="mt-7">
         <div className="w-full flex justify-center gap-4">
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
+          <div className="h-[18rem] max-h-[18rem] border border-gray-300 p-4 rounded-md relative w-full">
             <p className="text-blue-300 absolute right-2 -top-5 bg-white py-2 px-4">
-              افزایش سرمایه
+              افزایش/کاهش سرمایه
             </p>
-            <div className="overflow-hidden rounded-md border w-full">
+            <div className="h-[14rem] max-h-[14rem] overflow-y-auto rounded-md border w-full">
               <Table
                 className="min-w-full table-fixed text-right border-collapse"
                 dir="rtl"
@@ -366,11 +362,11 @@ const VehicleDashboard = () => {
             </div>
           </div>
 
-          <div className="border border-gray-300 p-4 rounded-md relative w-full">
+          <div className="h-[18rem] max-h-[18rem] border border-gray-300 p-4 rounded-md relative w-full">
             <p className="text-blue-300 absolute right-2 -top-5 bg-white py-2 px-4">
               چک های صادره و وارده
             </p>
-            <div className="overflow-hidden rounded-md border w-full">
+            <div className="h-[14rem] max-h-[14rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader className="top-0 sticky">
                   <TableRow className="hover:bg-transparent bg-gray-100">
