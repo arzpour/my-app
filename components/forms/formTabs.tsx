@@ -1,5 +1,5 @@
 import ChequeForm from "./chequeForm";
-import OptionForm from "./optionForm";
+// import OptionForm from "./optionForm";
 import TransactionForm from "./transactionForm";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
@@ -14,11 +14,11 @@ const tabs = [
     title: "فرم چک",
     content: <ChequeForm />,
   },
-  {
-    id: "optionTab",
-    title: "فرم آپشن",
-    content: <OptionForm />,
-  },
+  // {
+  //   id: "optionTab",
+  //   title: "فرم آپشن",
+  //   content: <OptionForm />,
+  // },
 ];
 
 const FormTabs = () => {
