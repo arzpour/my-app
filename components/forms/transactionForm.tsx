@@ -59,6 +59,11 @@ const TransactionForm = () => {
       (item) => item.category === "showRoomCardTitle"
     );
 
+  const transactionShowRoomCardTitleNamesOptions =
+    getAllCategoryWithOptionSettings?.filter(
+      (item) => item.category === "showRoomCardTitleName"
+    );
+
   const transactionOperatorsOptions = getAllCategoryWithOptionSettings?.filter(
     (item) => item.category === "operators"
   );
@@ -101,11 +106,11 @@ const TransactionForm = () => {
                 control={control}
                 render={({ field }) => (
                   <SelectForFilterCheques
-                    data={transactionTypeOptions?.[0].options ?? [""]}
+                    data={transactionTypeOptions?.[0]?.options ?? [""]}
                     title="نوع تراکنش"
                     selectedValue={field.value || "انتخاب کنید"}
                     setSelectedSubject={field.onChange}
-                    className="w-full"
+                    className="w-40 truncate"
                   />
                 )}
               />
@@ -124,11 +129,11 @@ const TransactionForm = () => {
                 control={control}
                 render={({ field }) => (
                   <SelectForFilterCheques
-                    data={transactionReasonOptions?.[0].options ?? [""]}
+                    data={transactionReasonOptions?.[0]?.options ?? [""]}
                     title="دلیل تراکنش"
                     selectedValue={field.value || "انتخاب کنید"}
                     setSelectedSubject={field.onChange}
-                    className="w-full"
+                    className="w-40 truncate"
                   />
                 )}
               />
@@ -147,11 +152,11 @@ const TransactionForm = () => {
                 control={control}
                 render={({ field }) => (
                   <SelectForFilterCheques
-                    data={transactionWayOptions?.[0].options ?? [""]}
+                    data={transactionWayOptions?.[0]?.options ?? [""]}
                     title="روش تراکنش"
                     selectedValue={field.value || "انتخاب کنید"}
                     setSelectedSubject={field.onChange}
-                    className="w-full"
+                    className="w-40 truncate"
                   />
                 )}
               />
@@ -163,7 +168,7 @@ const TransactionForm = () => {
             </div>
           )}
 
-          {transactionShowRoomCardTitlesOptions && (
+          {transactionShowRoomCardTitleNamesOptions && (
             <div className="space-y-1">
               <Controller
                 name="showRoomCard"
@@ -171,12 +176,13 @@ const TransactionForm = () => {
                 render={({ field }) => (
                   <SelectForFilterCheques
                     data={
-                      transactionShowRoomCardTitlesOptions?.[0].options ?? [""]
+                      transactionShowRoomCardTitleNamesOptions?.[0]
+                        ?.options ?? [""]
                     }
                     title="کارت نمایشگاه"
                     selectedValue={field.value || "انتخاب کنید"}
                     setSelectedSubject={field.onChange}
-                    className="w-full"
+                    className="w-40 truncate"
                   />
                 )}
               />
@@ -188,74 +194,90 @@ const TransactionForm = () => {
             </div>
           )}
 
-          {(transactionType === "افزایش سرمایه" ||
-            transactionType === "برداشت سرمایه") && (
-            <div className="space-y-1">
-              <Controller
-                name="financier"
-                control={control}
-                render={({ field }) => (
-                  <SelectForFilterCheques
-                    data={transactionShowRoomCardOptions?.[0].options ?? [""]}
-                    title="سرمایه گذار"
-                    selectedValue={field.value || "انتخاب کنید"}
-                    setSelectedSubject={field.onChange}
-                    className="w-full"
-                  />
-                )}
-              />
-              {errors.financier && (
-                <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                  {errors.financier.message}
-                </p>
-              )}
-            </div>
-          )}
-          {showRoomCardTitle === "مشتری به مشتری" && (
-            <div className="space-y-1">
-              <Controller
-                name="financier"
-                control={control}
-                render={({ field }) => (
-                  <SelectForFilterCheques
-                    data={transactionShowRoomCardOptions?.[0].options ?? [""]}
-                    title="سرمایه گذار"
-                    selectedValue={field.value || "انتخاب کنید"}
-                    setSelectedSubject={field.onChange}
-                    className="w-full"
-                  />
-                )}
-              />
-              {errors.financier && (
-                <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                  {errors.financier.message}
-                </p>
-              )}
-            </div>
-          )}
+          {/* {(transactionType === "افزایش سرمایه" ||
+            transactionType === "برداشت سرمایه") && ( */}
 
-          {transactionReason === "درصد کارگزار" && (
-            <div className="space-y-1">
-              <Controller
-                name="operator"
-                control={control}
-                render={({ field }) => (
-                  <SelectForFilterCheques
-                    data={transactionOperatorsOptions?.[0].options ?? [""]}
-                    title="کارگزار"
-                    selectedValue={field.value || "انتخاب کنید"}
-                    setSelectedSubject={field.onChange}
-                    className="w-full"
-                  />
-                )}
-              />
-              {errors.operator && (
+          <div className="space-y-1">
+            <Controller
+              name="financier"
+              control={control}
+              render={({ field }) => (
+                <SelectForFilterCheques
+                  data={transactionShowRoomCardOptions?.[0]?.options ?? [""]}
+                  title="سرمایه گذار"
+                  selectedValue={field.value || "انتخاب کنید"}
+                  setSelectedSubject={field.onChange}
+                  className="w-40 truncate"
+                  // disabled={
+                  //   !["برداشت سرمایه", "افزایش سرمایه"].includes(
+                  //     transactionType
+                  //   ) || showRoomCardTitle !== "مشتری به مشتری"
+                  // }
+                  disabled={
+                    !["برداشت سرمایه", "افزایش سرمایه"].includes(
+                      transactionType
+                    )
+                  }
+                />
+              )}
+            />
+            {(transactionType === "افزایش سرمایه" ||
+              transactionType === "برداشت سرمایه" ||
+              showRoomCardTitle === "مشتری به مشتری") &&
+              errors.financier && (
                 <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                  {errors.operator.message}
+                  {errors.financier.message}
                 </p>
               )}
-            </div>
-          )}
+          </div>
+          {/* )} */}
+          {/* {showRoomCardTitle === "مشتری به مشتری" && ( */}
+          {/* <div className="space-y-1">
+            <Controller
+              name="financier"
+              control={control}
+              render={({ field }) => (
+                <SelectForFilterCheques
+                  data={transactionShowRoomCardOptions?.[0]?.options ?? [""]}
+                  title="سرمایه گذار"
+                  selectedValue={field.value || "انتخاب کنید"}
+                  setSelectedSubject={field.onChange}
+                  className="w-full"
+                />
+              )}
+              disabled={showRoomCardTitle !== "مشتری به مشتری"}
+            />
+            {showRoomCardTitle === "مشتری به مشتری" && errors.financier && (
+              <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
+                {errors.financier.message}
+              </p>
+            )}
+          </div> */}
+          {/* )} */}
+
+          {/* {transactionReason === "درصد کارگزار" && ( */}
+          <div className="space-y-1">
+            <Controller
+              name="operator"
+              control={control}
+              render={({ field }) => (
+                <SelectForFilterCheques
+                  data={transactionOperatorsOptions?.[0]?.options ?? [""]}
+                  title="کارگزار"
+                  selectedValue={field.value || "انتخاب کنید"}
+                  setSelectedSubject={field.onChange}
+                  className="w-40 truncate"
+                  disabled={transactionReason !== "درصد کارگزار"}
+                />
+              )}
+            />
+            {transactionReason === "درصد کارگزار" && errors.operator && (
+              <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
+                {errors.operator.message}
+              </p>
+            )}
+          </div>
+          {/* )} */}
         </div>
 
         <div className="space-y-5 flex gap-7 w-full">
@@ -266,7 +288,7 @@ const TransactionForm = () => {
             <input
               type="text"
               placeholder="کد ملی مشتری"
-              className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-full border border-gray-500 p-2 rounded-md"
+              className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-40 truncate border border-gray-500 p-2 rounded-md"
               {...register("customerNationalCode")}
               name="customerNationalCode"
             />
@@ -284,7 +306,7 @@ const TransactionForm = () => {
             <input
               type="text"
               placeholder="مبلغ تراکنش"
-              className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-full border border-gray-500 p-2 rounded-md"
+              className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-40 truncate border border-gray-500 p-2 rounded-md"
               {...register("transactionAmount")}
               name="transactionAmount"
             />
@@ -302,7 +324,7 @@ const TransactionForm = () => {
             <input
               type="text"
               placeholder="تاریخ تراکنش"
-              className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-full border border-gray-500 p-2 rounded-md"
+              className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-40 truncate border border-gray-500 p-2 rounded-md"
               {...register("transactionDate")}
               name="transactionDate"
             />
@@ -313,26 +335,41 @@ const TransactionForm = () => {
             )}
           </div>
 
-          {(transactionType === "افزایش سرمایه" ||
-            transactionType === "برداشت سرمایه") && (
-            <div className="space-y-1">
-              <h3 className="text-sm font-bold mb-2 text-blue-900">
-                درصد سرمایه گذار:
-              </h3>
-              <input
-                type="text"
-                placeholder="درصد سرمایه گذار"
-                className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-full border border-gray-500 p-2 rounded-md"
-                {...register("financierPercent")}
-                name="financierPercent"
-              />
-              {errors.financierPercent && (
+          {/* {(transactionType === "افزایش سرمایه" ||
+            transactionType === "برداشت سرمایه") && ( */}
+          <div className="space-y-1">
+            <h3
+              className={`text-sm font-bold mb-2 ${
+                !["برداشت سرمایه", "افزایش سرمایه"].includes(transactionType)
+                  ? "text-gray-400"
+                  : "text-blue-900"
+              }`}
+            >
+              درصد سرمایه گذار:
+            </h3>
+            <input
+              type="text"
+              placeholder="درصد سرمایه گذار"
+              className={`bg-transparent placeholder-gray-500/80 outline-none text-sm border p-2 rounded-md w-40 truncate ${
+                !["برداشت سرمایه", "افزایش سرمایه"].includes(transactionType)
+                  ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
+                  : "border-gray-500"
+              }`}
+              {...register("financierPercent")}
+              name="financierPercent"
+              disabled={
+                !["برداشت سرمایه", "افزایش سرمایه"].includes(transactionType)
+              }
+            />
+            {(transactionType === "افزایش سرمایه" ||
+              transactionType === "برداشت سرمایه") &&
+              errors.financierPercent && (
                 <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
                   {errors.financierPercent.message}
                 </p>
               )}
-            </div>
-          )}
+          </div>
+          {/* )} */}
         </div>
       </div>
 
