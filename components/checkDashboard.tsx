@@ -249,14 +249,22 @@ const CheckDashboard = () => {
                 <h3 className="text-sm font-bold mb-2 text-purple-700">
                   از تاریخ:
                 </h3>
-                <PersianDatePicker />
+                <PersianDatePicker
+                  value={fromDate}
+                  onChange={(date) => setFromDate(date)}
+                  placeholder="از تاریخ"
+                />
               </div>
 
               <div className="space-y-1">
                 <h3 className="text-sm font-bold mb-2 text-purple-700">
                   تا تاریخ:
                 </h3>
-                <PersianDatePicker />
+                <PersianDatePicker
+                  value={toDate}
+                  onChange={(date) => setToDate(date)}
+                  placeholder="تا تاریخ"
+                />
               </div>
             </div>
           </div>

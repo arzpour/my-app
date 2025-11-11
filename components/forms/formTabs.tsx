@@ -1,3 +1,4 @@
+"use client"
 import ChequeForm from "./chequeForm";
 // import OptionForm from "./optionForm";
 import TransactionForm from "./transactionForm";
