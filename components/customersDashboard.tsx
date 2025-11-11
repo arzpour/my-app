@@ -22,6 +22,7 @@ const CustomersDashboard = () => {
   const [chequeByChassis, setChequeByChassis] = React.useState<
     IChequeRes[] | null
   >(null);
+  console.log("🚀 ~ CustomersDashboard ~ chequeByChassis:", chequeByChassis)
   const [transactionByChassis, setTransactionByChassis] = React.useState<
     ITransactionRes[] | null
   >(null);
@@ -60,7 +61,7 @@ const CustomersDashboard = () => {
 
   const handleChequeDataByChassisNo = async (chassisNo: string) => {
     try {
-      const res = await getChequeByChassisNo.mutateAsync(chassisNo);
+      const res = await getChequeByChassisNo.mutateAsync("00091");
       setChequeByChassis(res);
     } catch (error) {
       console.log("🚀 ~ handleSelectChassis ~ error:", error);
@@ -89,22 +90,24 @@ const CustomersDashboard = () => {
   );
   const diffBuySell = (totalSellAmount || 0) - (totalBuyAmount || 0);
 
-  const totalReceived = transactionByChassis
-    ?.filter((t) => {
-      console.log("🚀 ~ CustomersDashboard ~ t:", t);
-      return (
-        t.TransactionType === "دریافت" &&
-        (t.TransactionReason === "فروش" || t.TransactionReason === "خرید")
-      );
-    })
-    .reduce((sum, t) => sum + t.TransactionAmount, 0);
-  const totalPayment = transactionByChassis
-    ?.filter(
-      (t) =>
-        t.TransactionType === "پرداخت" &&
-        (t.TransactionReason === "خرید" || t.TransactionReason === "فروش")
-    )
-    .reduce((sum, t) => sum + t.TransactionAmount, 0);
+  const totalReceived =
+    transactionByChassis
+      ?.filter((t) => {
+        console.log("🚀 ~ CustomersDashboard ~ t:", t);
+        return (
+          t?.TransactionType === "دریافت" &&
+          (t?.TransactionReason === "فروش" || t?.TransactionReason === "خرید")
+        );
+      })
+      .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
+  const totalPayment =
+    transactionByChassis
+      ?.filter(
+        (t) =>
+          t?.TransactionType === "پرداخت" &&
+          (t?.TransactionReason === "خرید" || t?.TransactionReason === "فروش")
+      )
+      .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
 
   const diffPaymentReceived = (totalPayment || 0) - (totalReceived || 0);
 
@@ -351,23 +354,28 @@ const CustomersDashboard = () => {
                 </TableHeader>
 
                 <TableBody>
-                  {transactionByChassis?.map((item, index) => (
-                    <TableRow
-                      key={`${item?._id}-${index}`}
-                      className="hover:bg-gray-50 cursor-pointer"
-                    >
-                      <TableCell className="text-center">{index + 1}</TableCell>
-                      <TableCell className="text-center">
-                        {item.TransactionDate}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.TransactionAmount?.toLocaleString("en-US")}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item.TransactionType} - {item.TransactionReason}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {transactionByChassis && transactionByChassis.length > 0
+                    ? transactionByChassis.map((item, index) => (
+                        <TableRow
+                          key={`${item?._id}-${index}`}
+                          className="hover:bg-gray-50 cursor-pointer"
+                        >
+                          <TableCell className="text-center">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item.TransactionDate}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.TransactionAmount?.toLocaleString("en-US") ??
+                              ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item.TransactionType} - {item.TransactionReason}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    : null}
                 </TableBody>
               </Table>
             </div>
