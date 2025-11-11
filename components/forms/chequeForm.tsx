@@ -2,14 +2,19 @@
 import useGetAllCategoryWithOptionSettings from "@/hooks/useGetCategoriesSetting";
 import { optionSchemaType, optionSchema } from "@/validations/option";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import PersianDatePicker from "../global/persianDatePicker";
+import SelectForFilterCheques from "../selectForFilterCheques";
 
 const ChequeForm = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    getValues,
+    control,
   } = useForm<optionSchemaType>({
     mode: "all",
     resolver: zodResolver(optionSchema),
@@ -34,6 +39,13 @@ const ChequeForm = () => {
   const { data: getAllCategoryWithOptionSettings } =
     useGetAllCategoryWithOptionSettings();
 
+  const bankNameOptions = getAllCategoryWithOptionSettings?.filter(
+    (item) => item.category === "bankName"
+  );
+
+  const chequeStatusOptions = getAllCategoryWithOptionSettings?.filter(
+    (item) => item.category === "chequeStatus"
+  );
   const onSubmit: SubmitHandler<optionSchemaType> = async (data) => {
     console.log("🚀 ~ onSubmit ~ data:", data);
     if (!data) return;
@@ -203,15 +215,28 @@ const ChequeForm = () => {
           <div className="flex flex-col gap-3">
             <div>
               <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">
+                {/* <h3 className="text-sm font-bold mb-2 text-blue-900">
                   نام بانک:
-                </h3>
-                <input
+                </h3> */}
+                {/* <input
                   type="text"
                   placeholder="نام بانک"
                   className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-full border border-gray-500 p-2 rounded-md"
                   {...register("bankName")}
                   name="bankName"
+                /> */}
+                <Controller
+                  name="bankName"
+                  control={control}
+                  render={({ field }) => (
+                    <SelectForFilterCheques
+                      data={bankNameOptions?.[0]?.options ?? [""]}
+                      title="نام بانک"
+                      selectedValue={field.value || "انتخاب کنید"}
+                      setSelectedSubject={field.onChange}
+                      className="w-70 truncate"
+                    />
+                  )}
                 />
               </div>
               {errors.bankName && (
@@ -284,15 +309,28 @@ const ChequeForm = () => {
 
           <div>
             <div className="space-y-1">
-              <h3 className="text-sm font-bold mb-2 text-blue-900">
+              {/* <h3 className="text-sm font-bold mb-2 text-blue-900">
                 وضعیت چک:
-              </h3>
-              <input
+              </h3> */}
+              {/* <input
                 type="text"
                 placeholder="وضعیت چک"
                 className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-full border border-gray-500 p-2 rounded-md"
                 {...register("chequeStatus")}
                 name="chequeStatus"
+              /> */}
+              <Controller
+                name="chequeStatus"
+                control={control}
+                render={({ field }) => (
+                  <SelectForFilterCheques
+                    data={chequeStatusOptions?.[0]?.options ?? [""]}
+                    title="وضعیت چک"
+                    selectedValue={field.value || "انتخاب کنید"}
+                    setSelectedSubject={field.onChange}
+                    className="w-70 truncate"
+                  />
+                )}
               />
             </div>
             {errors.chequeStatus && (
@@ -327,12 +365,17 @@ const ChequeForm = () => {
                 <h3 className="text-sm font-bold mb-2 text-blue-900">
                   تاریخ اقدام:
                 </h3>
-                <input
+                {/* <input
                   type="text"
                   placeholder="تاریخ اقدام"
                   className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-full border border-gray-500 p-2 rounded-md"
                   {...register("lastActionDate")}
                   name="lastActionDate"
+                /> */}
+                <PersianDatePicker
+                  value={getValues().lastActionDate}
+                  onChange={(date) => setValue("lastActionDate", date)}
+                  placeholder="تاریخ اقدام"
                 />
               </div>
               {errors.lastActionDate && (

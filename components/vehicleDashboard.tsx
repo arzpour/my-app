@@ -22,22 +22,25 @@ const VehicleDashboard = () => {
   const { chassisNo } = useSelector((state: RootState) => state.cars);
   const [vehicleDetails, setVehicleDetails] =
     React.useState<IDetailsByChassis | null>(null);
+  console.log("🚀 ~ VehicleDashboard ~ vehicleDetails:", vehicleDetails);
   const [investment, setInvestment] = React.useState<IInvestmentRes | null>(
     null
   );
-  const [unpaidCheques, setUnpaidCheques] =
-    React.useState<IUnpaidCheque | null>(null);
+  // const [unpaidCheques, setUnpaidCheques] =
+  //   React.useState<IUnpaidCheque | null>(null);
+  const [cheques, seCheques] = React.useState<IChequeRes[] | null>(null);
 
   const dispatch = useDispatch();
 
   const getDetailByChassisNo = useGetDetailByChassisNo();
   const getInvestmentByChassis = useGetInvestmentByChassis();
-  const getUnpaidCheques = useGetUnpaidCheques();
+  // const getUnpaidCheques = useGetUnpaidCheques();
+  const getChequesByChassisNo = useGetChequeByChassisNo();
 
   const handleCarDetailDataByChassisNoData = async (chassisNo: string) => {
     if (!chassisNo) return;
     try {
-      const details = await getDetailByChassisNo.mutateAsync(chassisNo);
+      const details = await getDetailByChassisNo.mutateAsync("00091");
 
       setVehicleDetails(details);
     } catch (error) {
@@ -58,49 +61,96 @@ const VehicleDashboard = () => {
     }
   };
 
+  // const handleUnpaidDataByChassisNoData = async (chassisNo: string) => {
+  //   if (!chassisNo) return;
+
+  //   try {
+  //     const unpaidCheques = await getUnpaidCheques.mutateAsync(chassisNo);
+
+  //     setUnpaidCheques(unpaidCheques);
+  //   } catch (error) {
+  //     console.log("🚀 ~ handleSelectChassis ~ error:", error);
+  //     setUnpaidCheques(null);
+  //   }
+  // };
+
   const handleUnpaidDataByChassisNoData = async (chassisNo: string) => {
     if (!chassisNo) return;
 
     try {
-      const unpaidCheques = await getUnpaidCheques.mutateAsync(chassisNo);
+      const cheques = await getChequesByChassisNo.mutateAsync("00091");
 
-      setUnpaidCheques(unpaidCheques);
+      seCheques(cheques);
     } catch (error) {
       console.log("🚀 ~ handleSelectChassis ~ error:", error);
-      setUnpaidCheques(null);
+      seCheques(null);
     }
   };
-  const totalPaid = vehicleDetails?.transactions?.reduce(
-    (sum, t) => sum + t.TransactionAmount,
-    0
-  );
+
+  const totalIssuedCheques =
+    cheques
+      ?.filter((c) => c.ChequeType === "صادره" && c.ChequeStatus !== "وصول شد")
+      .reduce((sum, c) => sum + (c.ChequeAmount || 0), 0) || 0;
+
+  const totalImportedCheques =
+    cheques
+      ?.filter((c) => c.ChequeType === "وارده" && c.ChequeStatus !== "وصول شد")
+      .reduce((sum, c) => sum + (c.ChequeAmount || 0), 0) || 0;
+
+  // const remainingToSeller =
+  //   vehicleDetails?.car?.PurchaseAmount && totalPaid
+  //     ? vehicleDetails?.car?.PurchaseAmount - totalPaid
+  //     : "";
+
+  // totalPaidToSeller
+
+  const totalPaidToSellerAndOperator =
+    vehicleDetails?.transactions
+      ?.filter(
+        (t) =>
+          t.TransactionReason === "فروش" ||
+          t.TransactionReason === "درصد کارگزار"
+      )
+      .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
+
+  const totalPaidToSeller =
+    vehicleDetails?.transactions
+      ?.filter((t) => t.TransactionReason === "فروش")
+      ?.reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
+  console.log("🚀 ~ VehicleDashboard ~ totalPaidToSeller:", totalPaidToSeller);
+
+  const totalPaidToSellerWithoutFilter =
+    vehicleDetails?.transactions?.reduce(
+      (sum, t) => sum + (t?.TransactionAmount || 0),
+      0
+    ) || 0;
+
   const remainingToSeller =
-    vehicleDetails?.car?.PurchaseAmount && totalPaid
-      ? vehicleDetails?.car?.PurchaseAmount - totalPaid
+    totalPaidToSeller && vehicleDetails?.car.SaleAmount
+      ? totalPaidToSeller - vehicleDetails?.car.SaleAmount
       : "";
-
-  const totalPaidToAll = vehicleDetails?.transactions?.reduce(
-    (sum, t) => sum + t.TransactionAmount,
-    0
-  );
-
-  const totalPaidToSeller = vehicleDetails?.transactions
-    ?.filter((t) => t.TransactionReason === "فروش")
-    ?.reduce((sum, t) => sum + t.TransactionAmount, 0);
 
   const receiveTransactions = vehicleDetails?.transactions?.filter(
     (t) => t.TransactionType === "دریافت"
   );
 
-  const totalReceived = receiveTransactions?.reduce(
-    (sum, t) => sum + t.TransactionAmount,
-    0
-  );
+  const totalReceived =
+    receiveTransactions?.reduce(
+      (sum, t) => sum + (t?.TransactionAmount || 0),
+      0
+    ) || 0;
 
   const remainingForBuyer =
-    vehicleDetails?.car?.SaleAmount && totalReceived
-      ? vehicleDetails?.car?.SaleAmount - totalReceived
+    vehicleDetails?.car?.PurchaseAmount && totalReceived
+      ? totalReceived - vehicleDetails?.car.PurchaseAmount
       : "";
+
+  // PurchaseAmount
+
+  // const remainingForBuyer =
+  //   vehicleDetails?.car?.SaleAmount && totalReceived
+  //     ? vehicleDetails?.car?.SaleAmount - totalReceived
+  //     : "";
 
   const receivedTransactions = vehicleDetails?.transactions?.filter(
     (t) => t.TransactionType === "دریافت"
@@ -109,7 +159,8 @@ const VehicleDashboard = () => {
     (t) => t.TransactionType === "پرداخت"
   );
 
-  const totalBroker = investment?.data?.reduce((sum, t) => sum + t.Broker, 0);
+  const totalBroker =
+    investment?.data?.reduce((sum, t) => sum + (t?.Broker || 0), 0) || 0;
 
   React.useEffect(() => {
     handleUnpaidDataByChassisNoData(chassisNo);
@@ -199,24 +250,36 @@ const VehicleDashboard = () => {
                 </TableBody>
               </Table>
             </div>
-            <div className="grid grid-cols-3 gap-3 item?-center mt-3">
-              <div className="space-y-2">
+            <div className="grid grid-cols-4 gap-3 items-start mt-3">
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide">
                 <p className="text-xs">مانده مبلغ قابل پرداخت به فروشنده</p>
                 <p className="font-bold text-sm">
-                  {remainingToSeller.toLocaleString("en-US") ?? ""}
+                  {typeof remainingToSeller === "number"
+                    ? remainingToSeller.toLocaleString("en-US")
+                    : remainingToSeller ?? ""}
                 </p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide">
                 <p className="text-xs">مجموع پرداختی به فروشنده و کارگزاران</p>
                 <p className="text-red-500 text-sm">
-                  {totalPaidToAll ? totalPaidToAll.toLocaleString("en-US") : ""}
+                  {totalPaidToSellerAndOperator
+                    ? totalPaidToSellerAndOperator.toLocaleString("en-US")
+                    : ""}
                 </p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide">
                 <p className="text-xs">مجموع پرداختی به فروشنده</p>
                 <p className="text-red-500 text-sm">
                   {totalPaidToSeller
                     ? totalPaidToSeller.toLocaleString("en-US")
+                    : ""}
+                </p>
+              </div>
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide">
+                <p className="text-xs">مجموع کل پرداختی</p>
+                <p className="text-red-500 text-sm">
+                  {totalPaidToSellerWithoutFilter
+                    ? totalPaidToSellerWithoutFilter.toLocaleString("en-US")
                     : ""}
                 </p>
               </div>
@@ -259,7 +322,7 @@ const VehicleDashboard = () => {
                           {item?.TransactionDate ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item?.TransactionAmount.toLocaleString("en-US") ??
+                          {item?.TransactionAmount?.toLocaleString("en-US") ??
                             ""}
                         </TableCell>
                         <TableCell className="text-center">
@@ -281,9 +344,11 @@ const VehicleDashboard = () => {
             </div>
             <div className="grid grid-cols-2 gap-3 item?-center mt-3">
               <div className="space-y-2">
-                <p className="text-xs">مانده مبلغ قابل پرداخت به خریدار</p>
+                <p className="text-xs">مانده مبلغ قابل دریافت از خریدار</p>
                 <p className="font-bold text-sm">
-                  {remainingForBuyer.toLocaleString("en-US") ?? ""}
+                  {typeof remainingForBuyer === "number"
+                    ? remainingForBuyer.toLocaleString("en-US")
+                    : remainingForBuyer ?? ""}
                 </p>
               </div>
 
@@ -322,32 +387,37 @@ const VehicleDashboard = () => {
                 </TableHeader>
 
                 <TableBody>
-                  {investment?.data.map((item, index) => (
-                    <TableRow
-                      key={`${item?._id}-${index}`}
-                      className="hover:bg-gray-50"
-                    >
-                      <TableCell className="text-center">{index + 1}</TableCell>
-                      <TableCell className="text-center">
-                        {item?.TransactionDate ?? ""}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.TransactionAmount.toLocaleString("en-US") ?? ""}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.Partner ?? ""}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.Broker ?? ""}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.TransactionReason ?? ""}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.TransactionMethod ?? ""}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {investment?.data && investment.data.length > 0
+                    ? investment.data.map((item, index) => (
+                        <TableRow
+                          key={`${item?._id}-${index}`}
+                          className="hover:bg-gray-50"
+                        >
+                          <TableCell className="text-center">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.TransactionDate ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.TransactionAmount?.toLocaleString("en-US") ??
+                              ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.Partner ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.Broker ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.TransactionReason ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.TransactionMethod ?? ""}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    : null}
                 </TableBody>
               </Table>
             </div>
@@ -357,7 +427,7 @@ const VehicleDashboard = () => {
                 سرمایه است.
               </p>
               <p className="font-semibold text-sm">
-                {totalBroker?.toLocaleString("en-US") ?? ""}
+                {totalBroker ? totalBroker.toLocaleString("en-US") : ""}
               </p>
             </div>
           </div>
@@ -381,35 +451,39 @@ const VehicleDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {unpaidCheques?.data?.cheques?.map((item, index) => (
-                    <TableRow
-                      key={`${item?._id}-${index}`}
-                      className="has-data-[state=checked]:bg-muted/50"
-                    >
-                      <TableCell className="text-center">{index + 1}</TableCell>
-                      <TableCell className="text-center">
-                        {item?.CustomerName}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.ChequeAmount.toLocaleString("en-US")}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.ChequeDueDate}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.ChequeStatus}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.SayadiID}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.ChequeSerial}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.Bank}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {cheques && cheques.length > 0
+                    ? cheques?.map((item, index) => (
+                        <TableRow
+                          key={`${item?._id}-${index}`}
+                          className="has-data-[state=checked]:bg-muted/50"
+                        >
+                          <TableCell className="text-center">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.CustomerName}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.ChequeAmount?.toLocaleString("en-US") ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.ChequeDueDate}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.ChequeStatus}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.SayadiID}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.ChequeSerial}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.Bank}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    : null}
                 </TableBody>
               </Table>
             </div>
@@ -417,17 +491,17 @@ const VehicleDashboard = () => {
               <p className="flex gap-2 items-center">
                 <span className="text-xs">مجموع چک های صادره وصول نشده</span>
                 <span>
-                  {unpaidCheques?.data?.totals?.issuedUnpaid?.toLocaleString(
-                    "en-US"
-                  )}
+                  {totalIssuedCheques
+                    ? totalIssuedCheques?.toLocaleString("en-US")
+                    : "—"}
                 </span>
               </p>
               <p className="flex gap-2 items-center">
                 <span className="text-xs">مجموع چک های وارده وصول نشده</span>
                 <span>
-                  {unpaidCheques?.data?.totals?.receivedUnpaid?.toLocaleString(
-                    "en-US"
-                  )}
+                  {totalImportedCheques
+                    ? totalImportedCheques?.toLocaleString("en-US")
+                    : "—"}
                 </span>
               </p>
             </div>

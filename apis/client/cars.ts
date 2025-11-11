@@ -48,3 +48,15 @@ export const getFilterByUserData: getFilterByUserDataType = async ({
   const response = await axiosInstance.get(urls.cars.filterByUser, { params });
   return response.data;
 };
+
+type createCarType = (data: Partial<ICarRes>) => Promise<ICarRes>;
+export const createCar: createCarType = async (data) => {
+  const response = await axiosInstance.post(urls.cars.list, data);
+  return response.data;
+};
+
+type updateCarType = (id: string, data: Partial<ICarRes>) => Promise<ICarRes>;
+export const updateCar: updateCarType = async (id, data) => {
+  const response = await axiosInstance.put(urls.cars.byId(id), data);
+  return response.data;
+};

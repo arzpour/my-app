@@ -1,3 +1,4 @@
+"use client"
 import CheckDashboard from "@/components/checkDashboard";
 import CustomersDashboard from "@/components/customersDashboard";
 import FinanciersDashboard from "@/components/financiersDashboard";
