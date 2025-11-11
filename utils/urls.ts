@@ -2,6 +2,7 @@ export const urls = {
   cars: {
     list: "/cars",
     byChassisNo: (chassisNo: string) => `/cars/${chassisNo}`,
+    byId: (id: string) => `/cars/id/${id}`,
     chassisNo: "/cars/chassisNo",
     byNationalId: (nationalId: string) =>
       `/transactions/byNationalId/${nationalId}`,
