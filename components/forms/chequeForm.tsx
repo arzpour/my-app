@@ -54,7 +54,6 @@ const ChequeForm = () => {
   );
 
   const onSubmit: SubmitHandler<optionSchemaType> = async (data) => {
-    console.log("🚀 ~ onSubmit ~ data:", data);
     if (!data) return;
 
     if (!chassisNo) {

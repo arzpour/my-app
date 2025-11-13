@@ -22,7 +22,6 @@ const VehicleDashboard = () => {
   const { chassisNo } = useSelector((state: RootState) => state.cars);
   const [vehicleDetails, setVehicleDetails] =
     React.useState<IDetailsByChassis | null>(null);
-  console.log("🚀 ~ VehicleDashboard ~ vehicleDetails:", vehicleDetails);
   const [investment, setInvestment] = React.useState<IInvestmentRes | null>(
     null
   );
@@ -115,11 +114,8 @@ const VehicleDashboard = () => {
 
   const totalPaidToSeller =
     vehicleDetails?.transactions
-      ?.filter(
-        (t) => t.TransactionType === "پرداخت"
-      )
+      ?.filter((t) => t.TransactionType === "پرداخت")
       ?.reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
-  console.log("🚀 ~ VehicleDashboard ~ totalPaidToSeller:", totalPaidToSeller);
 
   const totalPaidToSellerWithoutFilter =
     vehicleDetails?.transactions
