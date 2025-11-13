@@ -198,7 +198,11 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <form dir="rtl" onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
+        <form
+          dir="rtl"
+          onSubmit={handleSubmit(onSubmit)}
+          className="mt-4 space-y-4"
+        >
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">

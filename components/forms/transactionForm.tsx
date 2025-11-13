@@ -69,7 +69,6 @@ const TransactionForm = () => {
   );
 
   const onSubmit: SubmitHandler<transactionSchemaType> = async (data) => {
-    console.log("🚀 ~ onSubmit ~ data:", data);
     if (!data) return;
 
     try {
