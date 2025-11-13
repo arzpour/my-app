@@ -4,14 +4,7 @@ import {
   useGetDetailByChassisNo,
   useGetOperatorPercent,
 } from "@/apis/mutations/detailsByChassisNo";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import SearchableSelect from "@/components/ui/searchable-select";
 import useGetAllChassisNo from "@/hooks/useGetAllChassisNo";
 import { setChassisNo, setTotalVehicleCost } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
@@ -128,20 +121,14 @@ const Header = () => {
       <div className="grid grid-cols-9 gap-3 auto-rows-min items-start justify-start place-items-stretch">
         <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm font-bold mb-2 text-blue-900">شاسی:</h3>
-          <Select onValueChange={handleSelectChassis} value={chassisNoSaved}>
-            <SelectTrigger className="w-[120px] text-sm">
-              <SelectValue placeholder="انتخاب شاسی" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {(chassisNo ?? []).map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {item}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={chassisNoSaved}
+            onValueChange={handleSelectChassis}
+            options={chassisNo ?? []}
+            placeholder="انتخاب شاسی"
+            className="w-[120px] text-sm"
+            searchPlaceholder="جستجوی شماره شاسی..."
+          />
         </div>
         <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">مدل وسیله نقلیه</h3>

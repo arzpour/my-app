@@ -120,9 +120,9 @@ const CustomersDashboard = () => {
     }
   };
 
-  React.useEffect(() => {
-    handleChequeDataByChassisNo(chassisNo);
-  }, [chassisNo]);
+  // React.useEffect(() => {
+  //   handleChequeDataByChassisNo(chassisNo);
+  // }, [chassisNo]);
 
   return (
     <>
