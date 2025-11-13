@@ -1,6 +1,6 @@
 "use client";
 import useGetAllCategoryWithOptionSettings from "@/hooks/useGetCategoriesSetting";
-import { optionSchemaType, optionSchema } from "@/validations/option";
+import { chequeSchema, chequeSchemaType } from "@/validations/option";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -19,9 +19,9 @@ const ChequeForm = () => {
     getValues,
     control,
     reset,
-  } = useForm<optionSchemaType>({
+  } = useForm<chequeSchemaType>({
     mode: "all",
-    resolver: zodResolver(optionSchema),
+    resolver: zodResolver(chequeSchema),
     // defaultValues: {
     //   customerName: "",
     //   customerNationalCode: "",
@@ -53,7 +53,7 @@ const ChequeForm = () => {
     (item) => item.category === "chequeStatus"
   );
 
-  const onSubmit: SubmitHandler<optionSchemaType> = async (data) => {
+  const onSubmit: SubmitHandler<chequeSchemaType> = async (data) => {
     if (!data) return;
 
     if (!chassisNo) {
