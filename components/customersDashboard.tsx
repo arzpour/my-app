@@ -22,7 +22,6 @@ const CustomersDashboard = () => {
   const [chequeByChassis, setChequeByChassis] = React.useState<
     IChequeRes[] | null
   >(null);
-  console.log("🚀 ~ CustomersDashboard ~ chequeByChassis:", chequeByChassis)
   const [transactionByChassis, setTransactionByChassis] = React.useState<
     ITransactionRes[] | null
   >(null);
@@ -61,7 +60,7 @@ const CustomersDashboard = () => {
 
   const handleChequeDataByChassisNo = async (chassisNo: string) => {
     try {
-      const res = await getChequeByChassisNo.mutateAsync("00091");
+      const res = await getChequeByChassisNo.mutateAsync(chassisNo);
       setChequeByChassis(res);
     } catch (error) {
       console.log("🚀 ~ handleSelectChassis ~ error:", error);
@@ -92,13 +91,11 @@ const CustomersDashboard = () => {
 
   const totalReceived =
     transactionByChassis
-      ?.filter((t) => {
-        console.log("🚀 ~ CustomersDashboard ~ t:", t);
-        return (
+      ?.filter(
+        (t) =>
           t?.TransactionType === "دریافت" &&
           (t?.TransactionReason === "فروش" || t?.TransactionReason === "خرید")
-        );
-      })
+      )
       .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
   const totalPayment =
     transactionByChassis

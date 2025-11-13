@@ -97,15 +97,19 @@ const OperatorsDashboard = () => {
 
   // Get operator percent for selected operator
   const selectedOperatorPercent = React.useMemo(() => {
-    if (!selectedOperator || !operatorPercentData?.data) return null;
-    return operatorPercentData.data.find(
+    if (!selectedOperator || !operatorPercentData?.data) {
+      return null;
+    }
+    const found = operatorPercentData.data.find(
       (item) => normalize(item.name) === normalize(selectedOperator)
     );
+
+    return found || null;
   }, [selectedOperator, operatorPercentData]);
 
   // Calculate statistics
   const stats = React.useMemo(() => {
-    if (!filteredCars.length) {
+    if (!filteredCars.length || !selectedOperator) {
       return {
         totalPurchase: 0,
         totalSale: 0,
@@ -121,17 +125,9 @@ const OperatorsDashboard = () => {
       };
     }
 
-    // Calculate totals
-    const totalPurchase = filteredCars.reduce(
-      (sum, car) => sum + (car.PurchaseAmount || 0),
-      0
-    );
-    const totalSale = filteredCars.reduce(
-      (sum, car) => sum + (car.SaleAmount || 0),
-      0
-    );
-
-    // Calculate profits and commissions
+    // Calculate totals - only count when operator matches
+    let totalPurchase = 0;
+    let totalSale = 0;
     let totalProfitPurchase = 0;
     let totalProfitSale = 0;
     let totalCommissionPurchase = 0;
@@ -145,26 +141,50 @@ const OperatorsDashboard = () => {
       const isSaleBroker =
         normalize(car.SaleBroker) === normalize(selectedOperator);
 
-      if (car.PurchaseAmount && car.SaleAmount) {
-        // Profit = Sale - Purchase (what you sell for minus what you bought for)
-        const profit = car.SaleAmount - car.PurchaseAmount;
+      // Sum purchase amounts only for cars where operator is PurchaseBroker
+      if (isPurchaseBroker && car.PurchaseAmount) {
+        totalPurchase += car.PurchaseAmount || 0;
+      }
 
-        if (isPurchaseBroker && selectedOperatorPercent && profit > 0) {
-          // Commission is calculated from profit
-          const commission =
-            profit * (selectedOperatorPercent.buyPercent / 100);
-          totalProfitPurchase += profit;
-          totalCommissionPurchase += commission;
-          purchaseCount++;
+      // Sum sale amounts only for cars where operator is SaleBroker
+      if (isSaleBroker && car.SaleAmount) {
+        totalSale += car.SaleAmount || 0;
+      }
+
+      // Calculate profits and commissions
+      if (car.PurchaseAmount && car.SaleAmount) {
+        // Based on header.tsx: grossProfit = PurchaseAmount - SaleAmount
+        // So profit = PurchaseAmount - SaleAmount
+        const profit = car.PurchaseAmount - car.SaleAmount;
+
+        if (isPurchaseBroker) {
+          if (selectedOperatorPercent) {
+            // Calculate commission from profit
+            const commission =
+              profit * (selectedOperatorPercent.buyPercent / 100);
+            totalProfitPurchase += profit;
+            totalCommissionPurchase += commission;
+            purchaseCount++;
+          } else {
+            // Still count profit even if percent not found
+            totalProfitPurchase += profit;
+            purchaseCount++;
+          }
         }
 
-        if (isSaleBroker && selectedOperatorPercent && profit > 0) {
-          // Commission is calculated from profit
-          const commission =
-            profit * (selectedOperatorPercent.sellPercent / 100);
-          totalProfitSale += profit;
-          totalCommissionSale += commission;
-          saleCount++;
+        if (isSaleBroker) {
+          if (selectedOperatorPercent) {
+            // Calculate commission from profit
+            const commission =
+              profit * (selectedOperatorPercent.sellPercent / 100);
+            totalProfitSale += profit;
+            totalCommissionSale += commission;
+            saleCount++;
+          } else {
+            // Still count profit even if percent not found
+            totalProfitSale += profit;
+            saleCount++;
+          }
         }
       }
     });
@@ -175,9 +195,20 @@ const OperatorsDashboard = () => {
     const avgPercentSale =
       saleCount > 0 ? selectedOperatorPercent?.sellPercent || 0 : 0;
 
-    // Get transactions where Broker field exists (payments made to operator)
+    // Get transactions where Broker field exists
+    // Filter transactions that are related to cars where this operator is involved
+    // We match transactions by ChassisNo to filtered cars
+    const filteredChassisNos = new Set(
+      filteredCars.map((car) => car.ChassisNo).filter(Boolean)
+    );
     const operatorTransactions =
-      allTransactions?.filter((t) => t.Broker && t.Broker > 0) || [];
+      allTransactions?.filter(
+        (t) =>
+          t.Broker &&
+          t.Broker > 0 &&
+          t.TransactionReason === "درصد کارگزار" &&
+          filteredChassisNos.has(t.ChassisNo)
+      ) || [];
     const totalPaidToOperator = operatorTransactions.reduce(
       (sum, t) => sum + (t.Broker || 0),
       0
@@ -185,7 +216,7 @@ const OperatorsDashboard = () => {
 
     const remainingCommission = totalCommission - totalPaidToOperator;
 
-    return {
+    const result = {
       totalPurchase,
       totalSale,
       totalProfitPurchase,
@@ -198,6 +229,8 @@ const OperatorsDashboard = () => {
       totalPaidToOperator,
       remainingCommission,
     };
+
+    return result;
   }, [
     filteredCars,
     selectedOperator,
@@ -243,13 +276,23 @@ const OperatorsDashboard = () => {
     return months;
   }, [filteredCars, selectedOperator, reportType]);
 
-  // Get transactions for operator (payments made)
-  const operatorTransactions = React.useMemo(() => {
-    if (!selectedOperator || !allTransactions) return [];
-    // Filter transactions where Broker field exists
+  // Get transactions for operator (payments made) - for display in table
+  const operatorTransactionsForDisplay = React.useMemo(() => {
+    if (!selectedOperator || !allTransactions || !filteredCars.length)
+      return [];
+    // Filter transactions where Broker field exists and matches filtered cars
+    const filteredChassisNos = new Set(
+      filteredCars.map((car) => car.ChassisNo).filter(Boolean)
+    );
     return (
       allTransactions
-        ?.filter((t) => t.Broker && t.Broker > 0)
+        ?.filter(
+          (t) =>
+            t.Broker &&
+            t.Broker > 0 &&
+            t.TransactionReason === "درصد کارگزار" &&
+            filteredChassisNos.has(t.ChassisNo)
+        )
         .map((t, index) => ({
           id: (index + 1).toString(),
           price: t.Broker?.toLocaleString("en-US") || "0",
@@ -259,7 +302,7 @@ const OperatorsDashboard = () => {
           etc: t.Notes || "",
         })) || []
     );
-  }, [selectedOperator, allTransactions]);
+  }, [selectedOperator, allTransactions, filteredCars]);
 
   const TabsTableComponent = () => {
     return (
@@ -278,8 +321,8 @@ const OperatorsDashboard = () => {
             </TableHeader>
 
             <TableBody>
-              {operatorTransactions.length > 0 ? (
-                operatorTransactions.map((item, index) => (
+              {operatorTransactionsForDisplay.length > 0 ? (
+                operatorTransactionsForDisplay.map((item, index) => (
                   <TableRow
                     key={`${item.id}-${index}`}
                     className="hover:bg-gray-50"
@@ -382,7 +425,7 @@ const OperatorsDashboard = () => {
             <div>
               <div className="space-y-1 flex items-center gap-4">
                 <h3 className="text-sm text-blue-900 font-bold">
-                  مجموع سود خ:
+                  مجموع سود خرید:
                 </h3>
                 <p className="text-sm font-medium">
                   {stats.totalProfitPurchase.toLocaleString("en-US")}
@@ -391,7 +434,7 @@ const OperatorsDashboard = () => {
               <div>
                 <div className="space-y-1 flex items-center gap-4">
                   <h3 className="text-sm text-blue-900 font-bold">
-                    مجموع سود ف:
+                    مجموع سود فروش:
                   </h3>
                   <p className="text-sm font-medium">
                     {stats.totalProfitSale.toLocaleString("en-US")}
@@ -412,7 +455,7 @@ const OperatorsDashboard = () => {
             <div>
               <div className="space-y-1 flex items-center gap-4">
                 <h3 className="text-sm text-blue-900 font-bold">
-                  مجموع کارمزد خ:
+                  مجموع کارمزد خرید:
                 </h3>
                 <p className="text-sm font-medium">
                   {stats.totalCommissionPurchase.toLocaleString("en-US")}
@@ -421,7 +464,7 @@ const OperatorsDashboard = () => {
               <div>
                 <div className="space-y-1 flex items-center gap-4">
                   <h3 className="text-sm text-blue-900 font-bold">
-                    مجموع کارمزد ف:
+                    مجموع کارمزد فروش:
                   </h3>
                   <p className="text-sm font-medium">
                     {stats.totalCommissionSale.toLocaleString("en-US")}

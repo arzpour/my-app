@@ -22,3 +22,9 @@ export const getUnpaidCheques: getUnpaidChequesType = async (
   const response = await axiosInstance.get(urls.cheques.unpaid(chassisNo));
   return response.data;
 };
+
+type createChequeType = (data: Partial<IChequeRes>) => Promise<IChequeRes>;
+export const createCheque: createChequeType = async (data) => {
+  const response = await axiosInstance.post(urls.cheques.create, data);
+  return response.data;
+};

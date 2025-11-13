@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const optionSchema = z.object({
+export const chequeSchema = z.object({
   customerName: z.string().min(1, "نام مشتری الزامی است"),
   customerNationalCode: z.string().min(1, "کد ملی مشتری الزامی است"),
   chequeChargeOwner: z.string().min(1, "صاحب حساب چک الزامی است"),
@@ -17,4 +17,4 @@ export const optionSchema = z.object({
   lastActionDate: z.string().min(1, "تاریخ اقدام الزامی است"),
 });
 
-export type optionSchemaType = z.infer<typeof optionSchema>;
+export type chequeSchemaType = z.infer<typeof chequeSchema>;

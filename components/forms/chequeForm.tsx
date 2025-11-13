@@ -1,11 +1,14 @@
 "use client";
 import useGetAllCategoryWithOptionSettings from "@/hooks/useGetCategoriesSetting";
-import { optionSchemaType, optionSchema } from "@/validations/option";
+import { chequeSchema, chequeSchemaType } from "@/validations/option";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import PersianDatePicker from "../global/persianDatePicker";
 import SelectForFilterCheques from "../selectForFilterCheques";
+import { useCreateCheque } from "@/apis/mutations/cheques";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 const ChequeForm = () => {
   const {
@@ -15,9 +18,10 @@ const ChequeForm = () => {
     setValue,
     getValues,
     control,
-  } = useForm<optionSchemaType>({
+    reset,
+  } = useForm<chequeSchemaType>({
     mode: "all",
-    resolver: zodResolver(optionSchema),
+    resolver: zodResolver(chequeSchema),
     // defaultValues: {
     //   customerName: "",
     //   customerNationalCode: "",
@@ -38,6 +42,8 @@ const ChequeForm = () => {
 
   const { data: getAllCategoryWithOptionSettings } =
     useGetAllCategoryWithOptionSettings();
+  const { chassisNo } = useSelector((state: RootState) => state.cars);
+  const createCheque = useCreateCheque();
 
   const bankNameOptions = getAllCategoryWithOptionSettings?.filter(
     (item) => item.category === "bankName"
@@ -46,21 +52,55 @@ const ChequeForm = () => {
   const chequeStatusOptions = getAllCategoryWithOptionSettings?.filter(
     (item) => item.category === "chequeStatus"
   );
-  const onSubmit: SubmitHandler<optionSchemaType> = async (data) => {
-    console.log("🚀 ~ onSubmit ~ data:", data);
+
+  const onSubmit: SubmitHandler<chequeSchemaType> = async (data) => {
     if (!data) return;
 
+    if (!chassisNo) {
+      toast("لطفا ابتدا شماره شاسی را انتخاب کنید", {
+        className: "!bg-red-100 !text-red-800 !shadow-md !h-[60px]",
+      });
+      return;
+    }
+
     try {
+      // Map form data to backend schema
+      const payload: Partial<IChequeRes> = {
+        CarChassisNo: Number(chassisNo) || 0,
+        CustomerName: data.customerName,
+        CustomerNationalID: data.customerNationalCode,
+        AccountHolderName: data.chequeChargeOwner,
+        AccountHolderNationalID: data.chequeOwnerNationalCode,
+        ChequeSeries: data.seri,
+        ChequeSerial: Number(data.serial) || 0,
+        SayadiID: data.sayadiId,
+        ChequeAmount: Number(data.chequeAmount) || 0,
+        ChequeDueDate: data.chequeDatebook,
+        ChequeRegisterDate: new Date().toISOString().split("T")[0],
+        LastActionDate: data.lastActionDate,
+        LastAction: data.lastAction,
+        ChequeStatus: data.chequeStatus,
+        ChequeType: "",
+        ChequeNotes: "",
+        CirculationStage: "",
+        Bank: data.bankName,
+        Branch: data.bankBranch,
+        PrevChequeNo: 0,
+        ShowroomAccountCard: "",
+      };
+
+      await createCheque.mutateAsync(payload);
+
+      reset();
       toast("ثبت شد", {
         icon: "✅",
         className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
       });
     } catch (error) {
+      console.error("Error creating cheque:", error);
       toast("اطلاعات وارد شده صحیح نیست", {
         className: "!bg-red-100 !text-red-800 !shadow-md !h-[60px]",
       });
-
-      console.log(error);
     }
   };
 
