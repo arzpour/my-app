@@ -18,3 +18,11 @@ export const getTransactionByChassis: getTransactionByChassisType = async (
   );
   return response.data;
 };
+
+type createTransactionType = (
+  data: Partial<ITransactionRes>
+) => Promise<ITransactionRes>;
+export const createTransaction: createTransactionType = async (data) => {
+  const response = await axiosInstance.post(urls.transactions.create, data);
+  return response.data;
+};

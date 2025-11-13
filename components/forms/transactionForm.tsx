@@ -8,6 +8,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import SelectForFilterCheques from "../selectForFilterCheques";
+import { useCreateTransaction } from "@/apis/mutations/transaction";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 const TransactionForm = () => {
   const {
@@ -16,6 +19,7 @@ const TransactionForm = () => {
     handleSubmit,
     formState: { errors },
     watch,
+    reset,
   } = useForm<transactionSchemaType>({
     mode: "all",
     resolver: zodResolver(transactionSchema),
@@ -36,6 +40,8 @@ const TransactionForm = () => {
 
   const { data: getAllCategoryWithOptionSettings } =
     useGetAllCategoryWithOptionSettings();
+  const { chassisNo } = useSelector((state: RootState) => state.cars);
+  const createTransaction = useCreateTransaction();
 
   const transactionTypeOptions = getAllCategoryWithOptionSettings?.filter(
     (item) => item.category === "transactionType"
@@ -72,17 +78,45 @@ const TransactionForm = () => {
     console.log("🚀 ~ onSubmit ~ data:", data);
     if (!data) return;
 
+    if (!chassisNo) {
+      toast("لطفا ابتدا شماره شاسی را انتخاب کنید", {
+        className: "!bg-red-100 !text-red-800 !shadow-md !h-[60px]",
+      });
+      return;
+    }
+
     try {
+      // Map form data to backend schema
+      const payload: Partial<ITransactionRes> = {
+        ChassisNo: chassisNo,
+        TransactionType: data.transactionType,
+        TransactionReason: data.transactionReason,
+        TransactionMethod: data.transactionWay,
+        ShowroomCard: data.showRoomCard,
+        CustomerNationalID: data.customerNationalCode,
+        TransactionAmount: Number(data.transactionAmount) || 0,
+        TransactionDate: data.transactionDate,
+        Notes: "",
+        BankDocument: "",
+        Partner: data.financier || "",
+        Broker:
+          data.transactionReason === "درصد کارگزار" && data.operator
+            ? Number(data.transactionAmount) || 0
+            : 0,
+      };
+
+      await createTransaction.mutateAsync(payload);
+
+      reset();
       toast("ثبت شد", {
         icon: "✅",
         className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
       });
     } catch (error) {
+      console.error("Error creating transaction:", error);
       toast("اطلاعات وارد شده صحیح نیست", {
         className: "!bg-red-100 !text-red-800 !shadow-md !h-[60px]",
       });
-
-      console.log(error);
     }
   };
 
