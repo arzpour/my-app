@@ -65,6 +65,7 @@ const OperatorsDashboard = () => {
     useGetAllCategoryWithOptionSettings();
   const { data: allCars } = useGetAllCars();
   const { data: allTransactions } = useGetAllTransactions();
+  console.log("🚀 ~ OperatorsDashboard ~ allTransactions:", allTransactions)
   const getOperatorPercent = useGetOperatorPercent();
 
   // Get operators from settings
@@ -88,12 +89,18 @@ const OperatorsDashboard = () => {
   // Filter cars by selected operator
   const filteredCars = React.useMemo(() => {
     if (!selectedOperator || !allCars) return [];
-    return allCars.filter(
-      (car) =>
+    return allCars.filter((car) => {
+      console.log(
+        "🚀 ~ OperatorsDashboard ~ car.PurchaseBroker:",
+        car.PurchaseBroker
+      );
+      return (
         normalize(car.PurchaseBroker) === normalize(selectedOperator) ||
         normalize(car.SaleBroker) === normalize(selectedOperator)
-    );
+      );
+    });
   }, [selectedOperator, allCars]);
+  console.log("🚀 ~ OperatorsDashboard ~ filteredCars:", filteredCars);
 
   // Get operator percent for selected operator
   const selectedOperatorPercent = React.useMemo(() => {
@@ -204,6 +211,7 @@ const OperatorsDashboard = () => {
     selectedOperatorPercent,
     allTransactions,
   ]);
+  console.log("🚀 ~ OperatorsDashboard ~ stats:", stats);
 
   // Calculate monthly breakdown
   const monthlyData = React.useMemo(() => {
@@ -260,6 +268,7 @@ const OperatorsDashboard = () => {
         })) || []
     );
   }, [selectedOperator, allTransactions]);
+  console.log("🚀 ~ OperatorsDashboard ~ operatorTransactions:", operatorTransactions)
 
   const TabsTableComponent = () => {
     return (
@@ -382,7 +391,7 @@ const OperatorsDashboard = () => {
             <div>
               <div className="space-y-1 flex items-center gap-4">
                 <h3 className="text-sm text-blue-900 font-bold">
-                  مجموع سود خ:
+                  مجموع سود خرید:
                 </h3>
                 <p className="text-sm font-medium">
                   {stats.totalProfitPurchase.toLocaleString("en-US")}
@@ -391,7 +400,7 @@ const OperatorsDashboard = () => {
               <div>
                 <div className="space-y-1 flex items-center gap-4">
                   <h3 className="text-sm text-blue-900 font-bold">
-                    مجموع سود ف:
+                    مجموع سود فروش:
                   </h3>
                   <p className="text-sm font-medium">
                     {stats.totalProfitSale.toLocaleString("en-US")}
@@ -412,7 +421,7 @@ const OperatorsDashboard = () => {
             <div>
               <div className="space-y-1 flex items-center gap-4">
                 <h3 className="text-sm text-blue-900 font-bold">
-                  مجموع کارمزد خ:
+                  مجموع کارمزد خرید:
                 </h3>
                 <p className="text-sm font-medium">
                   {stats.totalCommissionPurchase.toLocaleString("en-US")}
@@ -421,7 +430,7 @@ const OperatorsDashboard = () => {
               <div>
                 <div className="space-y-1 flex items-center gap-4">
                   <h3 className="text-sm text-blue-900 font-bold">
-                    مجموع کارمزد ف:
+                    مجموع کارمزد فروش:
                   </h3>
                   <p className="text-sm font-medium">
                     {stats.totalCommissionSale.toLocaleString("en-US")}

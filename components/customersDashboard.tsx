@@ -22,7 +22,7 @@ const CustomersDashboard = () => {
   const [chequeByChassis, setChequeByChassis] = React.useState<
     IChequeRes[] | null
   >(null);
-  console.log("🚀 ~ CustomersDashboard ~ chequeByChassis:", chequeByChassis)
+  console.log("🚀 ~ CustomersDashboard ~ chequeByChassis:", chequeByChassis);
   const [transactionByChassis, setTransactionByChassis] = React.useState<
     ITransactionRes[] | null
   >(null);
@@ -61,7 +61,7 @@ const CustomersDashboard = () => {
 
   const handleChequeDataByChassisNo = async (chassisNo: string) => {
     try {
-      const res = await getChequeByChassisNo.mutateAsync("00091");
+      const res = await getChequeByChassisNo.mutateAsync(chassisNo);
       setChequeByChassis(res);
     } catch (error) {
       console.log("🚀 ~ handleSelectChassis ~ error:", error);

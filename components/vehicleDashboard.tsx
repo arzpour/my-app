@@ -40,7 +40,7 @@ const VehicleDashboard = () => {
   const handleCarDetailDataByChassisNoData = async (chassisNo: string) => {
     if (!chassisNo) return;
     try {
-      const details = await getDetailByChassisNo.mutateAsync("00091");
+      const details = await getDetailByChassisNo.mutateAsync(chassisNo);
 
       setVehicleDetails(details);
     } catch (error) {
@@ -78,7 +78,7 @@ const VehicleDashboard = () => {
     if (!chassisNo) return;
 
     try {
-      const cheques = await getChequesByChassisNo.mutateAsync("00091");
+      const cheques = await getChequesByChassisNo.mutateAsync(chassisNo);
 
       seCheques(cheques);
     } catch (error) {
@@ -115,15 +115,16 @@ const VehicleDashboard = () => {
 
   const totalPaidToSeller =
     vehicleDetails?.transactions
-      ?.filter((t) => t.TransactionReason === "فروش")
+      ?.filter(
+        (t) => t.TransactionType === "پرداخت"
+      )
       ?.reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
   console.log("🚀 ~ VehicleDashboard ~ totalPaidToSeller:", totalPaidToSeller);
 
   const totalPaidToSellerWithoutFilter =
-    vehicleDetails?.transactions?.reduce(
-      (sum, t) => sum + (t?.TransactionAmount || 0),
-      0
-    ) || 0;
+    vehicleDetails?.transactions
+      ?.filter((t) => t.TransactionType === "پرداخت")
+      .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
 
   const remainingToSeller =
     totalPaidToSeller && vehicleDetails?.car.SaleAmount
