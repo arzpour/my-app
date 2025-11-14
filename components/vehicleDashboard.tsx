@@ -173,7 +173,7 @@ const VehicleDashboard = () => {
             <p className="text-red-500 absolute right-2 -top-5 bg-white py-2 px-4">
               پرداخت های شما
             </p>
-            <div className="h-[23rem] max-h-[23rem] overflow-y-auto rounded-md border w-full">
+            <div className="h-[22rem] max-h-[22rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
@@ -247,38 +247,44 @@ const VehicleDashboard = () => {
                 </TableBody>
               </Table>
             </div>
-            <div className="grid grid-cols-4 gap-3 items-start mt-3">
-              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide">
-                <p className="text-xs">مانده مبلغ قابل پرداخت به فروشنده</p>
-                <p className="font-bold text-sm">
-                  {typeof remainingToSeller === "number"
-                    ? remainingToSeller.toLocaleString("en-US")
-                    : remainingToSeller ?? ""}
-                </p>
+            <div className="grid grid-cols-2 gap-3 items-start space-y-0">
+              <div>
+                <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+                  <p className="text-xs">مانده مبلغ قابل پرداخت به فروشنده</p>
+                  <p className="font-bold text-sm">
+                    {typeof remainingToSeller === "number"
+                      ? remainingToSeller.toLocaleString("en-US")
+                      : remainingToSeller ?? ""}
+                  </p>
+                </div>
+                <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+                  <p className="text-xs">
+                    مجموع پرداختی به فروشنده و کارگزاران
+                  </p>
+                  <p className="text-red-500 text-sm">
+                    {totalPaidToSellerAndOperator
+                      ? totalPaidToSellerAndOperator.toLocaleString("en-US")
+                      : ""}
+                  </p>
+                </div>
               </div>
-              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide">
-                <p className="text-xs">مجموع پرداختی به فروشنده و کارگزاران</p>
-                <p className="text-red-500 text-sm">
-                  {totalPaidToSellerAndOperator
-                    ? totalPaidToSellerAndOperator.toLocaleString("en-US")
-                    : ""}
-                </p>
-              </div>
-              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide">
-                <p className="text-xs">مجموع پرداختی به فروشنده</p>
-                <p className="text-red-500 text-sm">
-                  {totalPaidToSeller
-                    ? totalPaidToSeller.toLocaleString("en-US")
-                    : ""}
-                </p>
-              </div>
-              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide">
-                <p className="text-xs">مجموع کل پرداختی</p>
-                <p className="text-red-500 text-sm">
-                  {totalPaidToSellerWithoutFilter
-                    ? totalPaidToSellerWithoutFilter.toLocaleString("en-US")
-                    : ""}
-                </p>
+              <div>
+                <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+                  <p className="text-xs">مجموع پرداختی به فروشنده</p>
+                  <p className="text-red-500 text-sm">
+                    {totalPaidToSeller
+                      ? totalPaidToSeller.toLocaleString("en-US")
+                      : ""}
+                  </p>
+                </div>
+                <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+                  <p className="text-xs">مجموع کل پرداختی</p>
+                  <p className="text-red-500 text-sm">
+                    {totalPaidToSellerWithoutFilter
+                      ? totalPaidToSellerWithoutFilter.toLocaleString("en-US")
+                      : ""}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -287,7 +293,7 @@ const VehicleDashboard = () => {
             <p className="text-green-500 absolute right-2 -top-5 bg-white py-2 px-4">
               دریافت های شما
             </p>
-            <div className="h-[23rem] max-h-[23rem] overflow-y-auto rounded-md border w-full">
+            <div className="h-[22rem] max-h-[22rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader className="top-0 sticky">
                   <TableRow className="hover:bg-transparent bg-gray-100">
@@ -437,14 +443,24 @@ const VehicleDashboard = () => {
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader className="top-0 sticky">
                   <TableRow className="hover:bg-transparent bg-gray-100">
-                    <TableHead className="text-center">ردیف</TableHead>
-                    <TableHead className="text-center">نام مشتری</TableHead>
-                    <TableHead className="text-center">مبلغ</TableHead>
-                    <TableHead className="text-center">سررسید</TableHead>
-                    <TableHead className="text-center">وضعیت چک</TableHead>
-                    <TableHead className="text-center">شناسه صیادی</TableHead>
-                    <TableHead className="text-center">سریال چک</TableHead>
-                    <TableHead className="text-center">بانک ...</TableHead>
+                    <TableHead className="text-center w-[30%]">ردیف</TableHead>
+                    <TableHead className="text-center w-[70%]">
+                      نام مشتری
+                    </TableHead>
+                    <TableHead className="text-center w-[50%]">مبلغ</TableHead>
+                    <TableHead className="text-center w-[50%]">
+                      سررسید
+                    </TableHead>
+                    <TableHead className="text-center w-[50%]">
+                      وضعیت چک
+                    </TableHead>
+                    <TableHead className="text-center w-[50%]">
+                      شناسه صیادی
+                    </TableHead>
+                    <TableHead className="text-center w-[50%]">
+                      سریال چک
+                    </TableHead>
+                    <TableHead className="text-center w-[30%]">بانک</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

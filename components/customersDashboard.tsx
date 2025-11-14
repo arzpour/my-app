@@ -89,22 +89,77 @@ const CustomersDashboard = () => {
   );
   const diffBuySell = (totalSellAmount || 0) - (totalBuyAmount || 0);
 
-  const totalReceived =
-    transactionByChassis
-      ?.filter(
-        (t) =>
-          t?.TransactionType === "دریافت" &&
-          (t?.TransactionReason === "فروش" || t?.TransactionReason === "خرید")
-      )
-      .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
-  const totalPayment =
-    transactionByChassis
-      ?.filter(
-        (t) =>
-          t?.TransactionType === "پرداخت" &&
-          (t?.TransactionReason === "خرید" || t?.TransactionReason === "فروش")
-      )
-      .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
+  // const totalReceived =
+  //   transactionByChassis
+  //     ?.filter(
+  //       (t) =>
+  //         t?.TransactionType === "دریافت" &&
+  //         (t?.TransactionReason === "فروش" || t?.TransactionReason === "خرید")
+  //     )
+  //     .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
+
+  // const totalPayment =
+  //   transactionByChassis
+  //     ?.filter(
+  //       (t) =>
+  //         t?.TransactionType === "پرداخت" &&
+  //         (t?.TransactionReason === "خريد" || t.TransactionReason === "فروش")
+  //     )
+  //     .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
+  // console.log("🚀 ~ CustomersDashboard ~ totalPayment:", totalPayment);
+  // console.log(
+  //   "🚀 ~ CustomersDashboard ~ transactionByChassis:",
+  //   transactionByChassis
+  // );
+
+  const normalize = (s?: string) =>
+    (s ?? "")
+      .replace(/ي/g, "ی") // arabic y to persian
+      .replace(/ك/g, "ک") // arabic k to persian
+      .trim()
+      .toLowerCase();
+
+  const RECEIPT = "دریافت";
+  const PAYMENT = "پرداخت";
+  const REASON_SELL = "فروش";
+  const REASON_BUY = "خرید";
+
+  const { totalReceived, totalPayment } = (transactionByChassis ?? []).reduce(
+    (acc, t) => {
+      const type = normalize(t?.TransactionType);
+      const reason = normalize(t?.TransactionReason);
+      const amount = Number(t?.TransactionAmount ?? 0) || 0;
+
+      if (
+        type === normalize(RECEIPT) &&
+        (reason === normalize(REASON_SELL) || reason === normalize(REASON_BUY))
+      ) {
+        acc.totalReceived += amount;
+      }
+
+      if (
+        type === normalize(PAYMENT) &&
+        (reason === normalize(REASON_BUY) || reason === normalize(REASON_SELL))
+      ) {
+        acc.totalPayment += amount;
+      }
+
+      return acc;
+    },
+    { totalReceived: 0, totalPayment: 0 }
+  );
+
+  console.log("totalReceived:", totalReceived);
+  console.log("totalPayment:", totalPayment);
+
+  console.log(
+    transactionByChassis?.filter(
+      (t) =>
+        t?.TransactionType === "پرداخت" &&
+        (t?.TransactionReason === "خرید" || t?.TransactionReason === "فروش")
+    ),
+    "ioooooooooooooooooooooooooooooooo"
+  );
 
   const diffPaymentReceived = (totalPayment || 0) - (totalReceived || 0);
 
