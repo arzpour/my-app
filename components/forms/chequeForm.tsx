@@ -331,12 +331,17 @@ const ChequeForm = () => {
                 <h3 className="text-sm font-bold mb-2 text-blue-900">
                   تاریخ سررسید:
                 </h3>
-                <input
+                {/* <input
                   type="text"
                   placeholder="تاریخ سررسید"
                   className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-full border border-gray-500 p-2 rounded-md"
                   {...register("chequeDatebook")}
                   name="chequeDatebook"
+                /> */}
+                <PersianDatePicker
+                  value={getValues().chequeDatebook}
+                  onChange={(date) => setValue("chequeDatebook", date)}
+                  placeholder="تاریخ سررسید"
                 />
               </div>
               {errors.chequeDatebook && (

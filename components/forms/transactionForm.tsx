@@ -11,6 +11,7 @@ import SelectForFilterCheques from "../selectForFilterCheques";
 import { useCreateTransaction } from "@/apis/mutations/transaction";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import PersianDatePicker from "../global/persianDatePicker";
 
 const TransactionForm = () => {
   const {
@@ -20,6 +21,8 @@ const TransactionForm = () => {
     formState: { errors },
     watch,
     reset,
+    getValues,
+    setValue,
   } = useForm<transactionSchemaType>({
     mode: "all",
     resolver: zodResolver(transactionSchema),
@@ -47,9 +50,14 @@ const TransactionForm = () => {
     (item) => item.category === "transactionType"
   );
 
-  const transactionReasonOptions = getAllCategoryWithOptionSettings?.filter(
-    (item) => item.category === "transactionReason"
-  );
+  // const filteredTransactionReasonOption = transactionTypeOptions?.[0]?.options.filter(
+  //   (item) => item
+  // );
+
+  const transactionReasonOptionsFromApi =
+    getAllCategoryWithOptionSettings?.filter(
+      (item) => item.category === "transactionReason"
+    )[0]?.options;
 
   const transactionWayOptions = getAllCategoryWithOptionSettings?.filter(
     (item) => item.category === "transactionWay"
@@ -123,6 +131,30 @@ const TransactionForm = () => {
   const transactionType = watch("transactionType");
   const showRoomCardTitle = watch("showRoomCardTitle");
 
+  // Determine transaction reason options based on transaction type
+  let transactionReasonOptions: string[] = [];
+
+  if (transactionType === "دریافت") {
+    transactionReasonOptions = ["فروش"];
+  } else if (transactionType === "پرداخت") {
+    transactionReasonOptions = [
+      "خرید",
+      "هزینه وسیله",
+      "درصد کارگزار",
+      "اجاره",
+      "تبلیغات",
+      "هزینه نمایشگاه",
+      "هزینه دفتر",
+    ];
+  } else if (transactionType === "افزایش سرمایه") {
+    transactionReasonOptions = ["اصل شرکت"];
+  } else if (transactionType === "برداشت سرمایه") {
+    transactionReasonOptions = ["اصل شرکت", "سود شراکت"];
+  } else {
+    // Use API data if no transaction type is selected
+    transactionReasonOptions = transactionReasonOptionsFromApi ?? [];
+  }
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -155,14 +187,14 @@ const TransactionForm = () => {
             </div>
           )}
 
-          {transactionReasonOptions && (
+          {transactionReasonOptions && transactionReasonOptions.length > 0 && (
             <div className="space-y-1">
               <Controller
                 name="transactionReason"
                 control={control}
                 render={({ field }) => (
                   <SelectForFilterCheques
-                    data={transactionReasonOptions?.[0]?.options ?? [""]}
+                    data={transactionReasonOptions}
                     title="دلیل تراکنش"
                     selectedValue={field.value || "انتخاب کنید"}
                     setSelectedSubject={field.onChange}
@@ -354,12 +386,17 @@ const TransactionForm = () => {
             <h3 className="text-sm font-bold mb-2 text-blue-900">
               تاریخ تراکنش:
             </h3>
-            <input
+            {/* <input
               type="text"
               placeholder="تاریخ تراکنش"
               className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-40 truncate border border-gray-500 p-2 rounded-md"
               {...register("transactionDate")}
               name="transactionDate"
+            /> */}
+            <PersianDatePicker
+              value={getValues().transactionDate}
+              onChange={(date: string) => setValue("transactionDate", date)}
+              placeholder="تاریخ تراکنش"
             />
             {errors.transactionDate && (
               <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">

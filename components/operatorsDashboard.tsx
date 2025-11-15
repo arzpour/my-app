@@ -276,35 +276,34 @@ const OperatorsDashboard = () => {
     return months;
   }, [filteredCars, selectedOperator, reportType]);
 
-  // Get transactions for operator (payments made) - for display in table
+  // Get all transactions for chassis numbers where operator is involved
   const operatorTransactionsForDisplay = React.useMemo(() => {
     if (!selectedOperator || !allTransactions || !filteredCars.length)
       return [];
-    // Filter transactions where Broker field exists and matches filtered cars
+    // Get all chassis numbers where the operator is involved
     const filteredChassisNos = new Set(
       filteredCars.map((car) => car.ChassisNo).filter(Boolean)
     );
+    // Filter all transactions that match these chassis numbers
     return (
       allTransactions
-        ?.filter(
-          (t) =>
-            t.Broker &&
-            t.Broker > 0 &&
-            t.TransactionReason === "درصد کارگزار" &&
-            filteredChassisNos.has(t.ChassisNo)
-        )
+        ?.filter((t) => t.ChassisNo && filteredChassisNos.has(t.ChassisNo))
         .map((t, index) => ({
           id: (index + 1).toString(),
-          price: t.Broker?.toLocaleString("en-US") || "0",
+          price: t.TransactionAmount?.toLocaleString("en-US") || "0",
           date: t.TransactionDate || "",
           paymentWay: t.TransactionMethod || "",
           cart: t.ShowroomCard || "",
           etc: t.Notes || "",
+          chassisNo: t.ChassisNo || "",
+          transactionType: t.TransactionType || "",
+          transactionReason: t.TransactionReason || "",
+          model: t.Partner || "",
         })) || []
     );
   }, [selectedOperator, allTransactions, filteredCars]);
 
-  const TabsTableComponent = () => {
+  const TabsTableOperationTransactionComponent = () => {
     return (
       <div className="max-h-[28rem] h-[28rem] overflow-y-auto rounded-md border w-full">
         <div className="overflow-x-auto">
@@ -312,11 +311,10 @@ const OperatorsDashboard = () => {
             <TableHeader className="top-0 sticky">
               <TableRow className="bg-gray-100">
                 <TableHead className="w-12 text-center">ردیف</TableHead>
-                <TableHead className="w-32 text-center">مبلغ</TableHead>
+                <TableHead className="w-32 text-center">شاسی</TableHead>
                 <TableHead className="w-32 text-center">تاریخ</TableHead>
-                <TableHead className="w-32 text-center">روش پرداخت</TableHead>
-                <TableHead className="w-32 text-center">کارت</TableHead>
-                <TableHead className="w-32 text-center">...</TableHead>
+                <TableHead className="w-32 text-center">قیمت</TableHead>
+                <TableHead className="w-32 text-center">دلیل تراکنش</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -328,13 +326,60 @@ const OperatorsDashboard = () => {
                     className="hover:bg-gray-50"
                   >
                     <TableCell className="text-center">{item.id}</TableCell>
-                    <TableCell className="text-center">{item.price}</TableCell>
-                    <TableCell className="text-center">{item.date}</TableCell>
                     <TableCell className="text-center">
-                      {item.paymentWay}
+                      {item.chassisNo}
                     </TableCell>
-                    <TableCell className="text-center">{item.cart}</TableCell>
-                    <TableCell className="text-center">{item.etc}</TableCell>
+                    <TableCell className="text-center">{item.date}</TableCell>
+                    <TableCell className="text-center">{item.price}</TableCell>
+                    <TableCell className="text-center">
+                      {item.transactionReason}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="text-center text-gray-500 py-4"
+                  >
+                    داده‌ای یافت نشد
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  };
+
+  const TabsTableOperatorPerformanceReportComponent = () => {
+    return (
+      <div className="max-h-[28rem] h-[28rem] overflow-y-auto rounded-md border w-full">
+        <div className="overflow-x-auto">
+          <Table className="min-w-max text-right border-collapse">
+            <TableHeader className="top-0 sticky">
+              <TableRow className="bg-gray-100">
+                <TableHead className="w-12 text-center">ردیف</TableHead>
+                <TableHead className="w-32 text-center">شاسی</TableHead>
+                <TableHead className="w-32 text-center">تاریخ</TableHead>
+                <TableHead className="w-32 text-center">قیمت</TableHead>
+                <TableHead className="w-32 text-center">دلیل تراکنش</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {[].length > 0 ? (
+                [].map((item, index) => (
+                  <TableRow
+                    key={`${item}-${index}`}
+                    className="hover:bg-gray-50"
+                  >
+                    <TableCell className="text-center">{item}</TableCell>
+                    <TableCell className="text-center">{item}</TableCell>
+                    <TableCell className="text-center">{item}</TableCell>
+                    <TableCell className="text-center">{item}</TableCell>
+                    <TableCell className="text-center">{item}</TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -358,12 +403,12 @@ const OperatorsDashboard = () => {
     {
       id: "operationTransaction",
       title: "تراکنش های کارگزار",
-      content: <TabsTableComponent />,
+      content: <TabsTableOperationTransactionComponent />,
     },
     {
       id: "operatorPerformanceReport",
       title: "جزییات گزارش عملکرد کارگزار",
-      content: <TabsTableComponent />,
+      content: <TabsTableOperatorPerformanceReportComponent />,
     },
   ];
 
@@ -442,14 +487,14 @@ const OperatorsDashboard = () => {
                 </div>
               </div>
             </div>
-            <div>
+            {/* <div>
               <p className="text-sm text-purple-500">
                 میانگین درصد کارمزد خرید: {stats.avgPercentPurchase}%
               </p>
               <p className="text-sm text-purple-500">
                 میانگین درصد کارمزد فروش: {stats.avgPercentSale}%
               </p>
-            </div>
+            </div> */}
           </div>
           <div className="flex justify-between items-start">
             <div>
@@ -472,12 +517,12 @@ const OperatorsDashboard = () => {
                 </div>
               </div>
             </div>
-            <div>
+            {/* <div>
               <p className="text-xs text-green-700">
                 ({stats.avgPercentPurchase})
               </p>
               <p className="text-xs text-green-700">({stats.avgPercentSale})</p>
-            </div>
+            </div> */}
           </div>
           <div>
             <div className="space-y-1 flex items-center gap-4">
