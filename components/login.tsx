@@ -3,6 +3,7 @@ import { useLogin } from "@/apis/mutations/auth";
 import { setRole } from "@/redux/slices/carSlice";
 import { loginSchema, loginSchemaType } from "@/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
@@ -20,7 +21,7 @@ const Login = () => {
   });
 
   const login = useLogin();
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const onSubmit: SubmitHandler<loginSchemaType> = async (data) => {
     if (!data) return;
@@ -133,6 +134,9 @@ const Login = () => {
             className="mt-8 w-full h-11 cursor-pointer flex justify-center items-center font-semibold rounded-full text-white bg-indigo-500 hover:opacity-90 transition-opacity"
           >
             ورود
+            {login.isPending && (
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            )}
           </button>
           {/* <p className="text-gray-500/90 text-sm mt-4">
             Don’t have an account?{" "}

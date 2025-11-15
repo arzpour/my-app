@@ -11,7 +11,7 @@ import useGetAllCheques from "@/hooks/useGetAllCheques";
 import React, { useMemo } from "react";
 import SelectForFilterCheques from "./selectForFilterCheques";
 import PersianDatePicker from "./global/persianDatePicker";
-import { Plus } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 
 // const parsePersianDate = (date: string) => {
 //   if (!date) return 0;
@@ -174,8 +174,15 @@ const CheckDashboard = () => {
 
   return (
     <div>
-      <button onClick={() => setShowFilter(!showFilter)}>
-        <Plus />
+      <button
+        onClick={() => setShowFilter(!showFilter)}
+        className="flex justify-end w-full"
+      >
+        {showFilter ? (
+          <Minus className="cursor-pointer" />
+        ) : (
+          <Plus className="cursor-pointer" />
+        )}
       </button>
       {showFilter && (
         <div className="grid [grid-template-columns:1fr_1fr_1fr_0.5fr_0.5fr] gap-6 items-start justify-start mt-4">

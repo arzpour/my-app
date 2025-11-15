@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { createCar, updateCar } from "@/apis/client/cars";
 import { useQueryClient } from "@tanstack/react-query";
+import PersianDatePicker from "../global/persianDatePicker";
 
 interface VehicleFormModalProps {
   open: boolean;
@@ -53,6 +54,8 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
     handleSubmit,
     formState: { errors },
     reset,
+    getValues,
+    setValue,
   } = useForm<VehicleFormData>({
     defaultValues: vehicleData
       ? {
@@ -350,10 +353,15 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               <label className="text-sm font-medium text-gray-700">
                 تاریخ فروش
               </label>
-              <input
+              {/* <input
                 type="text"
                 {...register("SaleDate")}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              /> */}
+              <PersianDatePicker
+                value={getValues().SaleDate}
+                onChange={(date: string) => setValue("SaleDate", date)}
+                placeholder="تاریخ فروش"
               />
             </div>
 
@@ -361,10 +369,15 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               <label className="text-sm font-medium text-gray-700">
                 تاریخ خرید
               </label>
-              <input
+              {/* <input
                 type="text"
                 {...register("PurchaseDate")}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              /> */}
+              <PersianDatePicker
+                value={getValues().PurchaseDate}
+                onChange={(date: string) => setValue("PurchaseDate", date)}
+                placeholder="تاریخ خرید"
               />
             </div>
 
