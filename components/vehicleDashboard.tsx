@@ -107,8 +107,8 @@ const VehicleDashboard = () => {
     vehicleDetails?.transactions
       ?.filter(
         (t) =>
-          t.TransactionType === "پرداخت" &&
-          (t.TransactionReason === "خرید" ||
+          (t.TransactionType === "پرداخت" && t.TransactionReason === "خريد") ||
+          (t.TransactionType === "پرداخت" &&
             t.TransactionReason === "درصد کارگزار")
       )
       .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
@@ -116,7 +116,7 @@ const VehicleDashboard = () => {
   const totalPaidToSeller =
     vehicleDetails?.transactions
       ?.filter(
-        (t) => t.TransactionType === "پرداخت" && t.TransactionReason === "خرید"
+        (t) => t.TransactionType === "پرداخت" && t.TransactionReason === "خريد"
       )
       ?.reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
 
@@ -144,8 +144,6 @@ const VehicleDashboard = () => {
     vehicleDetails?.car?.PurchaseAmount && totalReceived
       ? totalReceived - vehicleDetails?.car.PurchaseAmount
       : "";
-
-  // PurchaseAmount
 
   // const remainingForBuyer =
   //   vehicleDetails?.car?.SaleAmount && totalReceived
@@ -258,7 +256,7 @@ const VehicleDashboard = () => {
                   <p className="font-bold text-sm">
                     {typeof remainingToSeller === "number"
                       ? remainingToSeller.toLocaleString("en-US")
-                      : remainingToSeller ?? ""}
+                      : remainingToSeller ?? 0}
                   </p>
                 </div>
                 <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
@@ -268,7 +266,7 @@ const VehicleDashboard = () => {
                   <p className="text-red-500 text-sm">
                     {totalPaidToSellerAndOperator
                       ? totalPaidToSellerAndOperator.toLocaleString("en-US")
-                      : ""}
+                      : 0}
                   </p>
                 </div>
               </div>
@@ -278,7 +276,7 @@ const VehicleDashboard = () => {
                   <p className="text-red-500 text-sm">
                     {totalPaidToSeller
                       ? totalPaidToSeller.toLocaleString("en-US")
-                      : ""}
+                      : 0}
                   </p>
                 </div>
                 <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
@@ -286,7 +284,7 @@ const VehicleDashboard = () => {
                   <p className="text-red-500 text-sm">
                     {totalPaidToSellerWithoutFilter
                       ? totalPaidToSellerWithoutFilter.toLocaleString("en-US")
-                      : ""}
+                      : 0}
                   </p>
                 </div>
               </div>
@@ -355,14 +353,14 @@ const VehicleDashboard = () => {
                 <p className="font-bold text-sm">
                   {typeof remainingForBuyer === "number"
                     ? remainingForBuyer.toLocaleString("en-US")
-                    : remainingForBuyer ?? ""}
+                    : remainingForBuyer ?? 0}
                 </p>
               </div>
 
               <div className="space-y-2">
                 <p className="text-xs">مجموع دریافتی از خریدار</p>
                 <p className="text-green-500 text-sm">
-                  {totalReceived ? totalReceived.toLocaleString("en-US") : ""}
+                  {totalReceived ? totalReceived.toLocaleString("en-US") : 0}
                 </p>
               </div>
             </div>
@@ -532,7 +530,7 @@ const VehicleDashboard = () => {
                 <span>
                   {totalIssuedCheques
                     ? totalIssuedCheques?.toLocaleString("en-US")
-                    : "—"}
+                    : 0}
                 </span>
               </p>
               <p className="flex gap-2 items-center">
@@ -540,7 +538,7 @@ const VehicleDashboard = () => {
                 <span>
                   {totalImportedCheques
                     ? totalImportedCheques?.toLocaleString("en-US")
-                    : "—"}
+                    : 0}
                 </span>
               </p>
             </div>
