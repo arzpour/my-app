@@ -149,18 +149,6 @@ const CustomersDashboard = () => {
     { totalReceived: 0, totalPayment: 0 }
   );
 
-  console.log("totalReceived:", totalReceived);
-  console.log("totalPayment:", totalPayment);
-
-  console.log(
-    transactionByChassis?.filter(
-      (t) =>
-        t?.TransactionType === "پرداخت" &&
-        (t?.TransactionReason === "خرید" || t?.TransactionReason === "فروش")
-    ),
-    "ioooooooooooooooooooooooooooooooo"
-  );
-
   const diffPaymentReceived = (totalPayment || 0) - (totalReceived || 0);
 
   const uniqeUsersRole = (userRole: string[]) => {
@@ -469,7 +457,7 @@ const CustomersDashboard = () => {
                 </TableHeader>
 
                 <TableBody>
-                  {chequeByChassis?.map((item, index) => (
+                  {/* {chequeByChassis?.map((item, index) => (
                     <TableRow
                       key={`${item?._id}-${index}`}
                       className="hover:bg-gray-50 cursor-pointer"
@@ -488,7 +476,28 @@ const CustomersDashboard = () => {
                         {item.ChequeDueDate}
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ))} */}
+                  {[].length > 0
+                    ? []?.map((item, index) => (
+                        <TableRow
+                          key={`${item}-${index}`}
+                          className="has-data-[state=checked]:bg-muted/50"
+                        >
+                          <TableCell className="text-center">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">
+                            {item ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                        </TableRow>
+                      ))
+                    : null}
                 </TableBody>
               </Table>
             </div>
