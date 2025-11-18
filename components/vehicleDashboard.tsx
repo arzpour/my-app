@@ -107,14 +107,17 @@ const VehicleDashboard = () => {
     vehicleDetails?.transactions
       ?.filter(
         (t) =>
-          t.TransactionReason === "فروش" ||
-          t.TransactionReason === "درصد کارگزار"
+          t.TransactionType === "پرداخت" &&
+          (t.TransactionReason === "خرید" ||
+            t.TransactionReason === "درصد کارگزار")
       )
       .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
 
   const totalPaidToSeller =
     vehicleDetails?.transactions
-      ?.filter((t) => t.TransactionType === "پرداخت")
+      ?.filter(
+        (t) => t.TransactionType === "پرداخت" && t.TransactionReason === "خرید"
+      )
       ?.reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
 
   const totalPaidToSellerWithoutFilter =
@@ -152,6 +155,7 @@ const VehicleDashboard = () => {
   const receivedTransactions = vehicleDetails?.transactions?.filter(
     (t) => t.TransactionType === "دریافت"
   );
+
   const paidTransactions = vehicleDetails?.transactions?.filter(
     (t) => t.TransactionType === "پرداخت"
   );
@@ -464,7 +468,7 @@ const VehicleDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {cheques && cheques.length > 0
+                  {/* {cheques && cheques.length > 0
                     ? cheques?.map((item, index) => (
                         <TableRow
                           key={`${item?._id}-${index}`}
@@ -494,6 +498,28 @@ const VehicleDashboard = () => {
                           <TableCell className="text-center">
                             {item?.Bank}
                           </TableCell>
+                        </TableRow>
+                      ))
+                    : null} */}
+
+                  {[].length > 0
+                    ? []?.map((item, index) => (
+                        <TableRow
+                          key={`${item}-${index}`}
+                          className="has-data-[state=checked]:bg-muted/50"
+                        >
+                          <TableCell className="text-center">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">
+                            {item ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
                         </TableRow>
                       ))
                     : null}
