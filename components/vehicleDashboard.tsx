@@ -1,4 +1,73 @@
 "use client";
+/**
+ * ============================================
+ * MIGRATION NOTES FOR NEW BACKEND API
+ * ============================================
+ *
+ * CURRENT API USAGE:
+ * - useGetDetailByChassisNo: Gets vehicle details by chassis number
+ * - useGetChequeByChassisNo: Gets cheques by chassis number
+ * - useGetInvestmentByChassis: Gets investment data by chassis number
+ *
+ * NEW API ENDPOINTS TO USE:
+ *
+ * 1. GET DEAL BY VIN (replaces getDetailByChassisNo):
+ *    - Endpoint: GET /deals/vin/:vin
+ *    - Type: IDeal
+ *    - Note: chassisNo maps to vehicleSnapshot.vin in the new structure
+ *    - Response includes: deal info, vehicle snapshot, seller, buyer, brokers, partnerships
+ *
+ * 2. GET TRANSACTIONS BY DEAL ID (replaces transactions from detailsByChassisNo):
+ *    - Endpoint: GET /transactions/deal/:dealId
+ *    - Type: ITransactionNew[]
+ *    - Note: dealId comes from the deal._id, not chassisNo
+ *    - Field mappings:
+ *      - TransactionType -> type
+ *      - TransactionReason -> reason
+ *      - TransactionAmount -> amount
+ *      - TransactionDate -> transactionDate
+ *      - TransactionMethod -> paymentMethod
+ *      - CustomerNationalID -> personId
+ *      - ShowroomCard -> bussinessAccountId
+ *
+ * 3. GET CHEQUES BY DEAL ID (replaces getChequeByChassisNo):
+ *    - Endpoint: GET /cheques/deal/:dealId
+ *    - Type: IChequeNew[]
+ *    - Note: Use dealId instead of chassisNo
+ *    - Field mappings:
+ *      - ChequeType -> type ("issued" | "received")
+ *      - ChequeStatus -> status
+ *      - ChequeAmount -> amount
+ *      - ChequeDueDate -> dueDate
+ *      - CustomerName -> payer.fullName or payee.fullName
+ *      - SayadiID -> (check actions array)
+ *      - ChequeSerial -> chequeNumber
+ *      - Bank -> bankName
+ *
+ * 4. GET UNPAID CHEQUES BY DEAL ID (replaces getUnpaidCheques):
+ *    - Endpoint: GET /cheques/unpaid/deal/:dealId
+ *    - Type: IUnpaidChequesResponse
+ *    - Response includes: cheques array and totals.issuedUnpaid, totals.receivedUnpaid
+ *
+ * 5. GET INVESTMENT/PARTNERSHIP DATA (replaces getInvestmentByChassis):
+ *    - Endpoint: GET /deals/id/:dealId
+ *    - Type: IDeal
+ *    - Use: deal.partnerships array for investment data
+ *    - Field mappings:
+ *      - Partner -> partnerships[].partner.name
+ *      - Broker (percentage) -> partnerships[].profitSharePercentage
+ *      - TransactionAmount -> partnerships[].investmentAmount
+ *
+ * MIGRATION STEPS:
+ * 1. First, get deal by VIN: GET /deals/vin/:chassisNo
+ * 2. Extract dealId from deal._id
+ * 3. Use dealId to fetch:
+ *    - Transactions: GET /transactions/deal/:dealId
+ *    - Cheques: GET /cheques/deal/:dealId
+ *    - Unpaid cheques: GET /cheques/unpaid/deal/:dealId
+ * 4. Use deal.partnerships for investment data
+ * 5. Update all field references to match new structure
+ */
 import {
   useGetChequeByChassisNo,
   useGetUnpaidCheques,
@@ -36,6 +105,19 @@ const VehicleDashboard = () => {
   // const getUnpaidCheques = useGetUnpaidCheques();
   const getChequesByChassisNo = useGetChequeByChassisNo();
 
+  /**
+   * MIGRATION: Replace this function to use new API
+   *
+   * NEW IMPLEMENTATION:
+   * 1. GET /deals/vin/:chassisNo to get deal by VIN
+   * 2. GET /transactions/deal/:dealId to get transactions
+   * 3. Combine into IDetailsByChassis-like structure or refactor to use IDeal directly
+   *
+   * Example:
+   * const deal = await axiosInstance.get(`/deals/vin/${chassisNo}`);
+   * const transactions = await axiosInstance.get(`/transactions/deal/${deal._id}`);
+   * const combinedData = { car: deal, transactions };
+   */
   const handleCarDetailDataByChassisNoData = async (chassisNo: string) => {
     if (!chassisNo) return;
     try {
@@ -47,6 +129,28 @@ const VehicleDashboard = () => {
       setVehicleDetails(null);
     }
   };
+  /**
+   * MIGRATION: Replace this function to use new API
+   *
+   * NEW IMPLEMENTATION:
+   * 1. GET /deals/vin/:chassisNo to get deal
+   * 2. Use deal.partnerships array for investment data
+   * 3. Map partnerships to IInvestmentRes format:
+   *    - partnerships[].partner.name -> Partner
+   *    - partnerships[].profitSharePercentage -> Broker
+   *    - partnerships[].investmentAmount -> TransactionAmount
+   *
+   * Example:
+   * const deal = await axiosInstance.get(`/deals/vin/${chassisNo}`);
+   * const investmentData = deal.partnerships.map(p => ({
+   *   Partner: p.partner.name,
+   *   Broker: p.profitSharePercentage,
+   *   TransactionAmount: p.investmentAmount,
+   *   TransactionDate: deal.createdAt,
+   *   TransactionReason: "اصل شرکت",
+   *   TransactionMethod: ""
+   * }));
+   */
   const handleInvestmentDataByChassisNoData = async (chassisNo: string) => {
     if (!chassisNo) return;
 
@@ -73,6 +177,33 @@ const VehicleDashboard = () => {
   //   }
   // };
 
+  /**
+   * MIGRATION: Replace this function to use new API
+   *
+   * NEW IMPLEMENTATION:
+   * 1. First get deal: GET /deals/vin/:chassisNo
+   * 2. Then get unpaid cheques: GET /cheques/unpaid/deal/:dealId
+   * 3. Use response.cheques array
+   * 4. Field mappings:
+   *    - c.type === "issued" -> ChequeType === "صادره"
+   *    - c.type === "received" -> ChequeType === "وارده"
+   *    - c.status !== "paid" -> ChequeStatus !== "وصول شد"
+   *    - c.amount -> ChequeAmount
+   *    - c.dueDate -> ChequeDueDate
+   *    - c.payer.fullName or c.payee.fullName -> CustomerName
+   *    - c.chequeNumber -> ChequeSerial
+   *    - c.bankName -> Bank
+   *
+   * Example:
+   * const deal = await axiosInstance.get(`/deals/vin/${chassisNo}`);
+   * const unpaidData = await axiosInstance.get(`/cheques/unpaid/deal/${deal._id}`);
+   * const mappedCheques = unpaidData.cheques.map(c => ({
+   *   ChequeType: c.type === "issued" ? "صادره" : "وارده",
+   *   ChequeStatus: c.status,
+   *   ChequeAmount: c.amount,
+   *   // ... other mappings
+   * }));
+   */
   const handleUnpaidDataByChassisNoData = async (chassisNo: string) => {
     if (!chassisNo) return;
 
@@ -86,6 +217,18 @@ const VehicleDashboard = () => {
     }
   };
 
+  /**
+   * MIGRATION: Update field references for new API structure
+   *
+   * NEW FIELD MAPPINGS:
+   * - c.ChequeType -> c.type ("issued" | "received")
+   * - c.ChequeStatus -> c.status
+   * - c.ChequeAmount -> c.amount
+   *
+   * OR use the totals from GET /cheques/unpaid/deal/:dealId response:
+   * - totals.issuedUnpaid (already calculated on backend)
+   * - totals.receivedUnpaid (already calculated on backend)
+   */
   const totalIssuedCheques =
     cheques
       ?.filter((c) => c.ChequeType === "صادره" && c.ChequeStatus !== "وصول شد")
@@ -103,6 +246,14 @@ const VehicleDashboard = () => {
 
   // totalPaidToSeller
 
+  /**
+   * MIGRATION: Update field references for new API structure
+   *
+   * NEW FIELD MAPPINGS:
+   * - t.TransactionType -> t.type
+   * - t.TransactionReason -> t.reason
+   * - t.TransactionAmount -> t.amount
+   */
   const totalPaidToSellerAndOperator =
     vehicleDetails?.transactions
       ?.filter(
@@ -125,6 +276,15 @@ const VehicleDashboard = () => {
       ?.filter((t) => t.TransactionType === "پرداخت")
       .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
 
+  /**
+   * MIGRATION: Update field references for new API structure
+   *
+   * NEW FIELD MAPPINGS:
+   * - vehicleDetails?.car.SaleAmount -> deal.salePrice
+   * - vehicleDetails?.car.PurchaseAmount -> deal.purchasePrice
+   * - t.TransactionType -> t.type
+   * - t.TransactionAmount -> t.amount
+   */
   const remainingToSeller =
     totalPaidToSeller && vehicleDetails?.car.SaleAmount
       ? totalPaidToSeller - vehicleDetails?.car.SaleAmount
@@ -158,6 +318,16 @@ const VehicleDashboard = () => {
     (t) => t.TransactionType === "پرداخت"
   );
 
+  /**
+   * MIGRATION: Update for new API structure
+   *
+   * NEW IMPLEMENTATION:
+   * Use deal.partnerships array:
+   * const totalBroker = deal.partnerships?.reduce(
+   *   (sum, p) => sum + (p.profitSharePercentage || 0),
+   *   0
+   * ) || 0;
+   */
   const totalBroker =
     investment?.data?.reduce((sum, t) => sum + (t?.Broker || 0), 0) || 0;
 
@@ -224,6 +394,14 @@ const VehicleDashboard = () => {
                           <TableCell className="text-center">
                             {index + 1}
                           </TableCell>
+                          {/* MIGRATION: Update field references
+                           * - item?.TransactionDate -> item?.transactionDate
+                           * - item?.TransactionAmount -> item?.amount
+                           * - item?.CustomerNationalID -> item?.personId
+                           * - item?.TransactionReason -> item?.reason
+                           * - item?.TransactionMethod -> item?.paymentMethod
+                           * - item?.ShowroomCard -> item?.bussinessAccountId
+                           */}
                           <TableCell className="text-center">
                             {item?.TransactionDate ?? ""}
                           </TableCell>
@@ -323,6 +501,7 @@ const VehicleDashboard = () => {
                         <TableCell className="text-center">
                           {index + 1}
                         </TableCell>
+                        {/* MIGRATION: Update field references (same as paid transactions above) */}
                         <TableCell className="text-center">
                           {item?.TransactionDate ?? ""}
                         </TableCell>
@@ -401,6 +580,14 @@ const VehicleDashboard = () => {
                           <TableCell className="text-center">
                             {index + 1}
                           </TableCell>
+                          {/* MIGRATION: Update for partnerships array from deal
+                           * - item?.TransactionDate -> deal.createdAt or partnership date
+                           * - item?.TransactionAmount -> p.investmentAmount
+                           * - item?.Partner -> p.partner.name
+                           * - item?.Broker -> p.profitSharePercentage
+                           * - item?.TransactionReason -> "اصل شرکت" or "سود شراکت"
+                           * - item?.TransactionMethod -> (may need to get from related transaction)
+                           */}
                           <TableCell className="text-center">
                             {item?.TransactionDate ?? ""}
                           </TableCell>

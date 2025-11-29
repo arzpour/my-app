@@ -155,10 +155,17 @@ const Login = () => {
         /> */}
 
         <img
+          src="/Airbrush-OBJECT-REMOVER-1763980310364.jpg"
+          alt="googleLogo"
+          className="h-full w-full object-cover"
+        />
+
+        {/* 
+        <img
           src="/photo-1496917756835-20cb06e75b4e.jpg"
           alt="googleLogo"
           className="h-full"
-        />
+        /> */}
       </div>
     </div>
   );
