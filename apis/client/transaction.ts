@@ -53,32 +53,42 @@ export const getTransactionByChassis: getTransactionByChassisType = async (
   // First get deal by VIN to get dealId
   const { getDealByVin } = await import("./deals");
   const deal = await getDealByVin(chassisNo);
-  const dealId = deal._id.toString();
-  
+  const dealId = deal?._id.toString();
+
   // Then get transactions by dealId
   const transactions = await getTransactionsByDeal(dealId);
-  
+
   // Map to old format
   return transactions.map(mapTransactionToOldFormat);
 };
 
 // New function: Get transactions by deal ID
 type getTransactionsByDealType = (dealId: string) => Promise<ITransactionNew[]>;
-export const getTransactionsByDeal: getTransactionsByDealType = async (dealId) => {
+export const getTransactionsByDeal: getTransactionsByDealType = async (
+  dealId
+) => {
   const response = await axiosInstance.get(urls.transactionsNew.byDeal(dealId));
   return response.data;
 };
 
 // Get transactions by person ID
-type getTransactionsByPersonType = (personId: string) => Promise<ITransactionNew[]>;
-export const getTransactionsByPerson: getTransactionsByPersonType = async (personId) => {
-  const response = await axiosInstance.get(urls.transactionsNew.byPerson(personId));
+type getTransactionsByPersonType = (
+  personId: string
+) => Promise<ITransactionNew[]>;
+export const getTransactionsByPerson: getTransactionsByPersonType = async (
+  personId
+) => {
+  const response = await axiosInstance.get(
+    urls.transactionsNew.byPerson(personId)
+  );
   return response.data;
 };
 
 // Get transactions by type
 type getTransactionsByTypeType = (type: string) => Promise<ITransactionNew[]>;
-export const getTransactionsByType: getTransactionsByTypeType = async (type) => {
+export const getTransactionsByType: getTransactionsByTypeType = async (
+  type
+) => {
   const response = await axiosInstance.get(urls.transactionsNew.byType(type));
   return response.data;
 };
@@ -88,20 +98,16 @@ type getTransactionsByDateRangeType = (
   startDate: string,
   endDate: string
 ) => Promise<ITransactionNew[]>;
-export const getTransactionsByDateRange: getTransactionsByDateRangeType = async (
-  startDate,
-  endDate
-) => {
-  const response = await axiosInstance.get(urls.transactionsNew.byDateRange, {
-    params: { startDate, endDate },
-  });
-  return response.data;
-};
+export const getTransactionsByDateRange: getTransactionsByDateRangeType =
+  async (startDate, endDate) => {
+    const response = await axiosInstance.get(urls.transactionsNew.byDateRange, {
+      params: { startDate, endDate },
+    });
+    return response.data;
+  };
 
 // Helper function to map new transaction format to old
-function mapTransactionToOldFormat(
-  newData: ITransactionNew
-): ITransactionRes {
+function mapTransactionToOldFormat(newData: ITransactionNew): ITransactionRes {
   return {
     _id: newData._id.toString(),
     ChassisNo: newData.dealId,
@@ -128,8 +134,11 @@ export const createTransaction: createTransactionType = async (data) => {
   const newData = isOldTransactionFormat(data)
     ? await mapOldTransactionToNew(data as Partial<ITransactionRes>)
     : data;
-    
-  const response = await axiosInstance.post(urls.transactionsNew.create, newData);
+
+  const response = await axiosInstance.post(
+    urls.transactionsNew.create,
+    newData
+  );
   return response.data;
 };
 

@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-import { createCar, updateCar } from "@/apis/client/cars";
+// import { createCar, updateCar } from "@/apis/client/cars";
 import { useQueryClient } from "@tanstack/react-query";
 import PersianDatePicker from "../global/persianDatePicker";
 
@@ -167,13 +167,13 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
       };
 
       if (mode === "edit" && vehicleData?._id) {
-        await updateCar(vehicleData._id, payload);
+        // await updateCar(vehicleData._id, payload);
         toast("اطلاعات با موفقیت به‌روزرسانی شد", {
           icon: "✅",
           className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
         });
       } else {
-        await createCar(payload);
+        // await createCar(payload);
         toast("اطلاعات با موفقیت ثبت شد", {
           icon: "✅",
           className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",

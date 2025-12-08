@@ -72,7 +72,7 @@ import {
   useGetChequeByChassisNo,
   useGetUnpaidCheques,
 } from "@/apis/mutations/cheques";
-import { useGetDetailByChassisNo } from "@/apis/mutations/detailsByChassisNo";
+// import { useGetDetailByChassisNo } from "@/apis/mutations/detailsByChassisNo";
 import { useGetInvestmentByChassis } from "@/apis/mutations/investment";
 import {
   Table,
@@ -100,7 +100,7 @@ const VehicleDashboard = () => {
 
   const dispatch = useDispatch();
 
-  const getDetailByChassisNo = useGetDetailByChassisNo();
+  // const getDetailByChassisNo = useGetDetailByChassisNo();
   const getInvestmentByChassis = useGetInvestmentByChassis();
   // const getUnpaidCheques = useGetUnpaidCheques();
   const getChequesByChassisNo = useGetChequeByChassisNo();
@@ -121,9 +121,8 @@ const VehicleDashboard = () => {
   const handleCarDetailDataByChassisNoData = async (chassisNo: string) => {
     if (!chassisNo) return;
     try {
-      const details = await getDetailByChassisNo.mutateAsync(chassisNo);
-
-      setVehicleDetails(details);
+      // const details = await getDetailByChassisNo.mutateAsync(chassisNo);
+      // setVehicleDetails(details);
     } catch (error) {
       console.log("🚀 ~ handleSelectChassis ~ error:", error);
       setVehicleDetails(null);
@@ -204,18 +203,18 @@ const VehicleDashboard = () => {
    *   // ... other mappings
    * }));
    */
-  const handleUnpaidDataByChassisNoData = async (chassisNo: string) => {
-    if (!chassisNo) return;
+  // const handleUnpaidDataByChassisNoData = async (chassisNo: string) => {
+  //   if (!chassisNo) return;
 
-    try {
-      const cheques = await getChequesByChassisNo.mutateAsync(chassisNo);
+  //   try {
+  //     const cheques = await getChequesByChassisNo.mutateAsync(chassisNo);
 
-      seCheques(cheques);
-    } catch (error) {
-      console.log("🚀 ~ handleSelectChassis ~ error:", error);
-      seCheques(null);
-    }
-  };
+  //     seCheques(cheques);
+  //   } catch (error) {
+  //     console.log("🚀 ~ handleSelectChassis ~ error:", error);
+  //     seCheques(null);
+  //   }
+  // };
 
   /**
    * MIGRATION: Update field references for new API structure
@@ -332,9 +331,9 @@ const VehicleDashboard = () => {
     investment?.data?.reduce((sum, t) => sum + (t?.Broker || 0), 0) || 0;
 
   React.useEffect(() => {
-    handleUnpaidDataByChassisNoData(chassisNo);
-    handleCarDetailDataByChassisNoData(chassisNo);
-    handleInvestmentDataByChassisNoData(chassisNo);
+    // handleUnpaidDataByChassisNoData(chassisNo);
+    // handleCarDetailDataByChassisNoData(chassisNo);
+    // handleInvestmentDataByChassisNoData(chassisNo);
   }, [chassisNo]);
 
   return (

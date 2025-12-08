@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getTransactionByChassis,
   createTransaction,
+  getTransactionsByDeal,
 } from "../client/transaction";
 
 export const useGetTransactionByChassisNo = () => {
@@ -19,5 +20,12 @@ export const useCreateTransaction = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-transactions"] });
     },
+  });
+};
+
+export const useGetTransactionsByDealId = () => {
+  return useMutation({
+    mutationKey: ["get-transactions-by-deal-id"],
+    mutationFn: getTransactionsByDeal,
   });
 };

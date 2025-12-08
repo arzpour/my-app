@@ -108,16 +108,16 @@
  */
 export const urls = {
   // Legacy endpoints (kept for backward compatibility during migration)
-  cars: {
-    list: "/cars",
-    byChassisNo: (chassisNo: string) => `/cars/${chassisNo}`,
-    byId: (id: string) => `/cars/id/${id}`,
-    chassisNo: "/cars/chassisNo",
-    byNationalId: (nationalId: string) =>
-      `/transactions/byNationalId/${nationalId}`,
-    usersData: "/cars/userData",
-    filterByUser: "/cars/filterByUser",
-  },
+  // cars: {
+  //   list: "/cars",
+  //   byChassisNo: (chassisNo: string) => `/cars/${chassisNo}`,
+  //   byId: (id: string) => `/cars/id/${id}`,
+  //   chassisNo: "/cars/chassisNo",
+  //   byNationalId: (nationalId: string) =>
+  //     `/transactions/byNationalId/${nationalId}`,
+  //   usersData: "/cars/userData",
+  //   filterByUser: "/cars/filterByUser",
+  // },
   detailsByChassisNo: (chassisNo: string) => `/cars/${chassisNo}/details`,
   transactions: {
     list: "/transactions",
@@ -132,10 +132,10 @@ export const urls = {
   },
   investmentByChassis: (chassisNo: string) =>
     `/transactions/investment/${chassisNo}`,
-  others: {
-    brokers: "/others/brokers",
-    transactionFormOptions: "/others/transaction-form-options",
-  },
+  // others: {
+  //   brokers: "/others/brokers",
+  //   transactionFormOptions: "/others/transaction-form-options",
+  // },
   login: "/auth/login",
   settings: {
     list: "/settings",

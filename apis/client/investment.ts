@@ -2,14 +2,14 @@
  * ============================================
  * MIGRATION NOTES FOR NEW BACKEND API
  * ============================================
- * 
+ *
  * Investment/partnership data is now embedded in deals, not separate transactions.
- * 
+ *
  * NEW IMPLEMENTATION:
  * 1. GET /deals/vin/:vin - Get deal by VIN (chassisNo)
  * 2. Use deal.partnerships array for investment data
  * 3. Map partnerships to IInvestmentRes format if needed
- * 
+ *
  * Example:
  * const deal = await axiosInstance.get(`/deals/vin/${chassisNo}`);
  * const investmentData = deal.partnerships.map(p => ({
@@ -28,7 +28,7 @@
  *   Partner: p.partner.name,
  *   status: ""
  * }));
- * 
+ *
  * Return as: { status: 200, data: investmentData }
  */
 import { urls } from "@/utils/urls";

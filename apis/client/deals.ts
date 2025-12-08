@@ -17,7 +17,7 @@ export const getDealById: getDealByIdType = async (id) => {
 };
 
 // Get deal by VIN (replaces getCarByChassisNo)
-type getDealByVinType = (vin: string) => Promise<IDeal>;
+type getDealByVinType = (vin: string) => Promise<IDeal[]>;
 export const getDealByVin: getDealByVinType = async (vin) => {
   const response = await axiosInstance.get(urls.deals.byVin(vin));
   return response.data;

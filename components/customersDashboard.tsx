@@ -1,5 +1,5 @@
 "use client";
-import { getFilterByUserData } from "@/apis/client/cars";
+// import { getFilterByUserData } from "@/apis/client/cars";
 import { useGetChequeByChassisNo } from "@/apis/mutations/cheques";
 import { useGetTransactionByChassisNo } from "@/apis/mutations/transaction";
 import {
@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import useGetUniqUsersData from "@/hooks/useGetUserData";
+// import useGetUniqUsersData from "@/hooks/useGetUserData";
 import { setChassisNo } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
 import React from "react";
@@ -32,7 +32,7 @@ const CustomersDashboard = () => {
   const { chassisNo } = useSelector((state: RootState) => state.cars);
   const getChequeByChassisNo = useGetChequeByChassisNo();
   const getTransactionByChassisNo = useGetTransactionByChassisNo();
-  const { data: allUniqUsers } = useGetUniqUsersData();
+  // const { data: allUniqUsers } = useGetUniqUsersData();
   const dispatch = useDispatch();
 
   const handleCarDataByNationalId = async (
@@ -41,8 +41,8 @@ const CustomersDashboard = () => {
   ) => {
     setSelectedNationalIdOrName(nationalId ?? userName);
     try {
-      const res = await getFilterByUserData({ nationalId, userName });
-      setCarDataByNationalCode(res);
+      // const res = await getFilterByUserData({ nationalId, userName });
+      // setCarDataByNationalCode(res);
     } catch (error) {
       console.log("🚀 ~ handleSelectChassis ~ error:", error);
       setCarDataByNationalCode(null);
@@ -67,17 +67,17 @@ const CustomersDashboard = () => {
     }
   };
 
-  const filteredUsers = React.useMemo(() => {
-    if (!searchValue) return allUniqUsers;
+  // const filteredUsers = React.useMemo(() => {
+  //   if (!searchValue) return allUniqUsers;
 
-    const lowerSearch = searchValue.toLowerCase().trim();
+  //   const lowerSearch = searchValue.toLowerCase().trim();
 
-    return allUniqUsers?.filter(
-      (user) =>
-        user.name?.toLowerCase().includes(lowerSearch) ||
-        user.nationalId?.includes(lowerSearch)
-    );
-  }, [searchValue, allUniqUsers]);
+  //   return allUniqUsers?.filter(
+  //     (user) =>
+  //       user.name?.toLowerCase().includes(lowerSearch) ||
+  //       user.nationalId?.includes(lowerSearch)
+  //   );
+  // }, [searchValue, allUniqUsers]);
 
   const totalBuyAmount = carDataByNationalCode?.purchases?.reduce(
     (sum, t) => sum + t.PurchaseAmount,
@@ -231,7 +231,9 @@ const CustomersDashboard = () => {
                           : "bg-white"
                       }`}
                     // > */}
-                {filteredUsers?.map((item, index) => {
+
+                {/* ////////////////////////////////// */}
+                {/* {filteredUsers?.map((item, index) => {
                   return (
                     <TableRow
                       key={`${item?.name}-${index}`}
@@ -258,7 +260,7 @@ const CustomersDashboard = () => {
                       </TableCell>
                     </TableRow>
                   );
-                })}
+                })} */}
               </TableBody>
             </Table>
           </div>
