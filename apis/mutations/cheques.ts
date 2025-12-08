@@ -3,6 +3,7 @@ import {
   getChequeByChassis,
   getUnpaidCheques,
   createCheque,
+  getChequesByDeal,
 } from "../client/cheques";
 
 export const useGetChequeByChassisNo = () => {
@@ -27,5 +28,12 @@ export const useCreateCheque = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-cheques"] });
     },
+  });
+};
+
+export const useGetChequesByDealId = () => {
+  return useMutation({
+    mutationKey: ["get-cheques-by-deal-id"],
+    mutationFn: getChequesByDeal,
   });
 };

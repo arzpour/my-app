@@ -4,7 +4,7 @@ import useGetDealsByVin from "@/hooks/useGetDealsByVin";
 import useGetVehicles from "@/hooks/useGetVehicle";
 import useGetTransactionByDealId from "@/hooks/useGetTransactionByDealId";
 import useGetChequesByDealId from "@/hooks/useGetChequesByDealId";
-import { setChassisNo } from "@/redux/slices/carSlice";
+import { setChassisNo, setSelectedDealId } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
 import { IDeal, IChequeNew } from "@/types/new-backend-types";
 import React from "react";
@@ -74,6 +74,7 @@ const Header = () => {
     setSelectedDeal(deal);
     setShowDealModal(false);
     dispatch(setChassisNo(deal.vehicleSnapshot.vin));
+    dispatch(setSelectedDealId(deal._id.toString()));
   };
 
   const otherCostCategories =

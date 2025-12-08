@@ -1,79 +1,6 @@
 "use client";
-/**
- * ============================================
- * MIGRATION NOTES FOR NEW BACKEND API
- * ============================================
- *
- * CURRENT API USAGE:
- * - useGetDetailByChassisNo: Gets vehicle details by chassis number
- * - useGetChequeByChassisNo: Gets cheques by chassis number
- * - useGetInvestmentByChassis: Gets investment data by chassis number
- *
- * NEW API ENDPOINTS TO USE:
- *
- * 1. GET DEAL BY VIN (replaces getDetailByChassisNo):
- *    - Endpoint: GET /deals/vin/:vin
- *    - Type: IDeal
- *    - Note: chassisNo maps to vehicleSnapshot.vin in the new structure
- *    - Response includes: deal info, vehicle snapshot, seller, buyer, brokers, partnerships
- *
- * 2. GET TRANSACTIONS BY DEAL ID (replaces transactions from detailsByChassisNo):
- *    - Endpoint: GET /transactions/deal/:dealId
- *    - Type: ITransactionNew[]
- *    - Note: dealId comes from the deal._id, not chassisNo
- *    - Field mappings:
- *      - TransactionType -> type
- *      - TransactionReason -> reason
- *      - TransactionAmount -> amount
- *      - TransactionDate -> transactionDate
- *      - TransactionMethod -> paymentMethod
- *      - CustomerNationalID -> personId
- *      - ShowroomCard -> bussinessAccountId
- *
- * 3. GET CHEQUES BY DEAL ID (replaces getChequeByChassisNo):
- *    - Endpoint: GET /cheques/deal/:dealId
- *    - Type: IChequeNew[]
- *    - Note: Use dealId instead of chassisNo
- *    - Field mappings:
- *      - ChequeType -> type ("issued" | "received")
- *      - ChequeStatus -> status
- *      - ChequeAmount -> amount
- *      - ChequeDueDate -> dueDate
- *      - CustomerName -> payer.fullName or payee.fullName
- *      - SayadiID -> (check actions array)
- *      - ChequeSerial -> chequeNumber
- *      - Bank -> bankName
- *
- * 4. GET UNPAID CHEQUES BY DEAL ID (replaces getUnpaidCheques):
- *    - Endpoint: GET /cheques/unpaid/deal/:dealId
- *    - Type: IUnpaidChequesResponse
- *    - Response includes: cheques array and totals.issuedUnpaid, totals.receivedUnpaid
- *
- * 5. GET INVESTMENT/PARTNERSHIP DATA (replaces getInvestmentByChassis):
- *    - Endpoint: GET /deals/id/:dealId
- *    - Type: IDeal
- *    - Use: deal.partnerships array for investment data
- *    - Field mappings:
- *      - Partner -> partnerships[].partner.name
- *      - Broker (percentage) -> partnerships[].profitSharePercentage
- *      - TransactionAmount -> partnerships[].investmentAmount
- *
- * MIGRATION STEPS:
- * 1. First, get deal by VIN: GET /deals/vin/:chassisNo
- * 2. Extract dealId from deal._id
- * 3. Use dealId to fetch:
- *    - Transactions: GET /transactions/deal/:dealId
- *    - Cheques: GET /cheques/deal/:dealId
- *    - Unpaid cheques: GET /cheques/unpaid/deal/:dealId
- * 4. Use deal.partnerships for investment data
- * 5. Update all field references to match new structure
- */
-import {
-  useGetChequeByChassisNo,
-  useGetUnpaidCheques,
-} from "@/apis/mutations/cheques";
-// import { useGetDetailByChassisNo } from "@/apis/mutations/detailsByChassisNo";
-import { useGetInvestmentByChassis } from "@/apis/mutations/investment";
+import { useGetChequesByDealId } from "@/apis/mutations/cheques";
+import { useGetTransactionsByDealId } from "@/apis/mutations/transaction";
 import {
   Table,
   TableBody,
@@ -82,259 +9,210 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import useGetDealsByVin from "@/hooks/useGetDealsByVin";
 import { setTotalVehicleCost } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
+import { IChequeNew, IDeal, ITransactionNew } from "@/types/new-backend-types";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 const VehicleDashboard = () => {
-  const { chassisNo } = useSelector((state: RootState) => state.cars);
-  const [vehicleDetails, setVehicleDetails] =
-    React.useState<IDetailsByChassis | null>(null);
-  const [investment, setInvestment] = React.useState<IInvestmentRes | null>(
-    null
+  const { chassisNo, selectedDealId } = useSelector(
+    (state: RootState) => state.cars
   );
-  // const [unpaidCheques, setUnpaidCheques] =
-  //   React.useState<IUnpaidCheque | null>(null);
-  const [cheques, seCheques] = React.useState<IChequeRes[] | null>(null);
+  const [deal, setDeal] = React.useState<IDeal>();
+  const [transactions, setTransactions] = React.useState<ITransactionNew[]>([]);
+  const [cheques, setCheques] = React.useState<IChequeNew[] | null>(null);
 
   const dispatch = useDispatch();
 
-  // const getDetailByChassisNo = useGetDetailByChassisNo();
-  const getInvestmentByChassis = useGetInvestmentByChassis();
-  // const getUnpaidCheques = useGetUnpaidCheques();
-  const getChequesByChassisNo = useGetChequeByChassisNo();
+  const getDealByVin = useGetDealsByVin(chassisNo);
+  const dealsData = getDealByVin.data;
 
-  /**
-   * MIGRATION: Replace this function to use new API
-   *
-   * NEW IMPLEMENTATION:
-   * 1. GET /deals/vin/:chassisNo to get deal by VIN
-   * 2. GET /transactions/deal/:dealId to get transactions
-   * 3. Combine into IDetailsByChassis-like structure or refactor to use IDeal directly
-   *
-   * Example:
-   * const deal = await axiosInstance.get(`/deals/vin/${chassisNo}`);
-   * const transactions = await axiosInstance.get(`/transactions/deal/${deal._id}`);
-   * const combinedData = { car: deal, transactions };
-   */
-  const handleCarDetailDataByChassisNoData = async (chassisNo: string) => {
-    if (!chassisNo) return;
+  const getTransactionsByDealId = useGetTransactionsByDealId();
+  const getChequesByDealId = useGetChequesByDealId();
+
+  const getTransactionsByDealIdHandler = async () => {
+    if (!deal?._id) return;
     try {
-      // const details = await getDetailByChassisNo.mutateAsync(chassisNo);
-      // setVehicleDetails(details);
+      const transactions = await getTransactionsByDealId.mutateAsync(
+        deal?._id.toString() ?? selectedDealId ?? ""
+      );
+      setTransactions(transactions);
     } catch (error) {
-      console.log("🚀 ~ handleSelectChassis ~ error:", error);
-      setVehicleDetails(null);
-    }
-  };
-  /**
-   * MIGRATION: Replace this function to use new API
-   *
-   * NEW IMPLEMENTATION:
-   * 1. GET /deals/vin/:chassisNo to get deal
-   * 2. Use deal.partnerships array for investment data
-   * 3. Map partnerships to IInvestmentRes format:
-   *    - partnerships[].partner.name -> Partner
-   *    - partnerships[].profitSharePercentage -> Broker
-   *    - partnerships[].investmentAmount -> TransactionAmount
-   *
-   * Example:
-   * const deal = await axiosInstance.get(`/deals/vin/${chassisNo}`);
-   * const investmentData = deal.partnerships.map(p => ({
-   *   Partner: p.partner.name,
-   *   Broker: p.profitSharePercentage,
-   *   TransactionAmount: p.investmentAmount,
-   *   TransactionDate: deal.createdAt,
-   *   TransactionReason: "اصل شرکت",
-   *   TransactionMethod: ""
-   * }));
-   */
-  const handleInvestmentDataByChassisNoData = async (chassisNo: string) => {
-    if (!chassisNo) return;
-
-    try {
-      const investment = await getInvestmentByChassis.mutateAsync(chassisNo);
-
-      setInvestment(investment);
-    } catch (error) {
-      console.log("🚀 ~ handleSelectChassis ~ error:", error);
-      setInvestment(null);
+      console.log("🚀 ~ getTransactionsByDealIdHandler ~ error:", error);
     }
   };
 
-  // const handleUnpaidDataByChassisNoData = async (chassisNo: string) => {
-  //   if (!chassisNo) return;
+  const getChequesByDealIdHandler = async () => {
+    if (!deal?._id) return;
+    try {
+      const cheques = await getChequesByDealId.mutateAsync(
+        deal?._id.toString() ?? selectedDealId ?? ""
+      );
+      setCheques(cheques);
+    } catch (error) {
+      console.log("🚀 ~ getChequesByDealIdHandler ~ error:", error);
+    }
+  };
 
-  //   try {
-  //     const unpaidCheques = await getUnpaidCheques.mutateAsync(chassisNo);
+  const isChequePaid = (cheque: IChequeNew): boolean => {
+    const paidStatuses = ["paid", "پاس شده", "وصول شده", "پاس شده است"];
+    return paidStatuses.some((status) =>
+      cheque.status?.toLowerCase().includes(status.toLowerCase())
+    );
+  };
 
-  //     setUnpaidCheques(unpaidCheques);
-  //   } catch (error) {
-  //     console.log("🚀 ~ handleSelectChassis ~ error:", error);
-  //     setUnpaidCheques(null);
-  //   }
-  // };
+  const isIssuedCheque = (cheque: IChequeNew): boolean => {
+    return (
+      cheque.type === "issued" ||
+      cheque.type === "صادره" ||
+      cheque.type?.toLowerCase().includes("issued") ||
+      cheque.type?.toLowerCase().includes("صادره")
+    );
+  };
 
-  /**
-   * MIGRATION: Replace this function to use new API
-   *
-   * NEW IMPLEMENTATION:
-   * 1. First get deal: GET /deals/vin/:chassisNo
-   * 2. Then get unpaid cheques: GET /cheques/unpaid/deal/:dealId
-   * 3. Use response.cheques array
-   * 4. Field mappings:
-   *    - c.type === "issued" -> ChequeType === "صادره"
-   *    - c.type === "received" -> ChequeType === "وارده"
-   *    - c.status !== "paid" -> ChequeStatus !== "وصول شد"
-   *    - c.amount -> ChequeAmount
-   *    - c.dueDate -> ChequeDueDate
-   *    - c.payer.fullName or c.payee.fullName -> CustomerName
-   *    - c.chequeNumber -> ChequeSerial
-   *    - c.bankName -> Bank
-   *
-   * Example:
-   * const deal = await axiosInstance.get(`/deals/vin/${chassisNo}`);
-   * const unpaidData = await axiosInstance.get(`/cheques/unpaid/deal/${deal._id}`);
-   * const mappedCheques = unpaidData.cheques.map(c => ({
-   *   ChequeType: c.type === "issued" ? "صادره" : "وارده",
-   *   ChequeStatus: c.status,
-   *   ChequeAmount: c.amount,
-   *   // ... other mappings
-   * }));
-   */
-  // const handleUnpaidDataByChassisNoData = async (chassisNo: string) => {
-  //   if (!chassisNo) return;
+  const isReceivedCheque = (cheque: IChequeNew): boolean => {
+    return (
+      cheque.type === "received" ||
+      cheque.type === "وارده" ||
+      cheque.type?.toLowerCase().includes("received") ||
+      cheque.type?.toLowerCase().includes("وارده")
+    );
+  };
 
-  //   try {
-  //     const cheques = await getChequesByChassisNo.mutateAsync(chassisNo);
-
-  //     seCheques(cheques);
-  //   } catch (error) {
-  //     console.log("🚀 ~ handleSelectChassis ~ error:", error);
-  //     seCheques(null);
-  //   }
-  // };
-
-  /**
-   * MIGRATION: Update field references for new API structure
-   *
-   * NEW FIELD MAPPINGS:
-   * - c.ChequeType -> c.type ("issued" | "received")
-   * - c.ChequeStatus -> c.status
-   * - c.ChequeAmount -> c.amount
-   *
-   * OR use the totals from GET /cheques/unpaid/deal/:dealId response:
-   * - totals.issuedUnpaid (already calculated on backend)
-   * - totals.receivedUnpaid (already calculated on backend)
-   */
-  const totalIssuedCheques =
+  // Calculate cheque totals
+  // Total issued cheques unpaid
+  const totalIssuedChequesUnpaid =
     cheques
-      ?.filter((c) => c.ChequeType === "صادره" && c.ChequeStatus !== "وصول شد")
-      .reduce((sum, c) => sum + (c.ChequeAmount || 0), 0) || 0;
+      ?.filter((c) => isIssuedCheque(c) && !isChequePaid(c))
+      .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
-  const totalImportedCheques =
+  // Total issued cheques paid
+  const totalIssuedChequesPaid =
     cheques
-      ?.filter((c) => c.ChequeType === "وارده" && c.ChequeStatus !== "وصول شد")
-      .reduce((sum, c) => sum + (c.ChequeAmount || 0), 0) || 0;
+      ?.filter((c) => isIssuedCheque(c) && isChequePaid(c))
+      .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
-  // const remainingToSeller =
-  //   vehicleDetails?.car?.PurchaseAmount && totalPaid
-  //     ? vehicleDetails?.car?.PurchaseAmount - totalPaid
-  //     : "";
+  // Total received cheques unpaid
+  const totalReceivedChequesUnpaid =
+    cheques
+      ?.filter((c) => isReceivedCheque(c) && !isChequePaid(c))
+      .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
-  // totalPaidToSeller
+  // Total received cheques paid
+  const totalReceivedChequesPaid =
+    cheques
+      ?.filter((c) => isReceivedCheque(c) && isChequePaid(c))
+      .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
-  /**
-   * MIGRATION: Update field references for new API structure
-   *
-   * NEW FIELD MAPPINGS:
-   * - t.TransactionType -> t.type
-   * - t.TransactionReason -> t.reason
-   * - t.TransactionAmount -> t.amount
-   */
-  const totalPaidToSellerAndOperator =
-    vehicleDetails?.transactions
-      ?.filter(
-        (t) =>
-          (t.TransactionType === "پرداخت" && t.TransactionReason === "خريد") ||
-          (t.TransactionType === "پرداخت" &&
-            t.TransactionReason === "درصد کارگزار")
-      )
-      .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
+  // const totalPaidToSellerAndOperator =
+  //   transactions
+  //     ?.filter(
+  //       (t) =>
+  //         (t.type === "پرداخت" && t.reason === "خريد") ||
+  //         (t.type === "پرداخت" && t.reason === "درصد کارگزار")
+  //     )
+  //     .reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
 
   const totalPaidToSeller =
-    vehicleDetails?.transactions
-      ?.filter(
-        (t) => t.TransactionType === "پرداخت" && t.TransactionReason === "خريد"
-      )
-      ?.reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
+    transactions
+      ?.filter((t) => t.type === "پرداخت" && t.reason === "خريد")
+      ?.reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
 
   const totalPaidToSellerWithoutFilter =
-    vehicleDetails?.transactions
-      ?.filter((t) => t.TransactionType === "پرداخت")
-      .reduce((sum, t) => sum + (t?.TransactionAmount || 0), 0) || 0;
+    transactions
+      ?.filter((t) => t.type === "پرداخت")
+      .reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
 
-  /**
-   * MIGRATION: Update field references for new API structure
-   *
-   * NEW FIELD MAPPINGS:
-   * - vehicleDetails?.car.SaleAmount -> deal.salePrice
-   * - vehicleDetails?.car.PurchaseAmount -> deal.purchasePrice
-   * - t.TransactionType -> t.type
-   * - t.TransactionAmount -> t.amount
-   */
-  const remainingToSeller =
-    totalPaidToSeller && vehicleDetails?.car.SaleAmount
-      ? totalPaidToSeller - vehicleDetails?.car.SaleAmount
-      : "";
-
-  const receiveTransactions = vehicleDetails?.transactions?.filter(
-    (t) => t.TransactionType === "دریافت"
-  );
+  const receiveTransactions = transactions?.filter((t) => t.type === "دریافت");
 
   const totalReceived =
-    receiveTransactions?.reduce(
-      (sum, t) => sum + (t?.TransactionAmount || 0),
-      0
-    ) || 0;
+    receiveTransactions?.reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
 
   const remainingForBuyer =
-    vehicleDetails?.car?.PurchaseAmount && totalReceived
-      ? totalReceived - vehicleDetails?.car.PurchaseAmount
+    deal?.purchasePrice && totalReceived
+      ? totalReceived - deal?.purchasePrice
       : "";
 
-  // const remainingForBuyer =
-  //   vehicleDetails?.car?.SaleAmount && totalReceived
-  //     ? vehicleDetails?.car?.SaleAmount - totalReceived
-  //     : "";
+  const receivedTransactions = transactions?.filter((t) => t.type === "دریافت");
 
-  const receivedTransactions = vehicleDetails?.transactions?.filter(
-    (t) => t.TransactionType === "دریافت"
-  );
+  const paidTransactions = transactions?.filter((t) => t.type === "پرداخت");
 
-  const paidTransactions = vehicleDetails?.transactions?.filter(
-    (t) => t.TransactionType === "پرداخت"
-  );
+  const totalPaidToBroker =
+    transactions
+      ?.filter((t) => t.type === "پرداخت" && t.reason === "درصد کارگزار")
+      .reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
 
-  /**
-   * MIGRATION: Update for new API structure
-   *
-   * NEW IMPLEMENTATION:
-   * Use deal.partnerships array:
-   * const totalBroker = deal.partnerships?.reduce(
-   *   (sum, p) => sum + (p.profitSharePercentage || 0),
-   *   0
-   * ) || 0;
-   */
-  const totalBroker =
-    investment?.data?.reduce((sum, t) => sum + (t?.Broker || 0), 0) || 0;
+  // const otherCostCategories =
+  //   deal?.directCosts?.otherCost?.map((cost) => cost.category) || [];
+  // const otherCostsFromDirectCosts =
+  //   deal?.directCosts?.otherCost?.reduce(
+  //     (sum, cost) => sum + (cost.cost || 0),
+  //     0
+  //   ) || 0;
+  // const otherCostsFromTransactions =
+  //   transactions
+  //     ?.filter(
+  //       (t) =>
+  //         t.type === "پرداخت" &&
+  //         otherCostCategories.some((category) => t.reason === category)
+  //     )
+  //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+  const vehicleCosts =
+    transactions
+      ?.filter(
+        (t) =>
+          t.type === "پرداخت" &&
+          (t.reason?.replace(/\s/g, "").includes("هزینهوسیله") ||
+            t.reason?.replace(/\s/g, "").includes("هزينهوسیله"))
+      )
+      .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+
+  const remainingToSeller =
+    deal?.purchasePrice && totalPaidToSeller
+      ? deal.purchasePrice - totalPaidToSeller
+      : deal?.purchasePrice || 0;
+
+  // const totalBrokerPercentage =
+  //   deal?.partnerships?.reduce(
+  //     (sum, p) => sum + (p.profitSharePercentage || 0),
+  //     0
+  //   ) || 0;
+
+  const totalPaidForInvestment =
+    transactions
+      ?.filter(
+        (t) =>
+          t.type === "پرداخت" &&
+          (t.reason === "افزایش سرمایه" || t.reason === "کاهش سرمایه")
+      )
+      .reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
+
+  const totalReceivedForInvestment =
+    transactions
+      ?.filter(
+        (t) =>
+          t.type === "دریافت" &&
+          (t.reason === "افزایش سرمایه" || t.reason === "کاهش سرمایه")
+      )
+      .reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
 
   React.useEffect(() => {
-    // handleUnpaidDataByChassisNoData(chassisNo);
-    // handleCarDetailDataByChassisNoData(chassisNo);
-    // handleInvestmentDataByChassisNoData(chassisNo);
-  }, [chassisNo]);
+    getTransactionsByDealIdHandler();
+    getChequesByDealIdHandler();
+  }, [deal?._id, selectedDealId]);
+
+  React.useEffect(() => {
+    if (dealsData?.length === 1) {
+      setDeal(dealsData[0]);
+    } else if (dealsData?.length && dealsData?.length > 1) {
+      const selectedDeal = dealsData?.find(
+        (deal) => deal._id.toString() === selectedDealId
+      );
+      setDeal(selectedDeal ?? undefined);
+    }
+  }, [dealsData, selectedDealId]);
 
   return (
     <>
@@ -351,14 +229,15 @@ const VehicleDashboard = () => {
                     <TableHead className="w-12 text-center">ردیف</TableHead>
                     <TableHead className="w-12 text-center">تاریخ</TableHead>
                     <TableHead className="w-12 text-center">مبلغ</TableHead>
-                    <TableHead className="w-12 text-center">کدملی</TableHead>
                     <TableHead className="w-12 text-center">
                       دلیل تراکنش
                     </TableHead>
                     <TableHead className="w-12 text-center">
                       روش پرداخت
                     </TableHead>
-                    <TableHead className="w-12 text-center">کارگزار</TableHead>
+                    <TableHead className="w-12 text-center">
+                      حساب مبدا
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -369,19 +248,14 @@ const VehicleDashboard = () => {
                       const totalVehicleCost = paidTransactions
                         ?.filter(
                           (item) =>
-                            item?.TransactionReason?.replace(
-                              /\s/g,
-                              ""
-                            ).includes("هزینهوسیله") ||
-                            item?.TransactionReason?.replace(
-                              /\s/g,
-                              ""
-                            ).includes("هزينهوسیله")
+                            item?.reason
+                              ?.replace(/\s/g, "")
+                              .includes("هزینهوسیله") ||
+                            item?.reason
+                              ?.replace(/\s/g, "")
+                              .includes("هزينهوسیله")
                         )
-                        ?.reduce(
-                          (sum, item) => sum + (item.TransactionAmount || 0),
-                          0
-                        );
+                        ?.reduce((sum, item) => sum + (item.amount || 0), 0);
 
                       dispatch(setTotalVehicleCost(totalVehicleCost));
 
@@ -393,32 +267,20 @@ const VehicleDashboard = () => {
                           <TableCell className="text-center">
                             {index + 1}
                           </TableCell>
-                          {/* MIGRATION: Update field references
-                           * - item?.TransactionDate -> item?.transactionDate
-                           * - item?.TransactionAmount -> item?.amount
-                           * - item?.CustomerNationalID -> item?.personId
-                           * - item?.TransactionReason -> item?.reason
-                           * - item?.TransactionMethod -> item?.paymentMethod
-                           * - item?.ShowroomCard -> item?.bussinessAccountId
-                           */}
                           <TableCell className="text-center">
-                            {item?.TransactionDate ?? ""}
+                            {item?.transactionDate ?? ""}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.TransactionAmount?.toLocaleString("en-US") ??
-                              ""}
+                            {item?.amount?.toLocaleString("en-US") ?? ""}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.CustomerNationalID ?? ""}
+                            {item?.reason ?? ""}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.TransactionReason ?? ""}
+                            {item?.paymentMethod ?? ""}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.TransactionMethod ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.ShowroomCard ?? ""}
+                            {item?.bussinessAccountId ?? ""}
                           </TableCell>
                         </TableRow>
                       );
@@ -426,8 +288,47 @@ const VehicleDashboard = () => {
                 </TableBody>
               </Table>
             </div>
-            <div className="grid grid-cols-2 gap-3 items-start space-y-0">
-              <div>
+            <div className="grid grid-cols-5 gap-3 items-start space-y-0">
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+                <p className="text-xs">مجموع</p>
+                <p className="text-red-500 text-xs">
+                  {totalPaidToSellerWithoutFilter
+                    ? totalPaidToSellerWithoutFilter.toLocaleString("en-US")
+                    : 0}
+                </p>
+              </div>
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+                <p className="text-xs">مجموع به طرف اول</p>
+                <p className="font-bold text-xs">
+                  {totalPaidToSeller
+                    ? totalPaidToSeller.toLocaleString("en-US")
+                    : 0}
+                </p>
+              </div>
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+                <p className="text-xs">مجموع به کارگزار</p>
+                <p className="font-bold text-xs">
+                  {totalPaidToBroker
+                    ? totalPaidToBroker.toLocaleString("en-US")
+                    : 0}
+                </p>
+              </div>
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+                <p className="text-xs">مجموع هزینه</p>
+                <p className="font-bold text-xs">
+                  {vehicleCosts ? vehicleCosts.toLocaleString("en-US") : 0}
+                </p>
+              </div>
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+                <p className="text-xs">مانده</p>
+                <p className="font-bold text-xs">
+                  {typeof remainingToSeller === "number"
+                    ? remainingToSeller.toLocaleString("en-US")
+                    : remainingToSeller ?? 0}
+                </p>
+              </div>
+
+              {/* <div>
                 <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
                   <p className="text-xs">مانده مبلغ قابل پرداخت به فروشنده</p>
                   <p className="font-bold text-sm">
@@ -458,13 +359,14 @@ const VehicleDashboard = () => {
                 </div>
                 <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
                   <p className="text-xs">مجموع کل پرداختی</p>
+                  <p className="text-xs">مجموع</p>
                   <p className="text-red-500 text-sm">
                     {totalPaidToSellerWithoutFilter
                       ? totalPaidToSellerWithoutFilter.toLocaleString("en-US")
                       : 0}
                   </p>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -479,14 +381,15 @@ const VehicleDashboard = () => {
                     <TableHead className="w-12 text-center">ردیف</TableHead>
                     <TableHead className="w-12 text-center">تاریخ</TableHead>
                     <TableHead className="w-12 text-center">مبلغ</TableHead>
-                    <TableHead className="w-12 text-center">کدملی</TableHead>
                     <TableHead className="w-12 text-center">
                       دلیل تراکنش
                     </TableHead>
                     <TableHead className="w-12 text-center">
                       روش پرداخت
                     </TableHead>
-                    <TableHead className="w-12 text-center">کارگزار</TableHead>
+                    <TableHead className="w-12 text-center">
+                      حساب مبدا
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -500,46 +403,43 @@ const VehicleDashboard = () => {
                         <TableCell className="text-center">
                           {index + 1}
                         </TableCell>
-                        {/* MIGRATION: Update field references (same as paid transactions above) */}
                         <TableCell className="text-center">
-                          {item?.TransactionDate ?? ""}
+                          {item?.transactionDate ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item?.TransactionAmount?.toLocaleString("en-US") ??
-                            ""}
+                          {item?.amount?.toLocaleString("en-US") ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item?.CustomerNationalID ?? ""}
+                          {item?.reason ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item?.TransactionReason ?? ""}
+                          {item?.paymentMethod ?? ""}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item?.TransactionMethod ?? ""}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item?.ShowroomCard ?? ""}
+                          {item?.bussinessAccountId ?? ""}
                         </TableCell>
                       </TableRow>
                     ))}
                 </TableBody>
               </Table>
             </div>
-            <div className="grid grid-cols-2 gap-3 item?-center mt-3">
-              <div className="space-y-2">
-                <p className="text-xs">مانده مبلغ قابل دریافت از خریدار</p>
-                <p className="font-bold text-sm">
+            <div className="grid grid-cols-2 gap-3 items-center mt-3">
+              <div className="flex gap-3 items-center">
+                {/* <p className="text-xs">مانده مبلغ قابل دریافت از خریدار</p> */}
+                <span className="text-xs">مانده</span>
+                <span className="font-bold text-xs">
                   {typeof remainingForBuyer === "number"
                     ? remainingForBuyer.toLocaleString("en-US")
                     : remainingForBuyer ?? 0}
-                </p>
+                </span>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-xs">مجموع دریافتی از خریدار</p>
-                <p className="text-green-500 text-sm">
+              <div className="flex gap-3 items-center">
+                {/* <p className="text-xs">مجموع دریافتی از خریدار</p> */}
+                <span className="text-xs">مجموع</span>
+                <span className="text-green-500 text-xs">
                   {totalReceived ? totalReceived.toLocaleString("en-US") : 0}
-                </p>
+                </span>
               </div>
             </div>
           </div>
@@ -563,62 +463,86 @@ const VehicleDashboard = () => {
                     <TableHead className="text-center">تاریخ</TableHead>
                     <TableHead className="text-center">مبلغ</TableHead>
                     <TableHead className="text-center">شریک</TableHead>
-                    <TableHead className="text-center">درصد سود</TableHead>
                     <TableHead className="text-center">دلیل تراکنش</TableHead>
-                    <TableHead className="text-center">روش</TableHead>
+                    <TableHead className="text-center">روش پرداخت</TableHead>
+                    <TableHead className="text-center">حساب مبدا</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                  {investment?.data && investment.data.length > 0
-                    ? investment.data.map((item, index) => (
-                        <TableRow
-                          key={`${item?._id}-${index}`}
-                          className="hover:bg-gray-50"
-                        >
-                          <TableCell className="text-center">
-                            {index + 1}
-                          </TableCell>
-                          {/* MIGRATION: Update for partnerships array from deal
-                           * - item?.TransactionDate -> deal.createdAt or partnership date
-                           * - item?.TransactionAmount -> p.investmentAmount
-                           * - item?.Partner -> p.partner.name
-                           * - item?.Broker -> p.profitSharePercentage
-                           * - item?.TransactionReason -> "اصل شرکت" or "سود شراکت"
-                           * - item?.TransactionMethod -> (may need to get from related transaction)
-                           */}
-                          <TableCell className="text-center">
-                            {item?.TransactionDate ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.TransactionAmount?.toLocaleString("en-US") ??
-                              ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.Partner ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.Broker ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.TransactionReason ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.TransactionMethod ?? ""}
-                          </TableCell>
-                        </TableRow>
-                      ))
+                  {deal?.partnerships && deal.partnerships.length > 0
+                    ? deal.partnerships.map((partnership, index) => {
+                        const relatedTransaction = transactions?.find(
+                          (t) =>
+                            t.type === "پرداخت" &&
+                            t.personId?.toString() ===
+                              partnership.partner.personId
+                        );
+
+                        return (
+                          <TableRow
+                            key={`${partnership.partner.personId}-${index}`}
+                            className="hover:bg-gray-50"
+                          >
+                            <TableCell className="text-center">
+                              {index + 1}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {relatedTransaction?.transactionDate ||
+                                deal.createdAt?.split("T")[0] ||
+                                ""}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {partnership.investmentAmount
+                                ? partnership.investmentAmount.toLocaleString(
+                                    "en-US"
+                                  )
+                                : ""}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {partnership.partner.name || ""}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {partnership.profitSharePercentage
+                                ? `${(
+                                    partnership.profitSharePercentage * 100
+                                  ).toFixed(2)}%`
+                                : ""}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {partnership.investmentAmount > 0
+                                ? "اصل شرکت"
+                                : "سود شراکت"}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {relatedTransaction?.paymentMethod || ""}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {relatedTransaction?.bussinessAccountId || ""}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     : null}
                 </TableBody>
               </Table>
             </div>
             <div className="flex gap-3 item?-center justify-between mt-3">
-              <p className="text-sm">
-                در جدول بالا منظور از درصد، درصد مشارکت سرمایه گذار در تامین
-                سرمایه است.
+              <p className="flex gap-2 items-center">
+                <span className="text-xs">مجموع دریافتی</span>
+                <span className="text-xs">
+                  {totalReceivedForInvestment
+                    ? totalReceivedForInvestment?.toLocaleString("en-US")
+                    : 0}
+                </span>
               </p>
-              <p className="font-semibold text-sm">
-                {totalBroker ? totalBroker.toLocaleString("en-US") : ""}
+              <p className="flex gap-2 items-center">
+                <span className="text-xs">مجموع پرداختی</span>
+                <span className="text-xs">
+                  {totalPaidForInvestment
+                    ? totalPaidForInvestment?.toLocaleString("en-US")
+                    : 0}
+                </span>
               </p>
             </div>
           </div>
@@ -632,27 +556,27 @@ const VehicleDashboard = () => {
                 <TableHeader className="top-0 sticky">
                   <TableRow className="hover:bg-transparent bg-gray-100">
                     <TableHead className="text-center w-[30%]">ردیف</TableHead>
-                    <TableHead className="text-center w-[70%]">
+                    <TableHead className="text-center w-[50%]">
+                      نوع چک
+                    </TableHead>
+                    <TableHead className="text-center w-[50%]">
                       نام مشتری
                     </TableHead>
                     <TableHead className="text-center w-[50%]">مبلغ</TableHead>
                     <TableHead className="text-center w-[50%]">
                       سررسید
                     </TableHead>
-                    <TableHead className="text-center w-[50%]">
-                      وضعیت چک
-                    </TableHead>
+                    <TableHead className="text-center w-[50%]">وضعیت</TableHead>
                     <TableHead className="text-center w-[50%]">
                       شناسه صیادی
                     </TableHead>
                     <TableHead className="text-center w-[50%]">
                       سریال چک
                     </TableHead>
-                    <TableHead className="text-center w-[30%]">بانک</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* {cheques && cheques.length > 0
+                  {cheques && cheques.length > 0
                     ? cheques?.map((item, index) => (
                         <TableRow
                           key={`${item?._id}-${index}`}
@@ -662,29 +586,29 @@ const VehicleDashboard = () => {
                             {index + 1}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.CustomerName}
+                            {item?.type}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.ChequeAmount?.toLocaleString("en-US") ?? ""}
+                            {item?.payer?.fullName}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.ChequeDueDate}
+                            {item?.amount?.toLocaleString("en-US") ?? ""}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.ChequeStatus}
+                            {item?.dueDate}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.SayadiID}
+                            {item?.status}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.ChequeSerial}
+                            {/* {item?.SayadiID ?? ""} */}-{""}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.Bank}
+                            {item?.chequeNumber}
                           </TableCell>
                         </TableRow>
                       ))
-                    : null} */}
+                    : null}
 
                   {[].length > 0
                     ? []?.map((item, index) => (
@@ -713,17 +637,33 @@ const VehicleDashboard = () => {
             <div className="flex gap-3 item??-center justify-end mt-3">
               <p className="flex gap-2 items-center">
                 <span className="text-xs">مجموع چک های صادره وصول نشده</span>
-                <span>
-                  {totalIssuedCheques
-                    ? totalIssuedCheques?.toLocaleString("en-US")
+                <span className="text-xs">
+                  {totalIssuedChequesUnpaid
+                    ? totalIssuedChequesUnpaid?.toLocaleString("en-US")
+                    : 0}
+                </span>
+              </p>
+              <p className="flex gap-2 items-center">
+                <span className="text-xs">مجموع چک های صادره وصول شده</span>
+                <span className="text-xs">
+                  {totalIssuedChequesPaid
+                    ? totalIssuedChequesPaid?.toLocaleString("en-US")
                     : 0}
                 </span>
               </p>
               <p className="flex gap-2 items-center">
                 <span className="text-xs">مجموع چک های وارده وصول نشده</span>
-                <span>
-                  {totalImportedCheques
-                    ? totalImportedCheques?.toLocaleString("en-US")
+                <span className="text-xs">
+                  {totalReceivedChequesUnpaid
+                    ? totalReceivedChequesUnpaid?.toLocaleString("en-US")
+                    : 0}
+                </span>
+              </p>
+              <p className="flex gap-2 items-center">
+                <span className="text-xs">مجموع چک های وارده وصول شده</span>
+                <span className="text-xs">
+                  {totalReceivedChequesPaid
+                    ? totalReceivedChequesPaid?.toLocaleString("en-US")
                     : 0}
                 </span>
               </p>
