@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import CheckDashboard from "@/components/checkDashboard";
 import CustomersDashboard from "@/components/customersDashboard";
 import FinanciersDashboard from "@/components/financiersDashboard";
@@ -8,6 +8,7 @@ import VehicleDashboard from "@/components/vehicleDashboard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import TransactionForm from "./forms/transactionForm";
 import ChequeForm from "./forms/chequeForm";
+import React from "react";
 // import OptionForm from "./forms/optionForm";
 
 const tabs = [
@@ -62,56 +63,61 @@ const formTabs = [
 ];
 
 const TabsComponent = () => {
+  const [activeTab, setActiveTab] = React.useState<string>("vehicleDashboard");
+
   return (
-    <Tabs
-      defaultValue="vehicleDashboard"
-      orientation="vertical"
-      className="h-full w-full flex justify-start items-start"
-      dir="rtl"
-    >
-      <TabsList>
-        <div className="flex justify-between items-center">
-          {tabs.map((tab) => (
-            <TabsTrigger
-              key={tab.id}
-              value={tab.id}
-              className="bg-gray-100 cursor-pointer"
-            >
-              {tab.title}
-            </TabsTrigger>
-          ))}
+    <div suppressHydrationWarning>
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        orientation="vertical"
+        className="h-full w-full flex justify-start items-start"
+        dir="rtl"
+      >
+        <TabsList>
+          <div className="flex justify-between items-center">
+            {tabs.map((tab) => (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                className="bg-gray-100 cursor-pointer"
+              >
+                {tab.title}
+              </TabsTrigger>
+            ))}
 
-          {formTabs.map((tab) => (
-            <TabsTrigger
-              key={tab.id}
-              value={tab.id}
-              className="bg-gray-100 cursor-pointer"
-            >
-              {tab.title}
-            </TabsTrigger>
-          ))}
-        </div>
-      </TabsList>
+            {formTabs.map((tab) => (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                className="bg-gray-100 cursor-pointer"
+              >
+                {tab.title}
+              </TabsTrigger>
+            ))}
+          </div>
+        </TabsList>
 
-      {tabs.map((tab) => (
-        <TabsContent
-          key={tab.id}
-          value={tab.id}
-          className="w-full bg-white rounded-2xl"
-        >
-          {tab.content}
-        </TabsContent>
-      ))}
-      {formTabs.map((tab) => (
-        <TabsContent
-          key={tab.id}
-          value={tab.id}
-          className="w-full bg-white rounded-2xl"
-        >
-          {tab.content}
-        </TabsContent>
-      ))}
-    </Tabs>
+        {tabs.map((tab) => (
+          <TabsContent
+            key={tab.id}
+            value={tab.id}
+            className="w-full bg-white rounded-2xl"
+          >
+            {tab.content}
+          </TabsContent>
+        ))}
+        {formTabs.map((tab) => (
+          <TabsContent
+            key={tab.id}
+            value={tab.id}
+            className="w-full bg-white rounded-2xl"
+          >
+            {tab.content}
+          </TabsContent>
+        ))}
+      </Tabs>
+    </div>
   );
 };
 

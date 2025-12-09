@@ -26,10 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`font-tahoma antialiased`}
-      >
+    <html lang="en" suppressHydrationWarning>
+      <body className={`font-tahoma antialiased`} suppressHydrationWarning>
         <ReduxProvider>
           <TanstackProvider>
             <Toaster />

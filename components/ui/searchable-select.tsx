@@ -23,11 +23,15 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [selectedValue, setSelectedValue] = React.useState(value || "");
+  const [isMounted, setIsMounted] = React.useState(false);
   const selectRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  // Filter options based on search term
+  const [selectedValue, setSelectedValue] = React.useState(() => {
+    if (typeof window === "undefined") return "";
+    return value || "";
+  });
+
   const filteredOptions = React.useMemo(() => {
     if (!searchTerm) return options;
     return options.filter((option) =>
@@ -35,12 +39,25 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
     );
   }, [options, searchTerm]);
 
-  // Update selected value when prop changes
   React.useEffect(() => {
-    setSelectedValue(value || "");
-  }, [value]);
+    setIsMounted(true);
+    if (value) {
+      if (options.length === 0 || options.includes(value)) {
+        setSelectedValue(value);
+      }
+    }
+  }, []);
 
-  // Focus input when dropdown opens
+  React.useEffect(() => {
+    if (isMounted) {
+      if (value && (options.length === 0 || options.includes(value))) {
+        setSelectedValue(value);
+      } else if (!value) {
+        setSelectedValue("");
+      }
+    }
+  }, [value, options, isMounted]);
+
   React.useEffect(() => {
     if (isOpen && inputRef.current) {
       setTimeout(() => {
@@ -49,7 +66,6 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
     }
   }, [isOpen]);
 
-  // Close dropdown when clicking outside
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -77,7 +93,11 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
     setSearchTerm("");
   };
 
-  const selectedLabel = selectedValue || placeholder;
+  const isValidValue =
+    isMounted &&
+    selectedValue &&
+    (options.length === 0 || options.includes(selectedValue));
+  const selectedLabel = isValidValue ? selectedValue : placeholder;
 
   return (
     <div ref={selectRef} className={cn("relative w-full", className)}>

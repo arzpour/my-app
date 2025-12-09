@@ -4,12 +4,14 @@ interface CarState {
   chassisNo: string;
   role: roleType;
   totalVehicleCost: number;
+  selectedDealId: string;
 }
 
 const initialState: CarState = {
   chassisNo: "",
   role: null,
   totalVehicleCost: 0,
+  selectedDealId: "",
 };
 
 const carSlice = createSlice({
@@ -25,8 +27,12 @@ const carSlice = createSlice({
     setTotalVehicleCost: (state, action: PayloadAction<number>) => {
       state.totalVehicleCost = action.payload;
     },
+    setSelectedDealId: (state, action: PayloadAction<string>) => {
+      state.selectedDealId = action.payload;
+    },
   },
 });
 
-export const { setChassisNo, setRole , setTotalVehicleCost} = carSlice.actions;
+export const { setChassisNo, setRole, setTotalVehicleCost, setSelectedDealId } =
+  carSlice.actions;
 export default carSlice.reducer;
