@@ -38,6 +38,7 @@ export interface IChequeNew {
   amount: number;
   type: string; // "issued" | "received"
   status: string; // "paid" | "unpaid" | etc.
+  sayadiID: string;
   payer: {
     personId: string;
     fullName: string;
