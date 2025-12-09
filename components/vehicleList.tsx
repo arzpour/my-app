@@ -79,7 +79,7 @@
 // export default VehicleList;
 
 "use client";
-import useGetAllCars from "@/hooks/useGetAllCars";
+// import useGetAllCars from "@/hooks/useGetAllCars";
 import {
   Table,
   TableBody,
@@ -93,7 +93,7 @@ import React from "react";
 import VehicleFormModal from "@/components/forms/vehicleFormModal";
 
 const VehicleList = () => {
-  const getAllCars = useGetAllCars();
+  // const getAllCars = useGetAllCars();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [selectedVehicle, setSelectedVehicle] = React.useState<ICarRes | null>(
     null
@@ -123,7 +123,7 @@ const VehicleList = () => {
           افزودن مورد جدید
         </button>
       </div>
-      {getAllCars.data && (
+      {/* {getAllCars.data && ( */}
         <div className="border border-gray-300 p-4 rounded-md w-full mt-7">
           <div className="max-h-[33rem] overflow-y-auto rounded-md border w-full">
             <Table className="min-w-full table-fixed text-right border-collapse">
@@ -141,8 +141,8 @@ const VehicleList = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {getAllCars?.data?.map((item, index) => (
-                  <TableRow
+                {/* {getAllCars?.data?.map((item, index) => ( */}
+                  {/* <TableRow
                     key={`${item?._id}-${index}`}
                     className="has-data-[state=checked]:bg-muted/50"
                   >
@@ -178,13 +178,13 @@ const VehicleList = () => {
                         onClick={() => handleEdit(item)}
                       />
                     </TableCell>
-                  </TableRow>
-                ))}
+                  </TableRow> */}
+                {/* ))} */}
               </TableBody>
             </Table>
           </div>
         </div>
-      )}
+      {/* )} */}
       <VehicleFormModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}

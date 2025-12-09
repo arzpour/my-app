@@ -6,7 +6,7 @@ import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import PersianDatePicker from "../global/persianDatePicker";
 import SelectForFilterCheques from "../selectForFilterCheques";
-import { useCreateCheque } from "@/apis/mutations/cheques";
+// import { useCreateCheque } from "@/apis/mutations/cheques";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 
@@ -43,7 +43,7 @@ const ChequeForm = () => {
   const { data: getAllCategoryWithOptionSettings } =
     useGetAllCategoryWithOptionSettings();
   const { chassisNo } = useSelector((state: RootState) => state.cars);
-  const createCheque = useCreateCheque();
+  // const createCheque = useCreateCheque();
 
   const bankNameOptions = getAllCategoryWithOptionSettings?.filter(
     (item) => item.category === "bankName"
@@ -89,7 +89,7 @@ const ChequeForm = () => {
         ShowroomAccountCard: "",
       };
 
-      await createCheque.mutateAsync(payload);
+      // await createCheque.mutateAsync(payload);
 
       reset();
       toast("ثبت شد", {

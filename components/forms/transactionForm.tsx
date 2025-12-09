@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import SelectForFilterCheques from "../selectForFilterCheques";
-import { useCreateTransaction } from "@/apis/mutations/transaction";
+// import { useCreateTransaction } from "@/apis/mutations/transaction";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import PersianDatePicker from "../global/persianDatePicker";
@@ -44,7 +44,7 @@ const TransactionForm = () => {
   const { data: getAllCategoryWithOptionSettings } =
     useGetAllCategoryWithOptionSettings();
   const { chassisNo } = useSelector((state: RootState) => state.cars);
-  const createTransaction = useCreateTransaction();
+  // const createTransaction = useCreateTransaction();
 
   const transactionTypeOptions = getAllCategoryWithOptionSettings?.filter(
     (item) => item.category === "transactionType"
@@ -112,7 +112,7 @@ const TransactionForm = () => {
             : 0,
       };
 
-      await createTransaction.mutateAsync(payload);
+      // await createTransaction.mutateAsync(payload);
 
       reset();
       toast("ثبت شد", {

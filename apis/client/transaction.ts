@@ -44,23 +44,23 @@ export const getAllTransactions: getAllTransactionsType = async () => {
 };
 
 // Legacy function - maps to new API
-type getTransactionByChassisType = (
-  chassisNo: string
-) => Promise<ITransactionRes[]>;
-export const getTransactionByChassis: getTransactionByChassisType = async (
-  chassisNo: string
-) => {
-  // First get deal by VIN to get dealId
-  const { getDealByVin } = await import("./deals");
-  const deal = await getDealByVin(chassisNo);
-  const dealId = deal?._id.toString();
+// type getTransactionByChassisType = (
+//   chassisNo: string
+// ) => Promise<ITransactionRes[]>;
+// export const getTransactionByChassis: getTransactionByChassisType = async (
+//   chassisNo: string
+// ) => {
+//   // First get deal by VIN to get dealId
+//   const { getDealByVin } = await import("./deals");
+//   const deal = await getDealByVin(chassisNo);
+//   const dealId = deal?._id.toString();
 
-  // Then get transactions by dealId
-  const transactions = await getTransactionsByDeal(dealId);
+//   // Then get transactions by dealId
+//   const transactions = await getTransactionsByDeal(dealId);
 
-  // Map to old format
-  return transactions.map(mapTransactionToOldFormat);
-};
+//   // Map to old format
+//   return transactions.map(mapTransactionToOldFormat);
+// };
 
 // New function: Get transactions by deal ID
 type getTransactionsByDealType = (dealId: string) => Promise<ITransactionNew[]>;
@@ -126,56 +126,56 @@ function mapTransactionToOldFormat(newData: ITransactionNew): ITransactionRes {
 }
 
 // Create transaction - accepts both old and new format
-type createTransactionType = (
-  data: Partial<ITransactionRes> | Partial<ITransactionNew>
-) => Promise<ITransactionNew>;
-export const createTransaction: createTransactionType = async (data) => {
-  // If data has old format fields, convert to new format
-  const newData = isOldTransactionFormat(data)
-    ? await mapOldTransactionToNew(data as Partial<ITransactionRes>)
-    : data;
+// type createTransactionType = (
+//   data: Partial<ITransactionRes> | Partial<ITransactionNew>
+// ) => Promise<ITransactionNew>;
+// export const createTransaction: createTransactionType = async (data) => {
+//   // If data has old format fields, convert to new format
+//   const newData = isOldTransactionFormat(data)
+//     ? await mapOldTransactionToNew(data as Partial<ITransactionRes>)
+//     : data;
 
-  const response = await axiosInstance.post(
-    urls.transactionsNew.create,
-    newData
-  );
-  return response.data;
-};
+//   const response = await axiosInstance.post(
+//     urls.transactionsNew.create,
+//     newData
+//   );
+//   return response.data;
+// };
 
-// Helper function to check if data is in old format
-function isOldTransactionFormat(data: any): boolean {
-  return (
-    data.TransactionType !== undefined ||
-    data.TransactionAmount !== undefined ||
-    data.ChassisNo !== undefined
-  );
-}
+// // Helper function to check if data is in old format
+// function isOldTransactionFormat(data: any): boolean {
+//   return (
+//     data.TransactionType !== undefined ||
+//     data.TransactionAmount !== undefined ||
+//     data.ChassisNo !== undefined
+//   );
+// }
 
 // Helper function to map old transaction format to new
-async function mapOldTransactionToNew(
-  oldData: Partial<ITransactionRes>
-): Promise<Partial<ITransactionNew>> {
-  // Convert VIN to dealId if needed
-  let dealId = oldData.ChassisNo;
-  if (oldData.ChassisNo && typeof oldData.ChassisNo === "string") {
-    try {
-      const { getDealByVin } = await import("./deals");
-      const deal = await getDealByVin(oldData.ChassisNo);
-      dealId = deal._id.toString();
-    } catch (error) {
-      console.error("Error converting VIN to dealId:", error);
-    }
-  }
+// async function mapOldTransactionToNew(
+//   oldData: Partial<ITransactionRes>
+// ): Promise<Partial<ITransactionNew>> {
+//   // Convert VIN to dealId if needed
+//   let dealId = oldData.ChassisNo;
+//   if (oldData.ChassisNo && typeof oldData.ChassisNo === "string") {
+//     try {
+//       const { getDealByVin } = await import("./deals");
+//       const deal = await getDealByVin(oldData.ChassisNo);
+//       dealId = deal._id.toString();
+//     } catch (error) {
+//       console.error("Error converting VIN to dealId:", error);
+//     }
+//   }
 
-  return {
-    amount: oldData.TransactionAmount,
-    transactionDate: oldData.TransactionDate,
-    type: oldData.TransactionType,
-    reason: oldData.TransactionReason,
-    paymentMethod: oldData.TransactionMethod,
-    personId: oldData.CustomerNationalID,
-    dealId: dealId || "",
-    bussinessAccountId: oldData.ShowroomCard,
-    description: oldData.Notes,
-  };
-}
+//   return {
+//     amount: oldData.TransactionAmount,
+//     transactionDate: oldData.TransactionDate,
+//     type: oldData.TransactionType,
+//     reason: oldData.TransactionReason,
+//     paymentMethod: oldData.TransactionMethod,
+//     personId: oldData.CustomerNationalID,
+//     dealId: dealId || "",
+//     bussinessAccountId: oldData.ShowroomCard,
+//     description: oldData.Notes,
+//   };
+// }
