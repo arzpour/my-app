@@ -166,6 +166,7 @@ export const urls = {
   },
   chequesNew: {
     list: "/cheques",
+    byVin: (vin: string) => `/cheques/vin/${vin}`,
     byId: (id: string) => `/cheques/id/${id}`,
     byDeal: (dealId: string) => `/cheques/deal/${dealId}`,
     byPerson: (personId: string) => `/cheques/person/${personId}`,

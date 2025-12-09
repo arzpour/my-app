@@ -7,11 +7,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import useGetAllCheques from "@/hooks/useGetAllCheques";
 import React, { useMemo } from "react";
 import SelectForFilterCheques from "./selectForFilterCheques";
 import PersianDatePicker from "./global/persianDatePicker";
 import { Minus, Plus } from "lucide-react";
+import { useGetChequesByVin } from "@/apis/mutations/cheques";
+import { IChequeNew } from "@/types/new-backend-types";
+import { RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
+import useGetAllCheques from "@/hooks/useGetAllCheques";
 
 // const parsePersianDate = (date: string) => {
 //   if (!date) return 0;
@@ -23,8 +27,6 @@ import { Minus, Plus } from "lucide-react";
 // };
 
 const CheckDashboard = () => {
-  const { data = [] } = useGetAllCheques();
-
   const [showFilter, setShowFilter] = React.useState(false);
   const [selectedChequeSerial, setSelectedChequeSerial] = React.useState("همه");
   const [selectedSayadiId, setSelectedSayadiId] = React.useState("همه");
@@ -39,9 +41,43 @@ const CheckDashboard = () => {
   const [fromDate, setFromDate] = React.useState(""); // YYYY/MM/DD
   const [toDate, setToDate] = React.useState(""); // YYYY/MM/DD
   const [maxAmount, setMaxAmount] = React.useState<number | undefined>();
+  // const [cheques, setCheques] = React.useState<IChequeNew[]>([]);
+
+  const { chassisNo } = useSelector((state: RootState) => state.cars);
+
+  const { data: allCheques } = useGetAllCheques();
+  console.log("🚀 ~ CheckDashboard ~ allCheques:", allCheques);
+  // const getChequesByVin = useGetChequesByVin();
+
+  // const getChequesByVinHandler = async () => {
+  //   if (!chassisNo) return;
+  //   try {
+  //     const cheques = await getChequesByVin.mutateAsync(chassisNo);
+  //     setCheques(cheques);
+  //   } catch (error) {
+  //     console.log("🚀 ~ getChequesByVinHandler ~ error:", error);
+  //   }
+  // };
+
+  const cheques = allCheques?.filter((cheque) => cheque.vin === chassisNo);
+  const issuedCheques = cheques?.filter((cheque) => cheque.type === "صادره");
+  const importedCheques = cheques?.filter((cheque) => cheque.type === "وارده");
+
+  const sayadiIDOptions = Array.from(
+    new Set(cheques?.map((cheque) => cheque.sayadiID))
+  );
+  const chequeNumberOptions = Array.from(
+    new Set(cheques?.map((cheque) => cheque.chequeNumber?.toString()))
+  );
+  const bankNameOptions = Array.from(
+    new Set(cheques?.map((cheque) => cheque.bankName))
+  );
+  const branchNameOptions = Array.from(
+    new Set(cheques?.map((cheque) => cheque.branchName))
+  );
 
   const getOptions = (key: string) => {
-    const values = data?.map((d: any) => d[key] ?? "") ?? [];
+    const values = cheques?.map((d: any) => d[key] ?? "") ?? [];
     const uniqueValues = Array.from(new Set(values.filter(Boolean)));
     return ["همه", ...uniqueValues];
   };
@@ -61,52 +97,56 @@ const CheckDashboard = () => {
   const operationTypeOptions = getOptions("LastAction").filter(Boolean);
 
   const filteredData = useMemo(() => {
-    return data?.filter((item) => {
+    return cheques?.filter((item) => {
       if (
         selectedChequeSerial !== "همه" &&
-        item.ChequeSerial?.toString() !== selectedChequeSerial
+        item.chequeNumber?.toString() !== selectedChequeSerial
       )
         return false;
-      if (selectedSayadiId !== "همه" && item.SayadiID !== selectedSayadiId)
+      if (selectedSayadiId !== "همه" && item.sayadiID !== selectedSayadiId)
         return false;
-      if (
-        selectedCustomerType !== "همه" &&
-        item.ChequeType !== selectedCustomerType
-      )
+      if (selectedCustomerType !== "همه" && item.type !== selectedCustomerType)
         return false;
       if (
         selectedCustomerName !== "همه" &&
-        (item.CustomerName ?? item.ShowroomAccountCard) !== selectedCustomerName
+        // (item.CustomerName ?? item.ShowroomAccountCard) !== selectedCustomerName
+        (item.payer?.fullName ?? item.payee?.fullName) !== selectedCustomerName
       )
         return false;
       if (
         selectedNationalID !== "همه" &&
-        (item.CustomerNationalID ?? item.AccountHolderNationalID) !==
+        // (item.CustomerNationalID ?? item.AccountHolderNationalID) !==
+        //   selectedNationalID
+        (item.payer?.nationalId ?? item.payee?.nationalId) !==
           selectedNationalID
       )
         return false;
-      if (selectedBank !== "همه" && (item.Bank ?? "") !== selectedBank)
+      if (selectedBank !== "همه" && (item.bankName ?? "") !== selectedBank)
         return false;
-      if (selectedBranch !== "همه" && (item.Branch ?? "") !== selectedBranch)
+      if (
+        selectedBranch !== "همه" &&
+        (item.branchName ?? "") !== selectedBranch
+      )
         return false;
       if (
         selectedChequeStatus !== "همه" &&
-        (item.ChequeStatus ?? "") !== selectedChequeStatus
+        (item.status ?? "") !== selectedChequeStatus
       )
         return false;
       if (
         selectedOperationType !== "همه" &&
-        (item.LastAction ?? "") !== selectedOperationType
+        // (item.LastAction ?? "") !== selectedOperationType
+        (item.actions[item.actions.length - 1]?.actionType ?? "") !==
+          selectedOperationType
       )
         return false;
-      if (maxAmount !== undefined && item.ChequeAmount > maxAmount)
-        return false;
-      if (fromDate && item.ChequeDueDate < fromDate) return false;
-      if (toDate && item.ChequeDueDate > toDate) return false;
+      if (maxAmount !== undefined && item.amount > maxAmount) return false;
+      if (fromDate && item.dueDate < fromDate) return false;
+      if (toDate && item.dueDate > toDate) return false;
       return true;
     });
   }, [
-    data,
+    cheques,
     selectedChequeSerial,
     selectedSayadiId,
     selectedCustomerType,
@@ -122,19 +162,16 @@ const CheckDashboard = () => {
   ]);
 
   const issued = useMemo(
-    () => filteredData?.filter((item) => item.ChequeType === "صادره"),
+    () => filteredData?.filter((item) => item.type === "صادره"),
     [filteredData]
   );
   const imported = useMemo(
-    () => filteredData?.filter((item) => item.ChequeType === "وارده"),
+    () => filteredData?.filter((item) => item.type === "وارده"),
     [filteredData]
   );
 
-  const totalIssuedAmount = issued?.reduce((sum, t) => sum + t.ChequeAmount, 0);
-  const totalImportedAmount = imported?.reduce(
-    (sum, t) => sum + t.ChequeAmount,
-    0
-  );
+  // const totalIssuedAmount = issued?.reduce((sum, t) => sum + t.amount, 0);
+  // const totalImportedAmount = imported?.reduce((sum, t) => sum + t.amount, 0);
 
   const handleResetFilters = () => {
     setSelectedChequeSerial("همه");
@@ -156,21 +193,67 @@ const CheckDashboard = () => {
     const currentMonth = now.getMonth() + 1;
     const currentYear = now.getFullYear();
     const pending =
-      filteredData?.filter((i) => i.ChequeStatus !== "وصول شد")?.length || 0;
+      filteredData?.filter((i) => i.status !== "وصول شد")?.length || 0;
     const returned =
-      filteredData?.filter((i) => i.ChequeStatus === "برگشتی")?.length || 0;
+      filteredData?.filter((i) => i.status === "برگشتی")?.length || 0;
     const importedThisMonth =
       imported?.filter((i) => {
-        const [year, month] = i.ChequeDueDate.split("/").map(Number);
+        const [year, month] = i.dueDate.split("/").map(Number);
         return year === currentYear && month === currentMonth;
       })?.length || 0;
     const issuedThisMonth =
       issued?.filter((i) => {
-        const [year, month] = i.ChequeDueDate.split("/").map(Number);
+        const [year, month] = i.dueDate.split("/").map(Number);
         return year === currentYear && month === currentMonth;
       })?.length || 0;
-    return { pending, returned, importedThisMonth, issuedThisMonth };
+    const totalIssuedAmount = filteredData?.reduce(
+      (sum, t) => sum + (t.type === "صادره" ? t.amount : 0),
+      0
+    );
+    const totalIssuedPendingAmount = filteredData
+      ?.filter((i) => i.type === "صادره" && i.status === "وصول نشده")
+      ?.reduce((sum, t) => sum + t.amount, 0);
+    const totalIssuedPaidAmount = filteredData
+      ?.filter((i) => i.type === "صادره" && i.status === "وصول شده")
+      ?.reduce((sum, t) => sum + t.amount, 0);
+
+    const totalImportedAmount = filteredData?.reduce(
+      (sum, t) => sum + (t.type === "وارده" ? t.amount : 0),
+      0
+    );
+    const totalImportedPendingAmount = filteredData
+      ?.filter((i) => i.type === "وارده" && i.status === "وصول نشده")
+      ?.reduce((sum, t) => sum + t.amount, 0);
+    const totalImportedPaidAmount = filteredData
+      ?.filter((i) => i.type === "وارده" && i.status === "وصول شده")
+      ?.reduce((sum, t) => sum + t.amount, 0);
+
+    const totalIssuedReturnedAmount = filteredData
+      ?.filter((i) => i.type === "صادره" && i.status === "برگشتی")
+      ?.reduce((sum, t) => sum + t.amount, 0);
+    const totalImportedReturnedAmount = filteredData
+      ?.filter((i) => i.type === "وارده" && i.status === "برگشتی")
+      ?.reduce((sum, t) => sum + t.amount, 0);
+
+    return {
+      pending,
+      returned,
+      importedThisMonth,
+      issuedThisMonth,
+      totalIssuedAmount,
+      totalIssuedPendingAmount,
+      totalIssuedPaidAmount,
+      totalImportedAmount,
+      totalImportedPendingAmount,
+      totalImportedPaidAmount,
+      totalIssuedReturnedAmount,
+      totalImportedReturnedAmount,
+    };
   }, [filteredData, imported, issued]);
+
+  // React.useEffect(() => {
+  //   getChequesByVinHandler();
+  // }, [chassisNo]);
 
   return (
     <div>
@@ -185,8 +268,9 @@ const CheckDashboard = () => {
         )}
       </button>
       {showFilter && (
-        <div className="grid [grid-template-columns:1fr_1fr_1fr_0.5fr_0.5fr] gap-6 items-start justify-start mt-4">
-          <div className="space-y-6">
+        // <div className="grid [grid-template-columns:1fr_1fr_1fr_0.5fr_0.5fr] gap-6 items-start justify-start mt-4">
+        <div className="flex gap-9 items-start justify-start mt-4">
+          <div className="space-y-6 min-w-[140px] w-[340px]">
             <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
               <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
                 اطلاعات چک
@@ -194,13 +278,15 @@ const CheckDashboard = () => {
 
               <div className="flex gap-4 overflow-auto min-w-[140px] scrollbar-hide">
                 <SelectForFilterCheques
-                  data={chequeSerialOptions.filter(Boolean)}
+                  // data={chequeSerialOptions.filter(Boolean)}
+                  data={["همه", ...chequeNumberOptions.filter(Boolean)]}
                   title="سریال چک"
                   setSelectedSubject={setSelectedChequeSerial}
                   selectedValue={selectedChequeSerial}
                 />
                 <SelectForFilterCheques
-                  data={sayadiIdOptions.filter(Boolean)}
+                  // data={sayadiIdOptions.filter(Boolean)}
+                  data={["همه", ...sayadiIDOptions.filter(Boolean)]}
                   title="شناسه صیادی"
                   setSelectedSubject={setSelectedSayadiId}
                   selectedValue={selectedSayadiId}
@@ -282,20 +368,23 @@ const CheckDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-6 min-w-[140px] w-[340px]">
             <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
               <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
                 اطلاعات بانک
               </p>
               <div className="flex overflow-auto min-w-[140px] gap-4">
                 <SelectForFilterCheques
-                  data={bankOptions.filter(Boolean)}
+                  // data={bankOptions.filter(Boolean)}
+                  data={["همه", ...bankNameOptions.filter(Boolean)]}
                   title="بانک"
                   setSelectedSubject={setSelectedBank}
                   selectedValue={selectedBank}
                 />
+
                 <SelectForFilterCheques
-                  data={branchOptions.filter(Boolean)}
+                  // data={branchOptions.filter(Boolean)}
+                  data={["همه", ...branchNameOptions.filter(Boolean)]}
                   title="شعبه"
                   setSelectedSubject={setSelectedBranch}
                   selectedValue={selectedBranch}
@@ -360,42 +449,48 @@ const CheckDashboard = () => {
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
+                    <TableHead className="w-[10%] text-center">ردیف</TableHead>
+                    <TableHead className="w-[50%] text-center">
+                      نام مشتری
+                    </TableHead>
+                    <TableHead className="w-[30%] text-center">مبلغ</TableHead>
+                    <TableHead className="w-[30%] text-center">
+                      تاریخ سررسید
+                    </TableHead>
+                    <TableHead className="w-[30%] text-center">وضعیت</TableHead>
                     <TableHead className="w-[30%] text-center">
                       شناسه صیادی
                     </TableHead>
                     <TableHead className="w-[50%] text-center">
-                      نام مشتری
-                    </TableHead>
-                    <TableHead className="w-[50%] text-center">
                       سریال چک
                     </TableHead>
-                    <TableHead className="w-[30%] text-center">
-                      تاریخ سررسید
-                    </TableHead>
-                    <TableHead className="w-[30%] text-center">مبلغ</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                  {issued?.map((item, index) => (
+                  {(issuedCheques ?? [])?.map((item, index) => (
                     <TableRow
-                      key={`${item?.ChequeSerial}-${index}`}
+                      key={`${item?.chequeNumber}-${index}`}
                       className="hover:bg-gray-50"
                     >
+                      <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell className="text-center">
-                        {item.SayadiID}
+                        {item.payee?.fullName ?? item.payer?.fullName}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.ShowroomAccountCard ?? item.CustomerName}
+                        {item.amount?.toLocaleString("en-US")}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.ChequeSerial}
+                        {item.dueDate}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.ChequeDueDate}
+                        {item.status}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.ChequeAmount?.toLocaleString("en-US")}
+                        {item.sayadiID}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {item.chequeNumber}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -403,57 +498,90 @@ const CheckDashboard = () => {
               </Table>
             </div>
           </div>
-          {totalIssuedAmount && (
+          {/* {totalIssuedAmount && (
             <p className="text-green-400 font-bold text-sm mt-3 text-left">
               {totalIssuedAmount?.toLocaleString("en-US")}
             </p>
-          )}
+          )} */}
+          <div className="grid grid-cols-3 gap-2 mt-3">
+            {/* <div className="flex items-center gap-2">
+              <p className="text-sm">مجموع:</p>
+              <span className="text-sm">
+                {stats.totalIssuedAmount?.toLocaleString("en-US")}
+              </span>
+            </div> */}
+            <div className="flex items-center gap-2">
+              <p className="text-sm">صادره وصول نشده:</p>
+              <span className="text-sm">
+                {stats.totalIssuedPendingAmount?.toLocaleString("en-US")}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm">صادره وصول شده:</p>
+              <span className="text-sm">
+                {stats.totalIssuedPaidAmount?.toLocaleString("en-US")}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm">صادره برگشتی:</p>
+              <span className="text-sm">
+                {stats.totalIssuedReturnedAmount?.toLocaleString("en-US")}
+              </span>
+            </div>
+          </div>
         </div>
         <div>
           <div className="border border-gray-300 p-4 rounded-md relative w-full h-[30rem]">
             <p className="text-red-500 absolute right-2 -top-5 bg-white py-2 px-4">
-              چک های دریافتی
+              چک های وارده
             </p>
             <div className="max-h-[28rem] overflow-y-auto rounded-md border w-full">
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
+                    <TableHead className="w-[10%] text-center">ردیف</TableHead>
+                    <TableHead className="w-[50%] text-center">
+                      نام مشتری
+                    </TableHead>
+                    <TableHead className="w-[30%] text-center">مبلغ</TableHead>
+                    <TableHead className="w-[30%] text-center">
+                      تاریخ سررسید
+                    </TableHead>
+                    <TableHead className="w-[30%] text-center">وضعیت</TableHead>
                     <TableHead className="w-[30%] text-center">
                       شناسه صیادی
                     </TableHead>
                     <TableHead className="w-[50%] text-center">
-                      نام مشتری
-                    </TableHead>
-                    <TableHead className="w-[50%] text-center">
                       سریال چک
                     </TableHead>
-                    <TableHead className="w-[30%] text-center">
-                      تاریخ سررسید
-                    </TableHead>
-                    <TableHead className="w-[30%] text-center">مبلغ</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                  {imported?.map((item, index) => (
+                  {(importedCheques ?? [])?.map((item, index) => (
                     <TableRow
-                      key={`${item?.ChequeSerial}-${index}`}
+                      key={`${item?.chequeNumber}-${index}`}
                       className="hover:bg-gray-50"
                     >
+                      <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell className="text-center">
-                        {item.SayadiID}
+                        {/* {item.ShowroomAccountCard ?? item.CustomerName} */}
+                        {item.payee?.fullName ?? item.payer?.fullName}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.ShowroomAccountCard ?? item.CustomerName}
+                        {item.amount?.toLocaleString("en-US")}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.ChequeSerial}
+                        {item.dueDate}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.ChequeDueDate}
+                        {item.status}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.ChequeAmount?.toLocaleString("en-US")}
+                        {item.sayadiID}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {item.chequeNumber}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -461,11 +589,39 @@ const CheckDashboard = () => {
               </Table>
             </div>
           </div>
-          {totalImportedAmount && (
-            <p className="text-red-400 font-bold text-sm mt-3 text-left">
-              {totalImportedAmount?.toLocaleString("en-US")}
-            </p>
-          )}
+          {/* {totalImportedAmount && ( */}
+          {/* //{" "}
+          <p className="text-red-400 font-bold text-sm mt-3 text-left">
+            // {totalImportedAmount?.toLocaleString("en-US")}
+            //{" "}
+          </p> */}
+          <div className="grid grid-cols-3 gap-2 mt-3">
+            {/* <div className="flex items-center gap-2">
+              <p className="text-sm">مجموع:</p>
+              <span className="text-sm">
+                {stats.totalImportedAmount?.toLocaleString("en-US")}
+              </span>
+            </div> */}
+            <div className="flex items-center gap-2">
+              <p className="text-sm">وارده وصول نشده:</p>
+              <span className="text-sm">
+                {stats.totalImportedPendingAmount?.toLocaleString("en-US")}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm">وارده وصول شده:</p>
+              <span className="text-sm">
+                {stats.totalImportedPaidAmount?.toLocaleString("en-US")}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm">وارده برگشتی:</p>
+              <span className="text-sm">
+                {stats.totalImportedReturnedAmount?.toLocaleString("en-US")}
+              </span>
+            </div>
+          </div>
+          {/* )} */}
         </div>
       </div>
     </div>
