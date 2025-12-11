@@ -111,6 +111,13 @@ const CustomersDashboard = () => {
     return "—";
   };
 
+  const selectedPersonDealIds = React.useMemo(() => {
+    return selectedPersonDeals
+      .map((deal) => deal._id.toString())
+      .sort()
+      .join(",");
+  }, [selectedPersonDeals]);
+
   const { totalReceived, totalPayment } = React.useMemo(() => {
     if (!selectedNationalId || allPersonTransactions.length === 0) {
       return { totalReceived: 0, totalPayment: 0 };
@@ -150,7 +157,7 @@ const CustomersDashboard = () => {
     });
 
     return { totalReceived: received, totalPayment: payment };
-  }, [selectedNationalId, selectedPersonDeals, allPersonTransactions]);
+  }, [selectedNationalId, selectedPersonDealIds, allPersonTransactions]);
 
   const diffPaymentReceived = (totalPayment || 0) - (totalReceived || 0);
 
@@ -248,14 +255,33 @@ const CustomersDashboard = () => {
       status: netDebt > 0 ? "بدهکار" : "بستانکار",
       amount: Math.abs(netDebt),
     };
-  }, [selectedNationalId, selectedPersonDeals, allPersonTransactions]);
+  }, [selectedNationalId, selectedPersonDealIds, allPersonTransactions]);
+
+  const isFetchingRef = React.useRef(false);
+  const lastFetchedIdsRef = React.useRef<string>("");
+  const lastSelectedNationalIdRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
+    if (selectedNationalId !== lastSelectedNationalIdRef.current) {
+      lastFetchedIdsRef.current = "";
+      lastSelectedNationalIdRef.current = selectedNationalId;
+    }
+  }, [selectedNationalId]);
+
+  React.useEffect(() => {
+    if (selectedPersonDealIds === lastFetchedIdsRef.current) {
+      return;
+    }
+
     const fetchAllPersonTransactions = async () => {
       if (!selectedNationalId || selectedPersonDeals.length === 0) {
         setAllPersonTransactions([]);
+        lastFetchedIdsRef.current = "";
         return;
       }
+
+      if (isFetchingRef.current) return;
+      isFetchingRef.current = true;
 
       try {
         const transactionsPromises = selectedPersonDeals.map((deal) =>
@@ -264,14 +290,19 @@ const CustomersDashboard = () => {
         const transactionsArrays = await Promise.all(transactionsPromises);
         const allTransactions = transactionsArrays.flat();
         setAllPersonTransactions(allTransactions);
+        lastFetchedIdsRef.current = selectedPersonDealIds;
       } catch (error) {
         console.log("🚀 ~ fetchAllPersonTransactions ~ error:", error);
         setAllPersonTransactions([]);
+        lastFetchedIdsRef.current = "";
+      } finally {
+        isFetchingRef.current = false;
       }
     };
 
     fetchAllPersonTransactions();
-  }, [selectedNationalId, selectedPersonDeals, getTransactionsByDealId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedNationalId, selectedPersonDealIds]);
 
   return (
     <>
