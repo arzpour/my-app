@@ -31,6 +31,10 @@ const CustomersDashboard = () => {
   const { data: allPeople } = useGetAllPeople();
   const getAllDeals = useGetAllDeals();
 
+  const peopleList = allPeople
+    ?.map((person) => (person.roles.includes("customer") ? person : null))
+    .filter((person) => person !== null);
+
   const handleAllDeals = async () => {
     try {
       const res = await getAllDeals.mutateAsync();
@@ -81,16 +85,44 @@ const CustomersDashboard = () => {
   };
 
   const filteredPeopleList = React.useMemo(() => {
-    if (!searchValue) return allPeople;
+    if (!searchValue) return peopleList;
 
     const lowerSearch = searchValue.toLowerCase().trim();
 
-    return allPeople?.filter(
+    return peopleList?.filter(
       (user) =>
         user.fullName?.toLowerCase().includes(lowerSearch) ||
         user.nationalId?.toString().includes(lowerSearch)
     );
-  }, [searchValue, allPeople]);
+  }, [searchValue, peopleList]);
+
+  // const personsRole = React.useMemo(() => {
+  //   return filteredPeopleList?.map((person) =>
+  //     person.wallet.transactions.map((transaction) =>
+  //       transaction.type === "commission"
+  //         ? "فروشنده"
+  //         : transaction.type === "deposit"
+  //         ? "خریدار"
+  //         : ["commission", "deposit"].includes(transaction.type)
+  //         ? "خریدار / فروشنده"
+  //         : "-"
+  //     )
+  //   );
+  // }, [peopleList]);
+
+  const personsRole2 = filteredPeopleList?.map((person) =>
+    person.wallet.transactions.map((transaction) =>
+      transaction.type === "commission"
+        ? "فروشنده"
+        : transaction.type === "deposit"
+        ? "خریدار"
+        : ["commission", "deposit"].includes(transaction.type)
+        ? "خریدار / فروشنده"
+        : "-"
+    )
+  );
+  // console.log("🚀 ~ CustomersDashboard ~ personsRole:", personsRole);
+  console.log("🚀 ~ CustomersDashboard ~ personsRole2:", personsRole2);
 
   const totalBuyAmount = carBuyer.reduce(
     (sum, deal) => sum + (deal.purchasePrice || 0),
@@ -104,12 +136,12 @@ const CustomersDashboard = () => {
 
   const diffBuySell = (totalSellAmount || 0) - (totalBuyAmount || 0);
 
-  const calculateCustomerStatus = (person: any) => {
-    if (selectedNationalId === person.nationalId.toString() && customerStatus) {
-      return customerStatus.status;
-    }
-    return "—";
-  };
+  // const calculateCustomerStatus = (person: any) => {
+  //   if (selectedNationalId === person.nationalId.toString() && customerStatus) {
+  //     return customerStatus.status;
+  //   }
+  //   return "—";
+  // };
 
   const selectedPersonDealIds = React.useMemo(() => {
     return selectedPersonDeals
@@ -252,7 +284,8 @@ const CustomersDashboard = () => {
     }
 
     return {
-      status: netDebt > 0 ? "بدهکار" : "بستانکار",
+      // status: netDebt > 0 ? "بدهکار" : "بستانکار",
+      status: netDebt > 0 ? "بستانکار" : "بدهکار",
       amount: Math.abs(netDebt),
     };
   }, [selectedNationalId, selectedPersonDealIds, allPersonTransactions]);
@@ -339,7 +372,7 @@ const CustomersDashboard = () => {
           <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
             لیست مشتریان
           </p>
-          <div className="max-h-[30rem] overflow-y-auto rounded-md border w-full">
+          <div className="h-[25rem] max-h-[25rem] overflow-y-auto rounded-md border w-full">
             <Table className="min-w-full table-fixed text-right border-collapse">
               <TableHeader className="top-0 sticky">
                 <TableRow className="bg-gray-100">
@@ -349,12 +382,12 @@ const CustomersDashboard = () => {
                   </TableHead>
                   <TableHead className="w-[30%] text-center">کدملی</TableHead>
                   <TableHead className="w-[30%] text-center">نقش</TableHead>
-                  <TableHead className="w-[30%] text-center">وضعیت</TableHead>
+                  {/* <TableHead className="w-[30%] text-center">وضعیت</TableHead> */}
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                {(filteredPeopleList ?? allPeople ?? [])?.map(
+                {(filteredPeopleList ?? peopleList ?? [])?.map(
                   (person, index) => {
                     return (
                       <TableRow
@@ -383,9 +416,9 @@ const CustomersDashboard = () => {
                         <TableCell className="text-center">
                           {uniqeUsersRole(person.roles)}
                         </TableCell>
-                        <TableCell className="text-center">
+                        {/* <TableCell className="text-center">
                           {calculateCustomerStatus(person)}
-                        </TableCell>
+                        </TableCell> */}
                       </TableRow>
                     );
                   }
