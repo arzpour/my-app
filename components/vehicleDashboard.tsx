@@ -131,9 +131,7 @@ const VehicleDashboard = () => {
     receiveTransactions?.reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
 
   const remainingForBuyer =
-    deal?.purchasePrice && totalReceived
-      ? totalReceived - deal?.purchasePrice
-      : "";
+    deal?.salePrice && totalReceived ? deal?.salePrice - totalReceived : "";
 
   const receivedTransactions = transactions?.filter((t) => t.type === "دریافت");
 
