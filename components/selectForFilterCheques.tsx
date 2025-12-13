@@ -89,8 +89,8 @@ const SelectForFilterCheques: React.FC<ISelectForFilterCheques> = ({
         </SelectTrigger>
         <SelectContent>
           {/* Search Input */}
-          <div className="p-2 border-b sticky top-0 bg-white z-10 w-[150px]">
-            <div className="relative">
+          <div className="p-2 border-b sticky top-0 bg-white z-10 w-[150 w-full">
+            <div className="relative w-full">
               <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
               <input
                 ref={searchInputRef}

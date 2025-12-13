@@ -35,6 +35,22 @@ const CustomersDashboard = () => {
     ?.map((person) => (person.roles.includes("customer") ? person : null))
     .filter((person) => person !== null);
 
+  const getCustomersRole = allDeals?.map((deal) => {
+    const peopleRoles = peopleList?.map((person) => {
+      const roles =
+        deal.buyer.nationalId.toString() === person.nationalId?.toString()
+          ? { role: "خریدار", nationalId: person.nationalId?.toString() }
+          : deal.seller.nationalId.toString() === person.nationalId?.toString()
+          ? { role: "فروشنده", nationalId: person.nationalId?.toString() }
+          : {
+              role: "خریدار / فروشنده",
+              nationalId: person.nationalId?.toString(),
+            };
+      return roles;
+    });
+    return peopleRoles;
+  });
+
   const handleAllDeals = async () => {
     try {
       const res = await getAllDeals.mutateAsync();
@@ -110,19 +126,19 @@ const CustomersDashboard = () => {
   //   );
   // }, [peopleList]);
 
-  const personsRole2 = filteredPeopleList?.map((person) =>
-    person.wallet.transactions.map((transaction) =>
-      transaction.type === "commission"
-        ? "فروشنده"
-        : transaction.type === "deposit"
-        ? "خریدار"
-        : ["commission", "deposit"].includes(transaction.type)
-        ? "خریدار / فروشنده"
-        : "-"
-    )
-  );
+  // const personsRole2 = filteredPeopleList?.map((person) =>
+  //   person.wallet.transactions.map((transaction) =>
+  //     transaction.type === "commission"
+  //       ? "فروشنده"
+  //       : transaction.type === "deposit"
+  //       ? "خریدار"
+  //       : ["commission", "deposit"].includes(transaction.type)
+  //       ? "خریدار / فروشنده"
+  //       : "-"
+  //   )
+  // );
   // console.log("🚀 ~ CustomersDashboard ~ personsRole:", personsRole);
-  console.log("🚀 ~ CustomersDashboard ~ personsRole2:", personsRole2);
+  // console.log("🚀 ~ CustomersDashboard ~ personsRole2:", personsRole2);
 
   const totalBuyAmount = carBuyer.reduce(
     (sum, deal) => sum + (deal.purchasePrice || 0),
@@ -193,32 +209,32 @@ const CustomersDashboard = () => {
 
   const diffPaymentReceived = (totalPayment || 0) - (totalReceived || 0);
 
-  const uniqeUsersRole = (userRole: string[] | undefined) => {
-    if (!userRole || userRole.length === 0) {
-      return "—";
-    }
+  // const uniqeUsersRole = (userRole: string[] | undefined) => {
+  //   if (!userRole || userRole.length === 0) {
+  //     return "—";
+  //   }
 
-    const roles = userRole.map((r) => r.toLowerCase());
-    const hasBuyer = roles.includes("buyer") || roles.includes("خریدار");
-    const hasSeller = roles.includes("seller") || roles.includes("فروشنده");
-    const hasBroker = roles.includes("broker") || roles.includes("کارگزار");
-    const hasCustomer = roles.includes("customer") || roles.includes("مشتری");
+  //   const roles = userRole.map((r) => r.toLowerCase());
+  //   const hasBuyer = roles.includes("buyer") || roles.includes("خریدار");
+  //   const hasSeller = roles.includes("seller") || roles.includes("فروشنده");
+  //   const hasBroker = roles.includes("broker") || roles.includes("کارگزار");
+  //   const hasCustomer = roles.includes("customer") || roles.includes("مشتری");
 
-    // Build role labels array
-    const roleLabels: string[] = [];
+  //   // Build role labels array
+  //   const roleLabels: string[] = [];
 
-    if (hasBuyer && hasSeller) {
-      roleLabels.push("خریدار / فروشنده");
-    } else {
-      if (hasBuyer) roleLabels.push("خریدار");
-      if (hasSeller) roleLabels.push("فروشنده");
-    }
+  //   if (hasBuyer && hasSeller) {
+  //     roleLabels.push("خریدار / فروشنده");
+  //   } else {
+  //     if (hasBuyer) roleLabels.push("خریدار");
+  //     if (hasSeller) roleLabels.push("فروشنده");
+  //   }
 
-    if (hasBroker) roleLabels.push("کارگزار");
-    if (hasCustomer && !hasBuyer && !hasSeller) roleLabels.push("مشتری");
+  //   if (hasBroker) roleLabels.push("کارگزار");
+  //   if (hasCustomer && !hasBuyer && !hasSeller) roleLabels.push("مشتری");
 
-    return roleLabels.length > 0 ? roleLabels.join(" / ") : "—";
-  };
+  //   return roleLabels.length > 0 ? roleLabels.join(" / ") : "—";
+  // };
 
   const customerStatus = React.useMemo(() => {
     if (!selectedNationalId || selectedPersonDeals.length === 0) {
@@ -337,6 +353,10 @@ const CustomersDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNationalId, selectedPersonDealIds]);
 
+  React.useEffect(() => {
+    handleAllDeals();
+  }, []);
+
   return (
     <>
       <div className="grid grid-cols-3 gap-9 justify-between items-center mt-3">
@@ -393,7 +413,7 @@ const CustomersDashboard = () => {
                       <TableRow
                         key={`${person?._id}-${index}`}
                         onClick={() => {
-                          handleAllDeals();
+                          // handleAllDeals();
                           setSelectedNationalId(person.nationalId.toString());
                           setTransactions([]);
                         }}
@@ -414,7 +434,14 @@ const CustomersDashboard = () => {
                           {person.nationalId}
                         </TableCell>
                         <TableCell className="text-center">
-                          {uniqeUsersRole(person.roles)}
+                          {getCustomersRole?.map((role) =>
+                            role?.map((customerRole) =>
+                              customerRole.nationalId ===
+                              person.nationalId?.toString()
+                                ? customerRole.role
+                                : " "
+                            )
+                          )}
                         </TableCell>
                         {/* <TableCell className="text-center">
                           {calculateCustomerStatus(person)}
