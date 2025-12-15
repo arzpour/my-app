@@ -31,9 +31,13 @@ const CustomersDashboard = () => {
   const { data: allPeople } = useGetAllPeople();
   const getAllDeals = useGetAllDeals();
 
-  const peopleList = allPeople
-    ?.map((person) => (person.roles.includes("customer") ? person : null))
-    .filter((person) => person !== null);
+  const peopleList = React.useMemo(() => {
+    if (!allPeople) return [];
+    return allPeople.filter((person) => person.roles?.includes("customer"));
+  }, [allPeople]);
+  // const peopleList = allPeople
+  //   ?.map((person) => (person.roles.includes("customer") ? person : null))
+  //   .filter((person) => person !== null);
 
   const getCustomersRole = allDeals?.map((deal) => {
     const peopleRoles = peopleList?.map((person) => {
