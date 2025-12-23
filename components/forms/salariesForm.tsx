@@ -1,9 +1,17 @@
 "use client";
 
 import React from "react";
-import { useForm, Controller, SubmitHandler, useFieldArray } from "react-hook-form";
+import {
+  useForm,
+  Controller,
+  SubmitHandler,
+  useFieldArray,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { salarySlipSchema, salarySlipSchemaType } from "@/validations/salarySlip";
+import {
+  salarySlipSchema,
+  salarySlipSchemaType,
+} from "@/validations/salarySlip";
 import { toast } from "sonner";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import { getAllBusinessAccounts } from "@/apis/client/businessAccounts";
@@ -30,7 +38,8 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
     queryKey: ["get-all-business-accounts"],
     queryFn: getAllBusinessAccounts,
   });
-  const [selectedEmployee, setSelectedEmployee] = React.useState<IPeople | null>(null);
+  const [selectedEmployee, setSelectedEmployee] =
+    React.useState<IPeople | null>(null);
   const [employeeLoans, setEmployeeLoans] = React.useState<ILoan[]>([]);
 
   const {
@@ -41,7 +50,7 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
     setValue,
     formState: { errors },
   } = useForm<salarySlipSchemaType>({
-    resolver: zodResolver(salarySlipSchema),
+    resolver: zodResolver(salarySlipSchema) as any,
     defaultValues: {
       employeePersonId: "",
       forYear: "",
@@ -58,12 +67,20 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
     },
   });
 
-  const { fields: bonusFields, append: appendBonus, remove: removeBonus } = useFieldArray({
+  const {
+    fields: bonusFields,
+    append: appendBonus,
+    remove: removeBonus,
+  } = useFieldArray({
     control,
     name: "bonuses",
   });
 
-  const { fields: deductionFields, append: appendDeduction, remove: removeDeduction } = useFieldArray({
+  const {
+    fields: deductionFields,
+    append: appendDeduction,
+    remove: removeDeduction,
+  } = useFieldArray({
     control,
     name: "otherDeductions",
   });
@@ -83,7 +100,9 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
     if (selectedEmployee?._id) {
       getLoansByBorrower(selectedEmployee._id.toString())
         .then((loans) => {
-          const activeLoans = loans.filter((loan) => loan.status === "در حال پرداخت");
+          const activeLoans = loans.filter(
+            (loan) => loan.status === "در حال پرداخت"
+          );
           setEmployeeLoans(activeLoans);
         })
         .catch((error) => {
@@ -95,7 +114,10 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
   // Load employee base salary when selected
   React.useEffect(() => {
     if (selectedEmployee?.employmentDetails?.baseSalary) {
-      setValue("baseSalary", selectedEmployee.employmentDetails.baseSalary.toString());
+      setValue(
+        "baseSalary",
+        selectedEmployee.employmentDetails.baseSalary.toString()
+      );
     }
   }, [selectedEmployee, setValue]);
 
@@ -103,15 +125,24 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
   const grossPay = React.useMemo(() => {
     const base = parseFloat(baseSalary || "0");
     const overtime = parseFloat(overtimePay || "0");
-    const bonusTotal = bonuses?.reduce((sum, b) => sum + parseFloat(b.amount || "0"), 0) || 0;
+    const bonusTotal =
+      bonuses?.reduce((sum, b) => sum + parseFloat(b.amount || "0"), 0) || 0;
     return base + overtime + bonusTotal;
   }, [baseSalary, overtimePay, bonuses]);
 
   const totalDeductions = React.useMemo(() => {
     const ins = parseFloat(insurance || "0");
     const taxAmount = parseFloat(tax || "0");
-    const loanTotal = loanInstallments?.reduce((sum, l) => sum + parseFloat(l.amount || "0"), 0) || 0;
-    const otherTotal = otherDeductions?.reduce((sum, d) => sum + parseFloat(d.amount || "0"), 0) || 0;
+    const loanTotal =
+      loanInstallments?.reduce(
+        (sum, l) => sum + parseFloat(l.amount || "0"),
+        0
+      ) || 0;
+    const otherTotal =
+      otherDeductions?.reduce(
+        (sum, d) => sum + parseFloat(d.amount || "0"),
+        0
+      ) || 0;
     return ins + taxAmount + loanTotal + otherTotal;
   }, [insurance, tax, loanInstallments, otherDeductions]);
 
@@ -121,8 +152,12 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
   const getCurrentMonthInstallments = () => {
     if (!forYear || !forMonth || !employeeLoans.length) return [];
 
-    const installments: Array<{ loanId: string; installmentNumber: string; amount: string }> = [];
-    
+    const installments: Array<{
+      loanId: string;
+      installmentNumber: string;
+      amount: string;
+    }> = [];
+
     employeeLoans.forEach((loan) => {
       const currentMonthInstallments = loan.installments?.filter((inst) => {
         if (inst.status === "پرداخت شده") return false;
@@ -144,7 +179,10 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
     return installments;
   };
 
-  const currentInstallments = React.useMemo(() => getCurrentMonthInstallments(), [employeeLoans, forYear, forMonth]);
+  const currentInstallments = React.useMemo(
+    () => getCurrentMonthInstallments(),
+    [employeeLoans, forYear, forMonth]
+  );
 
   const onSubmit: SubmitHandler<salarySlipSchemaType> = async (data) => {
     try {
@@ -179,10 +217,11 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
         paymentDate: data.paymentDate,
         baseSalary: parseFloat(data.baseSalary),
         overtimePay: parseFloat(data.overtimePay || "0"),
-        bonuses: data.bonuses?.map((b) => ({
-          amount: parseFloat(b.amount),
-          description: b.description,
-        })) || [],
+        bonuses:
+          data.bonuses?.map((b) => ({
+            amount: parseFloat(b.amount),
+            description: b.description,
+          })) || [],
         grossPay,
         totalDeductions,
         netPay,
@@ -190,19 +229,21 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
         deductions: {
           insurance: parseFloat(data.insurance || "0"),
           tax: parseFloat(data.tax || "0"),
-          loanInstallments: data.loanInstallments?.map((l) => ({
-            loanId: parseInt(l.loanId),
-            installmentNumber: parseInt(l.installmentNumber),
-            amount: parseFloat(l.amount),
-          })) || [],
-          otherDeductions: data.otherDeductions?.map((d) => ({
-            amount: parseFloat(d.amount),
-            description: d.description,
-          })) || [],
+          loanInstallments:
+            data.loanInstallments?.map((l) => ({
+              loanId: parseInt(l.loanId),
+              installmentNumber: parseInt(l.installmentNumber),
+              amount: parseFloat(l.amount),
+            })) || [],
+          otherDeductions:
+            data.otherDeductions?.map((d) => ({
+              amount: parseFloat(d.amount),
+              description: d.description,
+            })) || [],
         },
       };
 
-      await createSalary(salaryData);
+      await createSalary(salaryData as any);
       toast.success("پرداخت حقوق با موفقیت ثبت شد");
       onSuccess?.();
     } catch (error: any) {
@@ -289,9 +330,7 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">
-              تاریخ پرداخت *
-            </label>
+            <label className="block text-sm font-medium">تاریخ پرداخت *</label>
             <Controller
               name="paymentDate"
               control={control}
@@ -359,7 +398,10 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
             </button>
           </div>
           {bonusFields.map((field, index) => (
-            <div key={field.id} className="grid grid-cols-2 gap-2 p-2 border rounded">
+            <div
+              key={field.id}
+              className="grid grid-cols-2 gap-2 p-2 border rounded"
+            >
               <input
                 {...register(`bonuses.${index}.amount`)}
                 type="number"
@@ -426,7 +468,9 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
           {currentInstallments.length > 0 ? (
             <div className="space-y-2">
               {currentInstallments.map((inst, index) => {
-                const loan = employeeLoans.find((l) => l._id?.toString() === inst.loanId);
+                const loan = employeeLoans.find(
+                  (l) => l._id?.toString() === inst.loanId
+                );
                 return (
                   <label
                     key={index}
@@ -435,7 +479,9 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
                     <input
                       type="checkbox"
                       checked={loanInstallments?.some(
-                        (li) => li.loanId === inst.loanId && li.installmentNumber === inst.installmentNumber
+                        (li) =>
+                          li.loanId === inst.loanId &&
+                          li.installmentNumber === inst.installmentNumber
                       )}
                       onChange={(e) => {
                         const current = loanInstallments || [];
@@ -446,7 +492,11 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
                             "loanInstallments",
                             current.filter(
                               (li) =>
-                                !(li.loanId === inst.loanId && li.installmentNumber === inst.installmentNumber)
+                                !(
+                                  li.loanId === inst.loanId &&
+                                  li.installmentNumber ===
+                                    inst.installmentNumber
+                                )
                             )
                           );
                         }
@@ -454,7 +504,8 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
                       className="w-4 h-4"
                     />
                     <span className="text-sm">
-                      قسط {inst.installmentNumber} وام {loan?.totalAmount?.toLocaleString()} ریال - مبلغ:{" "}
+                      قسط {inst.installmentNumber} وام{" "}
+                      {loan?.totalAmount?.toLocaleString()} ریال - مبلغ:{" "}
                       {parseFloat(inst.amount).toLocaleString()} ریال
                     </span>
                   </label>
@@ -480,7 +531,10 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
             </button>
           </div>
           {deductionFields.map((field, index) => (
-            <div key={field.id} className="grid grid-cols-2 gap-2 p-2 border rounded">
+            <div
+              key={field.id}
+              className="grid grid-cols-2 gap-2 p-2 border rounded"
+            >
               <input
                 {...register(`otherDeductions.${index}.amount`)}
                 type="number"

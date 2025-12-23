@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const dealExpensesSchema = z.object({
   dealId: z.string().min(1, "انتخاب خودرو الزامی است"),
-  expenseType: z.enum(["options", "otherCost"], {
-    required_error: "نوع هزینه الزامی است",
+  expenseType: z.enum(["options", "otherCost"] as const, {
+    message: "نوع هزینه الزامی است",
   }),
   providerPersonId: z.string().min(1, "انتخاب تامین کننده الزامی است"),
   description: z.string().min(1, "شرح هزینه الزامی است"),
