@@ -125,22 +125,15 @@ function mapTransactionToOldFormat(newData: ITransactionNew): ITransactionRes {
   };
 }
 
-// Create transaction - accepts both old and new format
-// type createTransactionType = (
-//   data: Partial<ITransactionRes> | Partial<ITransactionNew>
-// ) => Promise<ITransactionNew>;
-// export const createTransaction: createTransactionType = async (data) => {
-//   // If data has old format fields, convert to new format
-//   const newData = isOldTransactionFormat(data)
-//     ? await mapOldTransactionToNew(data as Partial<ITransactionRes>)
-//     : data;
-
-//   const response = await axiosInstance.post(
-//     urls.transactionsNew.create,
-//     newData
-//   );
-//   return response.data;
-// };
+// Create transaction
+type createTransactionType = (data: Partial<ITransactionNew>) => Promise<ITransactionNew>;
+export const createTransaction: createTransactionType = async (data) => {
+  const response = await axiosInstance.post(
+    urls.transactionsNew.create,
+    data
+  );
+  return response.data;
+};
 
 // // Helper function to check if data is in old format
 // function isOldTransactionFormat(data: any): boolean {
