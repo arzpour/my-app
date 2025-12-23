@@ -3,16 +3,16 @@ import { z } from "zod";
 // Integrated Transaction + Cheque Schema
 export const transactionChequeSchema = z.object({
   // Transaction fields
-  type: z.enum(["پرداخت", "دریافت"], {
-    required_error: "نوع تراکنش الزامی است",
+  type: z.enum(["پرداخت", "دریافت"] as const, {
+    message: "نوع تراکنش الزامی است",
   }),
   reason: z.string().min(1, "بابت تراکنش الزامی است"),
   transactionDate: z.string().min(1, "تاریخ تراکنش الزامی است"),
   amount: z.string().min(1, "مبلغ تراکنش الزامی است"),
   personId: z.string().min(1, "طرف حساب الزامی است"),
   bussinessAccountId: z.string().min(1, "حساب بانکی الزامی است"),
-  paymentMethod: z.enum(["نقد", "کارت به کارت", "چک", "شبا"], {
-    required_error: "روش پرداخت الزامی است",
+  paymentMethod: z.enum(["نقد", "کارت به کارت", "چک", "شبا"] as const, {
+    message: "روش پرداخت الزامی است",
   }),
   dealId: z.string().optional(), // Optional - only if related to a deal
   description: z.string().optional(),
@@ -49,7 +49,7 @@ export const transactionChequeSchema = z.object({
     path: ["chequeNumber"],
   }
 ).refine(
-  (data) => {
+  (data) => {  
     // If cheque type is received, payer is required
     if (data.paymentMethod === "چک" && data.chequeType === "دریافتی") {
       return data.chequePayerPersonId;

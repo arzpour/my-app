@@ -87,13 +87,11 @@ const PersonSelect: React.FC<PersonSelectProps> = ({
 
   const selectedPerson = React.useMemo(() => {
     if (!value) return null;
-    return filteredPeopleByRole.find(
-      (p) => p._id?.toString() === value || p.personId?.toString() === value
-    );
+    return filteredPeopleByRole.find((p) => p._id?.toString() === value);
   }, [value, filteredPeopleByRole]);
 
   const handleSelect = (person: IPeople) => {
-    const personId = person._id?.toString() || person.personId?.toString() || "";
+    const personId = person._id?.toString() || "";
     onValueChange?.(personId, person);
     setIsOpen(false);
     setSearchTerm("");
@@ -165,7 +163,7 @@ const PersonSelect: React.FC<PersonSelectProps> = ({
           <div className="max-h-[200px] overflow-y-auto p-1">
             {filteredPeople.length > 0 ? (
               filteredPeople.map((person) => {
-                const personId = person._id?.toString() || person.personId?.toString() || "";
+                const personId = person._id?.toString() || "";
                 const isSelected = value === personId;
                 return (
                   <button
@@ -203,4 +201,3 @@ const PersonSelect: React.FC<PersonSelectProps> = ({
 };
 
 export default PersonSelect;
-

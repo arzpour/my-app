@@ -28,8 +28,12 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
     queryKey: ["get-all-deals"],
     queryFn: getAllDeals,
   });
-  const [selectedPayer, setSelectedPayer] = React.useState<IPeople | null>(null);
-  const [selectedPayee, setSelectedPayee] = React.useState<IPeople | null>(null);
+  const [selectedPayer, setSelectedPayer] = React.useState<IPeople | null>(
+    null
+  );
+  const [selectedPayee, setSelectedPayee] = React.useState<IPeople | null>(
+    null
+  );
   const [selectedDeal, setSelectedDeal] = React.useState<IDeal | null>(null);
 
   const {
@@ -40,7 +44,7 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
     setValue,
     formState: { errors },
   } = useForm<chequeNewSchemaType>({
-    resolver: zodResolver(chequeNewSchema),
+    resolver: zodResolver(chequeNewSchema) as any,
     defaultValues: {
       type: "دریافتی",
       chequeNumber: "",
@@ -62,13 +66,15 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
 
   const onSubmit: SubmitHandler<chequeNewSchemaType> = async (data) => {
     try {
-      const payer = showPayer && data.payerPersonId
-        ? allPeople?.find((p) => p._id?.toString() === data.payerPersonId)
-        : null;
+      const payer =
+        showPayer && data.payerPersonId
+          ? allPeople?.find((p) => p._id?.toString() === data.payerPersonId)
+          : null;
 
-      const payee = showPayee && data.payeePersonId
-        ? allPeople?.find((p) => p._id?.toString() === data.payeePersonId)
-        : null;
+      const payee =
+        showPayee && data.payeePersonId
+          ? allPeople?.find((p) => p._id?.toString() === data.payeePersonId)
+          : null;
 
       const chequeData: Partial<IChequeNew> = {
         chequeNumber: parseInt(data.chequeNumber),
@@ -104,7 +110,9 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
               nationalId: "",
             },
         relatedDealId: data.relatedDealId ? parseInt(data.relatedDealId) : 0,
-        relatedTransactionId: data.relatedTransactionId ? parseInt(data.relatedTransactionId) : 0,
+        relatedTransactionId: data.relatedTransactionId
+          ? parseInt(data.relatedTransactionId)
+          : 0,
         actions: [
           {
             actionType: "ثبت",
@@ -127,9 +135,7 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
   const formContent = (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">
-          اطلاعات چک
-        </h3>
+        <h3 className="text-lg font-semibold border-b pb-2">اطلاعات چک</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium">نوع چک *</label>
@@ -193,9 +199,7 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
               ))}
             </select>
             {errors.bankName && (
-              <p className="text-red-500 text-xs">
-                {errors.bankName.message}
-              </p>
+              <p className="text-red-500 text-xs">{errors.bankName.message}</p>
             )}
           </div>
 
@@ -216,9 +220,7 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">
-              تاریخ صدور *
-            </label>
+            <label className="block text-sm font-medium">تاریخ صدور *</label>
             <Controller
               name="issueDate"
               control={control}
@@ -231,16 +233,12 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
               )}
             />
             {errors.issueDate && (
-              <p className="text-red-500 text-xs">
-                {errors.issueDate.message}
-              </p>
+              <p className="text-red-500 text-xs">{errors.issueDate.message}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">
-              تاریخ سررسید *
-            </label>
+            <label className="block text-sm font-medium">تاریخ سررسید *</label>
             <Controller
               name="dueDate"
               control={control}
@@ -253,9 +251,7 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
               )}
             />
             {errors.dueDate && (
-              <p className="text-red-500 text-xs">
-                {errors.dueDate.message}
-              </p>
+              <p className="text-red-500 text-xs">{errors.dueDate.message}</p>
             )}
           </div>
 
@@ -383,4 +379,3 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
 };
 
 export default ChequeFormNew;
-
