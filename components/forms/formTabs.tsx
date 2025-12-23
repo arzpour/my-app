@@ -1,20 +1,27 @@
 "use client";
+import React from "react";
 import ChequeForm from "./chequeForm";
 // import OptionForm from "./optionForm";
 import TransactionForm from "./transactionForm";
+import SettingsManagement from "./settingsManagement";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const tabs = [
   {
-    id: "transactionTab",
-    title: "فرم تراکنش",
-    content: <TransactionForm />,
+    id: "settingsTab",
+    title: "مدیریت اشخاص و تنظیمات",
+    content: <SettingsManagement />,
   },
-  {
-    id: "chequeTab",
-    title: "فرم چک",
-    content: <ChequeForm />,
-  },
+  // {
+  //   id: "transactionTab",
+  //   title: "فرم تراکنش",
+  //   content: <TransactionForm />,
+  // },
+  // {
+  //   id: "chequeTab",
+  //   title: "فرم چک",
+  //   content: <ChequeForm />,
+  // },
   // {
   //   id: "optionTab",
   //   title: "فرم آپشن",
@@ -23,9 +30,12 @@ const tabs = [
 ];
 
 const FormTabs = () => {
+  const [activeTab, setActiveTab] = React.useState("settingsTab");
+
   return (
     <Tabs
-      defaultValue="vehicleDashboard"
+      value={activeTab}
+      onValueChange={setActiveTab}
       orientation="vertical"
       className="h-full w-full flex justify-start items-start"
       dir="rtl"

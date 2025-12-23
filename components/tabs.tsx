@@ -8,6 +8,7 @@ import VehicleDashboard from "@/components/vehicleDashboard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import TransactionForm from "./forms/transactionForm";
 import ChequeForm from "./forms/chequeForm";
+import FormSelectorModal from "./forms/formSelectorModal";
 import React from "react";
 // import OptionForm from "./forms/optionForm";
 
@@ -44,29 +45,31 @@ const tabs = [
   },
 ];
 
-const formTabs = [
-  {
-    id: "transactionTab",
-    title: "فرم تراکنش",
-    content: <TransactionForm />,
-  },
-  {
-    id: "chequeTab",
-    title: "فرم چک",
-    content: <ChequeForm />,
-  },
-  // {
-  //   id: "optionTab",
-  //   title: "فرم آپشن",
-  //   content: <OptionForm />,
-  // },
-];
+// const formTabs = [
+// {
+//   id: "transactionTab",
+//   title: "فرم تراکنش",
+//   content: <TransactionForm />,
+// },
+// {
+//   id: "chequeTab",
+//   title: "فرم چک",
+//   content: <ChequeForm />,
+// },
+// {
+//   id: "optionTab",
+//   title: "فرم آپشن",
+//   content: <OptionForm />,
+// },
+// ];
 
 const TabsComponent = () => {
   const [activeTab, setActiveTab] = React.useState<string>("vehicleDashboard");
+  const [formModalOpen, setFormModalOpen] = React.useState(false);
 
   return (
     <div suppressHydrationWarning>
+      <FormSelectorModal open={formModalOpen} onOpenChange={setFormModalOpen} />
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
@@ -86,7 +89,17 @@ const TabsComponent = () => {
               </TabsTrigger>
             ))}
 
-            {formTabs.map((tab) => (
+            <TabsTrigger
+              value="formSelector"
+              className="bg-gray-100 cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                setFormModalOpen(true);
+              }}
+            >
+              ثبت اطلاعات
+            </TabsTrigger>
+            {/* {formTabs.map((tab) => (
               <TabsTrigger
                 key={tab.id}
                 value={tab.id}
@@ -94,7 +107,7 @@ const TabsComponent = () => {
               >
                 {tab.title}
               </TabsTrigger>
-            ))}
+            ))} */}
           </div>
         </TabsList>
 
@@ -107,7 +120,7 @@ const TabsComponent = () => {
             {tab.content}
           </TabsContent>
         ))}
-        {formTabs.map((tab) => (
+        {/* {formTabs.map((tab) => (
           <TabsContent
             key={tab.id}
             value={tab.id}
@@ -115,7 +128,7 @@ const TabsComponent = () => {
           >
             {tab.content}
           </TabsContent>
-        ))}
+        ))} */}
       </Tabs>
     </div>
   );
