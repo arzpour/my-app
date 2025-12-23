@@ -23,7 +23,11 @@ import useGetAllPeople from "@/hooks/useGetAllPeople";
 import { getAllDeals } from "@/apis/client/deals";
 import { getAllTransactions } from "@/apis/client/transaction";
 import { useQuery } from "@tanstack/react-query";
-import type { IDeal, ITransactionNew, IPeople } from "@/types/new-backend-types";
+import type {
+  IDeal,
+  ITransactionNew,
+  IPeople,
+} from "@/types/new-backend-types";
 
 // Persian month names
 const persianMonths = [
@@ -58,7 +62,8 @@ const normalize = (str?: string) =>
 
 const OperatorsDashboard = () => {
   const [selectedOperator, setSelectedOperator] = React.useState<string>("");
-  const [selectedOperatorPersonId, setSelectedOperatorPersonId] = React.useState<string>("");
+  const [selectedOperatorPersonId, setSelectedOperatorPersonId] =
+    React.useState<string>("");
   const [reportType, setReportType] = React.useState<"buy" | "sell">("sell");
   const [topOperatorsType, setTopOperatorsType] = React.useState<
     "buy" | "sell"
@@ -86,12 +91,15 @@ const OperatorsDashboard = () => {
     operatorsNameOptions?.[0]?.options?.filter(Boolean) || [];
 
   // Get brokers from people
-  const brokerPeople = allPeople?.filter((p) => p.roles?.includes("broker")) || [];
+  const brokerPeople =
+    allPeople?.filter((p) => p.roles?.includes("broker")) || [];
 
   // Combine both sources, prefer people if available
   const operatorOptions = React.useMemo(() => {
     const fromPeople = brokerPeople.map((p) => p.fullName);
-    const combined = [...new Set([...fromPeople, ...operatorOptionsFromSettings])];
+    const combined = [
+      ...new Set([...fromPeople, ...operatorOptionsFromSettings]),
+    ];
     return combined;
   }, [brokerPeople, operatorOptionsFromSettings]);
 
@@ -196,21 +204,21 @@ const OperatorsDashboard = () => {
     const totalCommission = totalCommissionPurchase + totalCommissionSale;
     const avgPercentPurchase =
       purchaseCount > 0 ? totalPercentPurchase / purchaseCount : 0;
-    const avgPercentSale =
-      saleCount > 0 ? totalPercentSale / saleCount : 0;
+    const avgPercentSale = saleCount > 0 ? totalPercentSale / saleCount : 0;
 
     // Get transactions where reason is "درصد کارگزار" and related to filtered deals
     const filteredDealIds = new Set(
       filteredDeals.map((deal) => deal._id?.toString()).filter(Boolean)
     );
-    
-    const operatorTransactions = (allTransactions as ITransactionNew[])?.filter(
-      (t) =>
-        t.reason === "درصد کارگزار" &&
-        t.personId === selectedOperatorPersonId &&
-        t.dealId &&
-        filteredDealIds.has(t.dealId)
-    ) || [];
+
+    const operatorTransactions =
+      (allTransactions as unknown as ITransactionNew[])?.filter(
+        (t) =>
+          t.reason === "درصد کارگزار" &&
+          t.personId === selectedOperatorPersonId &&
+          t.dealId &&
+          filteredDealIds.has(t.dealId)
+      ) || [];
 
     const totalPaidToOperator = operatorTransactions.reduce(
       (sum, t) => sum + (t.amount || 0),
@@ -232,11 +240,7 @@ const OperatorsDashboard = () => {
       totalPaidToOperator,
       remainingCommission,
     };
-  }, [
-    filteredDeals,
-    selectedOperatorPersonId,
-    allTransactions,
-  ]);
+  }, [filteredDeals, selectedOperatorPersonId, allTransactions]);
 
   // Calculate monthly breakdown
   const monthlyData = React.useMemo(() => {
@@ -280,13 +284,13 @@ const OperatorsDashboard = () => {
   const operatorTransactionsForDisplay = React.useMemo(() => {
     if (!selectedOperatorPersonId || !allTransactions || !filteredDeals.length)
       return [];
-    
+
     const filteredDealIds = new Set(
       filteredDeals.map((deal) => deal._id?.toString()).filter(Boolean)
     );
-    
+
     return (
-      (allTransactions as ITransactionNew[])
+      (allTransactions as unknown as ITransactionNew[])
         ?.filter((t) => t.dealId && filteredDealIds.has(t.dealId))
         .map((t, index) => {
           const deal = filteredDeals.find(
@@ -311,7 +315,7 @@ const OperatorsDashboard = () => {
   // Get operator performance report (deals with details)
   const operatorPerformanceReport = React.useMemo(() => {
     if (!selectedOperatorPersonId || !filteredDeals.length) return [];
-    
+
     return filteredDeals.map((deal, index) => {
       const isPurchaseBroker =
         deal.purchaseBroker?.personId === selectedOperatorPersonId;
@@ -561,7 +565,9 @@ const OperatorsDashboard = () => {
               <p className="text-xs text-green-700">
                 ({stats.avgPercentPurchase.toFixed(2)}%)
               </p>
-              <p className="text-xs text-green-700">({stats.avgPercentSale.toFixed(2)}%)</p>
+              <p className="text-xs text-green-700">
+                ({stats.avgPercentSale.toFixed(2)}%)
+              </p>
             </div>
           </div>
           <div>
