@@ -1,456 +1,590 @@
 "use client";
-import useGetAllCategoryWithOptionSettings from "@/hooks/useGetCategoriesSetting";
-import {
-  transactionSchema,
-  transactionSchemaType,
-} from "@/validations/tranaction";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "sonner";
-import SelectForFilterCheques from "../selectForFilterCheques";
-// import { useCreateTransaction } from "@/apis/mutations/transaction";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
-import PersianDatePicker from "../global/persianDatePicker";
 
-const TransactionForm = () => {
+import React from "react";
+import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  transactionChequeSchema,
+  transactionChequeSchemaType,
+} from "@/validations/transactionCheque";
+import { toast } from "sonner";
+import { createTransaction } from "@/apis/client/transaction";
+import { createCheque } from "@/apis/client/chequesNew";
+import useGetAllPeople from "@/hooks/useGetAllPeople";
+import { getAllBusinessAccounts } from "@/apis/client/businessAccounts";
+import { getAllDeals } from "@/apis/client/deals";
+import { useQuery } from "@tanstack/react-query";
+import PersonSelect from "../ui/person-select";
+import PersianDatePicker from "../global/persianDatePicker";
+import {
+  TRANSACTION_TYPES,
+  TRANSACTION_REASONS,
+  PAYMENT_METHODS,
+  BANK_NAMES,
+  CHEQUE_STATUSES,
+} from "@/utils/systemConstants";
+import type { IPeople, IDeal } from "@/types/new-backend-types";
+
+interface TransactionFormProps {
+  onSuccess?: () => void;
+  embedded?: boolean;
+}
+
+const TransactionForm: React.FC<TransactionFormProps> = ({
+  onSuccess,
+  embedded = false,
+}) => {
+  const { data: allPeople } = useGetAllPeople();
+  const { data: allAccounts } = useQuery({
+    queryKey: ["get-all-business-accounts"],
+    queryFn: getAllBusinessAccounts,
+  });
+  const { data: allDeals } = useQuery({
+    queryKey: ["get-all-deals"],
+    queryFn: getAllDeals,
+  });
+  const [selectedPerson, setSelectedPerson] = React.useState<IPeople | null>(null);
+  const [selectedDeal, setSelectedDeal] = React.useState<IDeal | null>(null);
+
   const {
     control,
     register,
     handleSubmit,
-    formState: { errors },
     watch,
-    reset,
-    getValues,
     setValue,
-  } = useForm<transactionSchemaType>({
-    mode: "all",
-    resolver: zodResolver(transactionSchema),
+    formState: { errors },
+  } = useForm<transactionChequeSchemaType>({
+    resolver: zodResolver(transactionChequeSchema),
     defaultValues: {
-      transactionType: "",
-      transactionReason: "",
-      transactionWay: "",
-      showRoomCard: "",
-      showRoomCardTitle: "",
-      customerNationalCode: "",
-      transactionAmount: "",
+      type: "پرداخت",
+      reason: "",
       transactionDate: "",
-      financier: "",
-      financierPercent: "",
-      operator: "",
+      amount: "",
+      personId: "",
+      bussinessAccountId: "",
+      paymentMethod: "نقد",
+      dealId: "",
+      description: "",
+      chequeNumber: "",
+      chequeBankName: "",
+      chequeBranchName: "",
+      chequeIssueDate: "",
+      chequeDueDate: "",
+      chequeType: "دریافتی",
+      chequeStatus: "در جریان",
+      chequePayerPersonId: "",
+      chequePayeePersonId: "",
+      chequeRelatedDealId: "",
     },
   });
 
-  const { data: getAllCategoryWithOptionSettings } =
-    useGetAllCategoryWithOptionSettings();
-  const { chassisNo } = useSelector((state: RootState) => state.cars);
-  // const createTransaction = useCreateTransaction();
+  const paymentMethod = watch("paymentMethod");
+  const chequeType = watch("chequeType");
+  const showChequeFields = paymentMethod === "چک";
+  const showPayer = showChequeFields && chequeType === "دریافتی";
+  const showPayee = showChequeFields && chequeType === "پرداختی";
 
-  const transactionTypeOptions = getAllCategoryWithOptionSettings?.filter(
-    (item) => item.category === "transactionType"
-  );
-
-  // const filteredTransactionReasonOption = transactionTypeOptions?.[0]?.options.filter(
-  //   (item) => item
-  // );
-
-  const transactionReasonOptionsFromApi =
-    getAllCategoryWithOptionSettings?.filter(
-      (item) => item.category === "transactionReason"
-    )[0]?.options;
-
-  const transactionWayOptions = getAllCategoryWithOptionSettings?.filter(
-    (item) => item.category === "transactionWay"
-  );
-
-  const transactionShowRoomCardOptions =
-    getAllCategoryWithOptionSettings?.filter(
-      (item) => item.category === "showRoomCard"
-    );
-
-  const transactionShowRoomCardTitlesOptions =
-    getAllCategoryWithOptionSettings?.filter(
-      (item) => item.category === "showRoomCardTitle"
-    );
-
-  const transactionShowRoomCardTitleNamesOptions =
-    getAllCategoryWithOptionSettings?.filter(
-      (item) => item.category === "showRoomCardTitleName"
-    );
-
-  const transactionOperatorsOptions = getAllCategoryWithOptionSettings?.filter(
-    (item) => item.category === "operators"
-  );
-
-  const onSubmit: SubmitHandler<transactionSchemaType> = async (data) => {
-    if (!data) return;
-
-    if (!chassisNo) {
-      toast("لطفا ابتدا شماره شاسی را انتخاب کنید", {
-        className: "!bg-red-100 !text-red-800 !shadow-md !h-[60px]",
-      });
-      return;
-    }
-
+  const onSubmit: SubmitHandler<transactionChequeSchemaType> = async (data) => {
     try {
-      // Map form data to backend schema
-      const payload: Partial<ITransactionRes> = {
-        ChassisNo: chassisNo,
-        TransactionType: data.transactionType,
-        TransactionReason: data.transactionReason,
-        TransactionMethod: data.transactionWay,
-        ShowroomCard: data.showRoomCard,
-        CustomerNationalID: data.customerNationalCode,
-        TransactionAmount: Number(data.transactionAmount) || 0,
-        TransactionDate: data.transactionDate,
-        Notes: "",
-        BankDocument: "",
-        Partner: data.financier || "",
-        Broker:
-          data.transactionReason === "درصد کارگزار" && data.operator
-            ? Number(data.transactionAmount) || 0
-            : 0,
+      // First, create transaction
+      const transactionData = {
+        type: data.type,
+        reason: data.reason,
+        transactionDate: data.transactionDate,
+        amount: parseFloat(data.amount),
+        personId: data.personId,
+        bussinessAccountId: data.bussinessAccountId,
+        paymentMethod: data.paymentMethod,
+        dealId: data.dealId || undefined,
+        description: data.description || "",
       };
 
-      // await createTransaction.mutateAsync(payload);
+      const transaction = await createTransaction(transactionData);
 
-      reset();
-      toast("ثبت شد", {
-        icon: "✅",
-        className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
-      });
-    } catch (error) {
+      // If payment method is cheque, create cheque record
+      if (data.paymentMethod === "چک" && showChequeFields) {
+        const payer = showPayer && data.chequePayerPersonId
+          ? allPeople?.find((p) => p._id?.toString() === data.chequePayerPersonId)
+          : null;
+
+        const payee = showPayee && data.chequePayeePersonId
+          ? allPeople?.find((p) => p._id?.toString() === data.chequePayeePersonId)
+          : null;
+
+        const chequeData = {
+          chequeNumber: parseInt(data.chequeNumber || "0"),
+          bankName: data.chequeBankName || "",
+          branchName: data.chequeBranchName || "",
+          vin: selectedDeal?.vehicleSnapshot?.vin || "",
+          issueDate: data.chequeIssueDate || "",
+          dueDate: data.chequeDueDate || "",
+          amount: parseFloat(data.amount),
+          type: data.chequeType === "دریافتی" ? "received" : "issued",
+          status: data.chequeStatus || "در جریان",
+          sayadiID: "",
+          payer: payer
+            ? {
+                personId: payer._id?.toString() || "",
+                fullName: payer.fullName,
+                nationalId: payer.nationalId?.toString() || "",
+              }
+            : {
+                personId: "",
+                fullName: "",
+                nationalId: "",
+              },
+          payee: payee
+            ? {
+                personId: payee._id?.toString() || "",
+                fullName: payee.fullName,
+                nationalId: payee.nationalId?.toString() || "",
+              }
+            : {
+                personId: "",
+                fullName: "",
+                nationalId: "",
+              },
+          relatedDealId: data.chequeRelatedDealId ? parseInt(data.chequeRelatedDealId) : 0,
+          relatedTransactionId: transaction._id ? parseInt(transaction._id.toString().slice(-8), 16) : 0,
+          actions: [
+            {
+              actionType: "ثبت",
+              actionDate: new Date().toISOString(),
+              actorUserId: "",
+              description: "ثبت اولیه چک",
+            },
+          ],
+        };
+
+        await createCheque(chequeData);
+      }
+
+      toast.success("تراکنش با موفقیت ثبت شد");
+      onSuccess?.();
+    } catch (error: any) {
       console.error("Error creating transaction:", error);
-      toast("اطلاعات وارد شده صحیح نیست", {
-        className: "!bg-red-100 !text-red-800 !shadow-md !h-[60px]",
-      });
+      toast.error(error?.response?.data?.message || "خطا در ثبت تراکنش");
     }
   };
 
-  const transactionReason = watch("transactionReason");
-  const transactionType = watch("transactionType");
-  const showRoomCardTitle = watch("showRoomCardTitle");
+  const formContent = (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold border-b pb-2">
+          اطلاعات تراکنش
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label htmlFor="type" className="block text-sm font-medium">
+              نوع تراکنش *
+            </label>
+            <select
+              id="type"
+              {...register("type")}
+              className="w-full px-3 py-2 border rounded-md"
+            >
+              {TRANSACTION_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+            {errors.type && (
+              <p className="text-red-500 text-xs">{errors.type.message}</p>
+            )}
+          </div>
 
-  // Determine transaction reason options based on transaction type
-  let transactionReasonOptions: string[] = [];
+          <div className="space-y-2">
+            <label htmlFor="reason" className="block text-sm font-medium">
+              بابت (Reason) *
+            </label>
+            <select
+              id="reason"
+              {...register("reason")}
+              className="w-full px-3 py-2 border rounded-md"
+            >
+              <option value="">انتخاب کنید</option>
+              {TRANSACTION_REASONS.map((reason) => (
+                <option key={reason} value={reason}>
+                  {reason}
+                </option>
+              ))}
+            </select>
+            {errors.reason && (
+              <p className="text-red-500 text-xs">{errors.reason.message}</p>
+            )}
+          </div>
 
-  if (transactionType === "دریافت") {
-    transactionReasonOptions = ["فروش"];
-  } else if (transactionType === "پرداخت") {
-    transactionReasonOptions = [
-      "خرید",
-      "هزینه وسیله",
-      "درصد کارگزار",
-      "اجاره",
-      "تبلیغات",
-      "هزینه نمایشگاه",
-      "هزینه دفتر",
-    ];
-  } else if (transactionType === "افزایش سرمایه") {
-    transactionReasonOptions = ["اصل شرکت"];
-  } else if (transactionType === "برداشت سرمایه") {
-    transactionReasonOptions = ["اصل شرکت", "سود شراکت"];
-  } else {
-    // Use API data if no transaction type is selected
-    transactionReasonOptions = transactionReasonOptionsFromApi ?? [];
-  }
-
-  return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="w-full flex flex-col mx-4 mt-5 justify-center"
-    >
-      <h4 className="text-xl text-gray-900 font-medium mb-7">فرم تراکنش</h4>
-
-      <div className="flex flex-col gap-5 items-center">
-        <div className="space-y-5 flex gap-7 w-full">
-          {transactionTypeOptions && (
-            <div className="space-y-1">
-              <Controller
-                name="transactionType"
-                control={control}
-                render={({ field }) => (
-                  <SelectForFilterCheques
-                    data={transactionTypeOptions?.[0]?.options ?? [""]}
-                    title="نوع تراکنش"
-                    selectedValue={field.value || "انتخاب کنید"}
-                    setSelectedSubject={field.onChange}
-                    className="w-40 truncate"
-                  />
-                )}
-              />
-              {errors.transactionType && (
-                <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                  {errors.transactionType.message}
-                </p>
-              )}
-            </div>
-          )}
-
-          {transactionReasonOptions && transactionReasonOptions.length > 0 && (
-            <div className="space-y-1">
-              <Controller
-                name="transactionReason"
-                control={control}
-                render={({ field }) => (
-                  <SelectForFilterCheques
-                    data={transactionReasonOptions}
-                    title="دلیل تراکنش"
-                    selectedValue={field.value || "انتخاب کنید"}
-                    setSelectedSubject={field.onChange}
-                    className="w-40 truncate"
-                  />
-                )}
-              />
-              {errors.transactionReason && (
-                <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                  {errors.transactionReason.message}
-                </p>
-              )}
-            </div>
-          )}
-
-          {transactionWayOptions && (
-            <div className="space-y-1">
-              <Controller
-                name="transactionWay"
-                control={control}
-                render={({ field }) => (
-                  <SelectForFilterCheques
-                    data={transactionWayOptions?.[0]?.options ?? [""]}
-                    title="روش تراکنش"
-                    selectedValue={field.value || "انتخاب کنید"}
-                    setSelectedSubject={field.onChange}
-                    className="w-40 truncate"
-                  />
-                )}
-              />
-              {errors.transactionWay && (
-                <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                  {errors.transactionWay.message}
-                </p>
-              )}
-            </div>
-          )}
-
-          {transactionShowRoomCardTitleNamesOptions && (
-            <div className="space-y-1">
-              <Controller
-                name="showRoomCard"
-                control={control}
-                render={({ field }) => (
-                  <SelectForFilterCheques
-                    data={
-                      transactionShowRoomCardTitleNamesOptions?.[0]
-                        ?.options ?? [""]
-                    }
-                    title="کارت نمایشگاه"
-                    selectedValue={field.value || "انتخاب کنید"}
-                    setSelectedSubject={field.onChange}
-                    className="w-40 truncate"
-                  />
-                )}
-              />
-              {errors.showRoomCard && (
-                <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                  {errors.showRoomCard.message}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* {(transactionType === "افزایش سرمایه" ||
-            transactionType === "برداشت سرمایه") && ( */}
-
-          <div className="space-y-1">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">تاریخ تراکنش *</label>
             <Controller
-              name="financier"
-              control={control}
-              render={({ field }) => (
-                <SelectForFilterCheques
-                  data={transactionShowRoomCardOptions?.[0]?.options ?? [""]}
-                  title="سرمایه گذار"
-                  selectedValue={field.value || "انتخاب کنید"}
-                  setSelectedSubject={field.onChange}
-                  className="w-40 truncate"
-                  // disabled={
-                  //   !["برداشت سرمایه", "افزایش سرمایه"].includes(
-                  //     transactionType
-                  //   ) || showRoomCardTitle !== "مشتری به مشتری"
-                  // }
-                  disabled={
-                    !["برداشت سرمایه", "افزایش سرمایه"].includes(
-                      transactionType
-                    )
-                  }
-                />
-              )}
-            />
-            {(transactionType === "افزایش سرمایه" ||
-              transactionType === "برداشت سرمایه" ||
-              showRoomCardTitle === "مشتری به مشتری") &&
-              errors.financier && (
-                <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                  {errors.financier.message}
-                </p>
-              )}
-          </div>
-          {/* )} */}
-          {/* {showRoomCardTitle === "مشتری به مشتری" && ( */}
-          {/* <div className="space-y-1">
-            <Controller
-              name="financier"
-              control={control}
-              render={({ field }) => (
-                <SelectForFilterCheques
-                  data={transactionShowRoomCardOptions?.[0]?.options ?? [""]}
-                  title="سرمایه گذار"
-                  selectedValue={field.value || "انتخاب کنید"}
-                  setSelectedSubject={field.onChange}
-                  className="w-full"
-                />
-              )}
-              disabled={showRoomCardTitle !== "مشتری به مشتری"}
-            />
-            {showRoomCardTitle === "مشتری به مشتری" && errors.financier && (
-              <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                {errors.financier.message}
-              </p>
-            )}
-          </div> */}
-          {/* )} */}
-
-          {/* {transactionReason === "درصد کارگزار" && ( */}
-          <div className="space-y-1">
-            <Controller
-              name="operator"
-              control={control}
-              render={({ field }) => (
-                <SelectForFilterCheques
-                  data={transactionOperatorsOptions?.[0]?.options ?? [""]}
-                  title="کارگزار"
-                  selectedValue={field.value || "انتخاب کنید"}
-                  setSelectedSubject={field.onChange}
-                  className="w-40 truncate"
-                  disabled={transactionReason !== "درصد کارگزار"}
-                />
-              )}
-            />
-            {transactionReason === "درصد کارگزار" && errors.operator && (
-              <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                {errors.operator.message}
-              </p>
-            )}
-          </div>
-          {/* )} */}
-        </div>
-
-        <div className="space-y-5 flex gap-7 w-full">
-          <div className="space-y-1">
-            <h3 className="text-sm font-bold mb-2 text-blue-900">
-              کد ملی مشتری:
-            </h3>
-            <input
-              type="text"
-              placeholder="کد ملی مشتری"
-              className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-40 truncate border border-gray-500 p-2 rounded-md"
-              {...register("customerNationalCode")}
-              name="customerNationalCode"
-            />
-            {errors.customerNationalCode && (
-              <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                {errors.customerNationalCode.message}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <h3 className="text-sm font-bold mb-2 text-blue-900">
-              مبلغ تراکنش:
-            </h3>
-            <input
-              type="text"
-              placeholder="مبلغ تراکنش"
-              className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-40 truncate border border-gray-500 p-2 rounded-md"
-              {...register("transactionAmount")}
-              name="transactionAmount"
-            />
-            {errors.transactionAmount && (
-              <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                {errors.transactionAmount.message}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <h3 className="text-sm font-bold mb-2 text-blue-900">
-              تاریخ تراکنش:
-            </h3>
-            {/* <input
-              type="text"
-              placeholder="تاریخ تراکنش"
-              className="bg-transparent placeholder-gray-500/80 outline-none text-sm w-40 truncate border border-gray-500 p-2 rounded-md"
-              {...register("transactionDate")}
               name="transactionDate"
-            /> */}
-            <PersianDatePicker
-              value={getValues().transactionDate}
-              onChange={(date: string) => setValue("transactionDate", date)}
-              placeholder="تاریخ تراکنش"
+              control={control}
+              render={({ field }) => (
+                <PersianDatePicker
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="تاریخ تراکنش"
+                />
+              )}
             />
             {errors.transactionDate && (
-              <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
+              <p className="text-red-500 text-xs">
                 {errors.transactionDate.message}
               </p>
             )}
           </div>
 
-          {/* {(transactionType === "افزایش سرمایه" ||
-            transactionType === "برداشت سرمایه") && ( */}
-          <div className="space-y-1">
-            <h3
-              className={`text-sm font-bold mb-2 ${
-                !["برداشت سرمایه", "افزایش سرمایه"].includes(transactionType)
-                  ? "text-gray-400"
-                  : "text-blue-900"
-              }`}
-            >
-              درصد سرمایه گذار:
-            </h3>
+          <div className="space-y-2">
+            <label htmlFor="amount" className="block text-sm font-medium">
+              مبلغ (ریال) *
+            </label>
             <input
-              type="text"
-              placeholder="درصد سرمایه گذار"
-              className={`bg-transparent placeholder-gray-500/80 outline-none text-sm border p-2 rounded-md w-40 truncate ${
-                !["برداشت سرمایه", "افزایش سرمایه"].includes(transactionType)
-                  ? "border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
-                  : "border-gray-500"
-              }`}
-              {...register("financierPercent")}
-              name="financierPercent"
-              disabled={
-                !["برداشت سرمایه", "افزایش سرمایه"].includes(transactionType)
-              }
+              id="amount"
+              {...register("amount")}
+              type="number"
+              placeholder="مبلغ تراکنش"
+              className="w-full px-3 py-2 border rounded-md"
             />
-            {(transactionType === "افزایش سرمایه" ||
-              transactionType === "برداشت سرمایه") &&
-              errors.financierPercent && (
-                <p className="text-red-500 text-right w-full mt-3 text-xs font-medium">
-                  {errors.financierPercent.message}
-                </p>
-              )}
+            {errors.amount && (
+              <p className="text-red-500 text-xs">{errors.amount.message}</p>
+            )}
           </div>
-          {/* )} */}
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">طرف حساب *</label>
+            <Controller
+              name="personId"
+              control={control}
+              render={({ field }) => (
+                <PersonSelect
+                  value={field.value}
+                  onValueChange={(personId, person) => {
+                    field.onChange(personId);
+                    setSelectedPerson(person || null);
+                  }}
+                  people={allPeople || []}
+                  placeholder="انتخاب طرف حساب"
+                />
+              )}
+            />
+            {errors.personId && (
+              <p className="text-red-500 text-xs">{errors.personId.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="bussinessAccountId" className="block text-sm font-medium">
+              حساب بانکی *
+            </label>
+            <select
+              id="bussinessAccountId"
+              {...register("bussinessAccountId")}
+              className="w-full px-3 py-2 border rounded-md"
+            >
+              <option value="">انتخاب حساب</option>
+              {allAccounts
+                ?.filter((acc) => acc.isActive)
+                .map((acc) => (
+                  <option key={acc._id?.toString()} value={acc._id?.toString()}>
+                    {acc.accountName} - {acc.bankName}
+                  </option>
+                ))}
+            </select>
+            {errors.bussinessAccountId && (
+              <p className="text-red-500 text-xs">
+                {errors.bussinessAccountId.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="paymentMethod" className="block text-sm font-medium">
+              روش پرداخت *
+            </label>
+            <select
+              id="paymentMethod"
+              {...register("paymentMethod")}
+              className="w-full px-3 py-2 border rounded-md"
+            >
+              {PAYMENT_METHODS.map((method) => (
+                <option key={method} value={method}>
+                  {method}
+                </option>
+              ))}
+            </select>
+            {errors.paymentMethod && (
+              <p className="text-red-500 text-xs">
+                {errors.paymentMethod.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">
+              مرتبط با معامله (اختیاری)
+            </label>
+            <select
+              {...register("dealId")}
+              onChange={(e) => {
+                const deal = allDeals?.find(
+                  (d) => d._id?.toString() === e.target.value
+                );
+                setSelectedDeal(deal || null);
+                setValue("dealId", e.target.value);
+                if (showChequeFields) {
+                  setValue("chequeRelatedDealId", e.target.value);
+                }
+              }}
+              className="w-full px-3 py-2 border rounded-md"
+            >
+              <option value="">انتخاب معامله (اختیاری)</option>
+              {allDeals?.map((deal) => (
+                <option key={deal._id?.toString()} value={deal._id?.toString()}>
+                  {deal.vehicleSnapshot.plateNumber || "بدون پلاک"} -{" "}
+                  {deal.vehicleSnapshot.model} ({deal.vehicleSnapshot.vin})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <label htmlFor="description" className="block text-sm font-medium">
+              شرح
+            </label>
+            <textarea
+              id="description"
+              {...register("description")}
+              placeholder="توضیحات تراکنش"
+              rows={3}
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
         </div>
       </div>
 
-      <button
-        type="submit"
-        className="mt-5 w-32 h-9 cursor-pointer flex justify-center items-center text-sm font-semibold rounded-md text-white bg-indigo-500 hover:opacity-90 transition-opacity"
-      >
-        ثبت اطلاعات
-      </button>
+      {/* Cheque Fields */}
+      {showChequeFields && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold border-b pb-2">
+            اطلاعات چک
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">نوع چک *</label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    value="دریافتی"
+                    {...register("chequeType")}
+                    className="w-4 h-4"
+                  />
+                  <span>دریافتی</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    value="پرداختی"
+                    {...register("chequeType")}
+                    className="w-4 h-4"
+                  />
+                  <span>پرداختی</span>
+                </label>
+              </div>
+              {errors.chequeType && (
+                <p className="text-red-500 text-xs">
+                  {errors.chequeType.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="chequeNumber" className="block text-sm font-medium">
+                شماره چک *
+              </label>
+              <input
+                id="chequeNumber"
+                {...register("chequeNumber")}
+                type="number"
+                placeholder="شماره چک"
+                className="w-full px-3 py-2 border rounded-md"
+              />
+              {errors.chequeNumber && (
+                <p className="text-red-500 text-xs">
+                  {errors.chequeNumber.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="chequeBankName" className="block text-sm font-medium">
+                نام بانک *
+              </label>
+              <select
+                id="chequeBankName"
+                {...register("chequeBankName")}
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                <option value="">انتخاب بانک</option>
+                {BANK_NAMES.map((bank) => (
+                  <option key={bank} value={bank}>
+                    {bank}
+                  </option>
+                ))}
+              </select>
+              {errors.chequeBankName && (
+                <p className="text-red-500 text-xs">
+                  {errors.chequeBankName.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="chequeBranchName" className="block text-sm font-medium">
+                نام شعبه
+              </label>
+              <input
+                id="chequeBranchName"
+                {...register("chequeBranchName")}
+                placeholder="نام شعبه"
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">تاریخ صدور *</label>
+              <Controller
+                name="chequeIssueDate"
+                control={control}
+                render={({ field }) => (
+                  <PersianDatePicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="تاریخ صدور"
+                  />
+                )}
+              />
+              {errors.chequeIssueDate && (
+                <p className="text-red-500 text-xs">
+                  {errors.chequeIssueDate.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">تاریخ سررسید *</label>
+              <Controller
+                name="chequeDueDate"
+                control={control}
+                render={({ field }) => (
+                  <PersianDatePicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="تاریخ سررسید"
+                  />
+                )}
+              />
+              {errors.chequeDueDate && (
+                <p className="text-red-500 text-xs">
+                  {errors.chequeDueDate.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="chequeStatus" className="block text-sm font-medium">
+                وضعیت فعلی
+              </label>
+              <select
+                id="chequeStatus"
+                {...register("chequeStatus")}
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                {CHEQUE_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {showPayer && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  صادرکننده (Payer) *
+                </label>
+                <Controller
+                  name="chequePayerPersonId"
+                  control={control}
+                  render={({ field }) => (
+                    <PersonSelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      people={allPeople || []}
+                      placeholder="انتخاب صادرکننده"
+                    />
+                  )}
+                />
+                {errors.chequePayerPersonId && (
+                  <p className="text-red-500 text-xs">
+                    {errors.chequePayerPersonId.message}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {showPayee && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  گیرنده (Payee) *
+                </label>
+                <Controller
+                  name="chequePayeePersonId"
+                  control={control}
+                  render={({ field }) => (
+                    <PersonSelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      people={allPeople || []}
+                      placeholder="انتخاب گیرنده"
+                    />
+                  )}
+                />
+                {errors.chequePayeePersonId && (
+                  <p className="text-red-500 text-xs">
+                    {errors.chequePayeePersonId.message}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-end gap-2 pt-4 border-t">
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          ثبت تراکنش
+        </button>
+      </div>
     </form>
   );
+
+  if (embedded) {
+    return (
+      <div dir="rtl">
+        <div className="mb-4">
+          <h2 className="text-xl font-bold">ثبت تراکنش</h2>
+        </div>
+        {formContent}
+      </div>
+    );
+  }
+
+  return <div dir="rtl">{formContent}</div>;
 };
 
 export default TransactionForm;
