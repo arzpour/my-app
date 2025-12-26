@@ -81,12 +81,12 @@ const VehicleList = () => {
     <>
       <div className="flex justify-between items-center gap-2 mb-4">
         <h4>اطلاعات خودرو</h4>
-        <button
+        {/* <button
           onClick={handleAdd}
           className="px-6 py-2 text-white bg-indigo-400 cursor-pointer rounded-md hover:bg-indigo-500 transition-colors"
         >
           افزودن مورد جدید
-        </button>
+        </button> */}
       </div>
       {vehiclesLoading ? (
         <div className="border border-gray-300 p-4 rounded-md w-full mt-7 text-center text-gray-500">

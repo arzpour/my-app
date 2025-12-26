@@ -188,8 +188,14 @@ export interface ILoan {
 export interface IPeople {
   _id: Types.ObjectId;
   fullName: string;
+  firstName?: string;
+  lastName?: string;
+  fatherName?: string;
   nationalId: number;
+  idCardNumber?: number;
+  postalCode?: number;
   phoneNumber: number;
+  phoneNumbers?: number[];
   address: string;
   roles: string[];
   brokerDetails: {
