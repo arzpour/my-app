@@ -1051,7 +1051,6 @@ const VehicleDashboard = () => {
       ? deal.purchasePrice - totalPaidToSeller
       : deal?.purchasePrice || 0;
 
-
   const investmentTransactions = filteredTransactions?.filter(
     (t) =>
       t.reason === "افزایش سرمایه" ||
@@ -1163,8 +1162,8 @@ const VehicleDashboard = () => {
                 </TableBody>
               </Table>
             </div>
-            <div className="flex gap-3 items-start space-y-0 mt-2">
-              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+            <div className="flex justify-between gap-3 items-start space-y-0 mt-5">
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-start gap-3">
                 <p className="text-xs">مجموع</p>
                 <p className="text-red-500 text-xs">
                   {totalPaidToSellerWithoutFilter
@@ -1172,7 +1171,7 @@ const VehicleDashboard = () => {
                     : 0}
                 </p>
               </div>
-              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-start gap-3">
                 <p className="text-xs">مجموع به طرف اول</p>
                 <p className="font-bold text-xs">
                   {totalPaidToSeller
@@ -1180,7 +1179,7 @@ const VehicleDashboard = () => {
                     : 0}
                 </p>
               </div>
-              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-start gap-3">
                 <p className="text-xs">مجموع به کارگزار</p>
                 <p className="font-bold text-xs">
                   {totalPaidToBroker
@@ -1188,13 +1187,13 @@ const VehicleDashboard = () => {
                     : 0}
                 </p>
               </div>
-              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-start gap-3">
                 <p className="text-xs">مجموع هزینه</p>
                 <p className="font-bold text-xs">
                   {vehicleCosts ? vehicleCosts.toLocaleString("en-US") : 0}
                 </p>
               </div>
-              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-center gap-3">
+              <div className="space-y-2 h-10 overflow-y-auto scrollbar-hide flex items-start gap-3">
                 <p className="text-xs">مانده</p>
                 <p className="font-bold text-xs">
                   {typeof remainingToSeller === "number"
@@ -1301,7 +1300,15 @@ const VehicleDashboard = () => {
                 </TableBody>
               </Table>
             </div>
-            <div className="grid grid-cols-2 gap-3 items-center mt-4">
+            <div className="flex justify-between gap-3 items-center mt-4">
+              <div className="flex gap-3 items-center">
+                {/* <p className="text-xs">مجموع دریافتی از خریدار</p> */}
+                <span className="text-xs">مجموع</span>
+                <span className="text-green-500 text-xs">
+                  {totalReceived ? totalReceived.toLocaleString("en-US") : 0}
+                </span>
+              </div>
+
               <div className="flex gap-3 items-center">
                 {/* <p className="text-xs">مانده مبلغ قابل دریافت از خریدار</p> */}
                 <span className="text-xs">مانده</span>
@@ -1309,14 +1316,6 @@ const VehicleDashboard = () => {
                   {typeof remainingForBuyer === "number"
                     ? remainingForBuyer.toLocaleString("en-US")
                     : 0}
-                </span>
-              </div>
-
-              <div className="flex gap-3 items-center">
-                {/* <p className="text-xs">مجموع دریافتی از خریدار</p> */}
-                <span className="text-xs">مجموع</span>
-                <span className="text-green-500 text-xs">
-                  {totalReceived ? totalReceived.toLocaleString("en-US") : 0}
                 </span>
               </div>
             </div>
@@ -1516,9 +1515,9 @@ const VehicleDashboard = () => {
                 </TableBody>
               </Table>
             </div>
-            <div className="flex gap-3 items-center justify-end mt-3">
+            <div className="grid grid-cols-4 gap-3 items-center justify-center mt-3">
               <p className="flex gap-2 items-center">
-                <span className="text-xs">مجموع چک های صادره وصول نشده</span>
+                <span className="text-xs">صادره وصول نشده</span>
                 <span className="text-xs">
                   {totalIssuedChequesUnpaid
                     ? totalIssuedChequesUnpaid?.toLocaleString("en-US")
@@ -1526,7 +1525,7 @@ const VehicleDashboard = () => {
                 </span>
               </p>
               <p className="flex gap-2 items-center">
-                <span className="text-xs">مجموع چک های صادره وصول شده</span>
+                <span className="text-xs">صادره وصول شده</span>
                 <span className="text-xs">
                   {totalIssuedChequesPaid
                     ? totalIssuedChequesPaid?.toLocaleString("en-US")
@@ -1534,7 +1533,7 @@ const VehicleDashboard = () => {
                 </span>
               </p>
               <p className="flex gap-2 items-center">
-                <span className="text-xs">مجموع چک های وارده وصول نشده</span>
+                <span className="text-xs">وارده وصول نشده</span>
                 <span className="text-xs">
                   {totalReceivedChequesUnpaid
                     ? totalReceivedChequesUnpaid?.toLocaleString("en-US")
@@ -1542,7 +1541,7 @@ const VehicleDashboard = () => {
                 </span>
               </p>
               <p className="flex gap-2 items-center">
-                <span className="text-xs">مجموع چک های وارده وصول شده</span>
+                <span className="text-xs">وارده وصول شده</span>
                 <span className="text-xs">
                   {totalReceivedChequesPaid
                     ? totalReceivedChequesPaid?.toLocaleString("en-US")

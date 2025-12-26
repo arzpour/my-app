@@ -49,6 +49,7 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
   const { role } = useSelector((state: RootState) => state.cars);
 
   const forms = [
+    { id: "peoples", title: "ثبت/ویرایش شخص", icon: "/7.png" },
     {
       id: "business_accounts",
       title: "تعریف حساب بانکی کسب‌وکار",
@@ -58,7 +59,6 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
 
   role === "accountant" &&
     forms.push(
-      { id: "peoples", title: "ثبت/ویرایش شخص", icon: "/7.png" },
       { id: "deals", title: "ثبت خرید خودرو", icon: "/1.png" },
       { id: "sale_deal", title: "ثبت فروش خودرو", icon: "/8.png" },
       { id: "expenses", title: "ثبت هزینه و آپشن", icon: "/5.png" },
