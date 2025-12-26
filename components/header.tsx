@@ -18,12 +18,17 @@ import {
 } from "@/components/ui/dialog";
 import { LucideLogOut, SettingsIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useLogout } from "@/apis/mutations/auth";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const Header = () => {
   const { chassisNo: chassisNoSaved } = useSelector(
     (state: RootState) => state.cars
   );
   const router = useRouter();
+  const logout = useLogout();
+  const queryClient = useQueryClient();
 
   const { data: vehicles } = useGetVehicles();
 
@@ -79,8 +84,29 @@ const Header = () => {
     dispatch(setSelectedDealId(deal._id.toString()));
   };
 
-  const logoutHandler = () => {
-    router.push("/");
+  const logoutHandler = async () => {
+    try {
+      await logout.mutateAsync();
+
+      // Clear all React Query cache
+      queryClient.clear();
+
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+
+      toast.success("با موفقیت خارج شدید");
+      router.push("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+      queryClient.clear();
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      router.push("/");
+    }
   };
 
   const otherCostCategories =

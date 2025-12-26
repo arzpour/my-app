@@ -19,6 +19,8 @@ import ChequeActionsForm from "./chequeActionsForm";
 import ChequeFormNew from "./chequeFormNew";
 import SalarySlipForm from "./salarySlipForm";
 import SalariesForm from "./salariesForm";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 type FormType =
   | "transactions"
@@ -44,24 +46,29 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
   onOpenChange,
 }) => {
   const [selectedForm, setSelectedForm] = React.useState<FormType>(null);
+  const { role } = useSelector((state: RootState) => state.cars);
 
   const forms = [
-    { id: "peoples", title: "ثبت/ویرایش شخص", icon: "/7.png" },
     {
       id: "business_accounts",
       title: "تعریف حساب بانکی کسب‌وکار",
       icon: "/4.png",
     },
-    { id: "deals", title: "ثبت خرید خودرو", icon: "/1.png" },
-    { id: "sale_deal", title: "ثبت فروش خودرو", icon: "/8.png" },
-    { id: "expenses", title: "ثبت هزینه و آپشن", icon: "/5.png" },
-    { id: "transactions", title: "ثبت تراکنش", icon: "/2.png" },
-    { id: "cheque", title: "ثبت چک", icon: "/9.png" },
-    // { id: "cheque_actions", title: "عملیات روی چک", icon: "📋" },
-    { id: "loans", title: "ثبت وام پرسنلی", icon: "/6.png" },
-    { id: "salary_slip", title: "محاسبه و صدور فیش حقوقی", icon: "/3.png" },
-    { id: "salaries", title: "پرداخت حقوق", icon: "/3.png" },
   ];
+
+  role === "accountant" &&
+    forms.push(
+      { id: "peoples", title: "ثبت/ویرایش شخص", icon: "/7.png" },
+      { id: "deals", title: "ثبت خرید خودرو", icon: "/1.png" },
+      { id: "sale_deal", title: "ثبت فروش خودرو", icon: "/8.png" },
+      { id: "expenses", title: "ثبت هزینه و آپشن", icon: "/5.png" },
+      { id: "transactions", title: "ثبت تراکنش", icon: "/2.png" },
+      // { id: "cheque", title: "ثبت چک", icon: "/9.png" },
+      // { id: "cheque_actions", title: "عملیات روی چک", icon: "📋" },
+      { id: "loans", title: "ثبت وام پرسنلی", icon: "/6.png" },
+      { id: "salary_slip", title: "محاسبه و صدور فیش حقوقی", icon: "/3.png" }
+      // { id: "salaries", title: "پرداخت حقوق", icon: "/3.png" },
+    );
 
   const handleFormSelect = (formId: string) => {
     setSelectedForm(formId as FormType);

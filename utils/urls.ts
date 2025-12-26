@@ -136,7 +136,10 @@ export const urls = {
   //   brokers: "/others/brokers",
   //   transactionFormOptions: "/others/transaction-form-options",
   // },
-  login: "/auth/login",
+  auth: {
+    login: "/auth/login",
+    logout: "/auth/logout",
+  },
   settings: {
     list: "/settings",
   },
