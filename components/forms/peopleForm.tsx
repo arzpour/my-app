@@ -1,7 +1,12 @@
 "use client";
 
 import React from "react";
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import {
+  useForm,
+  Controller,
+  SubmitHandler,
+  useFieldArray,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { peopleSchema, peopleSchemaType } from "@/validations/people";
 import { toast } from "sonner";
@@ -21,6 +26,8 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 interface PeopleFormProps {
   personData?: IPeople | null;
@@ -39,6 +46,9 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
   const createPerson = useCreatePerson();
   const updatePerson = useUpdatePerson();
   const { data: allPeople } = useGetAllPeople();
+  const { role: currentUserRole } = useSelector(
+    (state: RootState) => state.cars
+  );
 
   const {
     control,
@@ -51,9 +61,13 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
   } = useForm<peopleSchemaType>({
     resolver: zodResolver(peopleSchema),
     defaultValues: {
-      fullName: "",
+      firstName: "",
+      lastName: "",
+      fatherName: "",
       nationalId: "",
-      phoneNumber: "",
+      idCardNumber: "",
+      postalCode: "",
+      phoneNumbers: [""],
       address: "",
       roles: [],
       purchaseCommissionPercent: "",
@@ -64,15 +78,37 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
     },
   });
 
+  const { fields, append, remove } = useFieldArray({
+    control,
+    // @ts-expect-error - TypeScript inference issue with refined Zod schemas
+    name: "phoneNumbers",
+  });
+
   const selectedRoles = watch("roles");
 
   // Populate form when editing
   React.useEffect(() => {
     if (mode === "edit" && personData) {
+      const fullNameParts = personData.fullName?.split(" ") || [];
+      const firstName = fullNameParts[0] || "";
+      const lastName = fullNameParts.slice(1).join(" ") || "";
+
+      const phoneNumbers = personData.phoneNumbers
+        ? Array.isArray(personData.phoneNumbers)
+          ? personData.phoneNumbers.map((p: number) => p.toString())
+          : [String(personData.phoneNumbers)]
+        : personData.phoneNumber
+        ? [personData.phoneNumber.toString()]
+        : [""];
+
       reset({
-        fullName: personData.fullName || "",
+        firstName: firstName,
+        lastName: lastName,
+        fatherName: personData.fatherName || "",
         nationalId: personData.nationalId?.toString() || "",
-        phoneNumber: personData.phoneNumber?.toString() || "",
+        idCardNumber: personData.idCardNumber?.toString() || "",
+        postalCode: personData.postalCode?.toString() || "",
+        phoneNumbers: phoneNumbers.length > 0 ? phoneNumbers : [""],
         address: personData.address || "",
         roles: (personData.roles || []) as (
           | "customer"
@@ -98,15 +134,25 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
 
   const onSubmit: SubmitHandler<peopleSchemaType> = async (data) => {
     try {
-      const payload: Partial<IPeople> = {
-        fullName: data.fullName,
+      const fullName = `${data.firstName} ${data.lastName}`.trim();
+
+      const payload: any = {
+        fullName: fullName,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        fatherName: data.fatherName || "",
         nationalId: Number(data.nationalId),
-        phoneNumber: Number(data.phoneNumber),
+        idCardNumber: data.idCardNumber ? Number(data.idCardNumber) : undefined,
+        postalCode: data.postalCode ? Number(data.postalCode) : undefined,
+        phoneNumbers: data.phoneNumbers.map((p) => Number(p)),
+        phoneNumber:
+          data.phoneNumbers.length > 0
+            ? Number(data.phoneNumbers[0])
+            : undefined,
         address: data.address || "",
         roles: data.roles,
       };
 
-      // Add broker details if broker role is selected
       if (data.roles.includes("broker")) {
         const currentDate = new Date()
           .toLocaleDateString("fa-IR")
@@ -121,7 +167,6 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
           rateHistory: personData?.brokerDetails?.rateHistory || [],
         };
 
-        // If updating and commission rates changed, add to history
         if (
           mode === "edit" &&
           personData?.brokerDetails?.currentRates &&
@@ -143,7 +188,6 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
         }
       }
 
-      // Add employee details if employee role is selected
       if (data.roles.includes("employee")) {
         payload.employmentDetails = {
           startDate: data.startDate || "",
@@ -152,7 +196,6 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
         };
       }
 
-      // Initialize wallet if creating new person
       if (mode === "add") {
         payload.wallet = {
           balance: 0,
@@ -190,7 +233,6 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
         "roles",
         currentRoles.filter((r) => r !== role)
       );
-      // Clear role-specific fields when role is removed
       if (role === "broker") {
         setValue("purchaseCommissionPercent", "");
         setValue("saleCommissionPercent", "");
@@ -213,18 +255,45 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label htmlFor="fullName" className="block text-sm font-medium">
-              نام و نام خانوادگی *
+            <label htmlFor="firstName" className="block text-sm font-medium">
+              نام *
             </label>
             <input
-              id="fullName"
-              {...register("fullName")}
-              placeholder="نام و نام خانوادگی"
+              id="firstName"
+              {...register("firstName")}
+              placeholder="نام"
               className="w-full px-3 py-2 border rounded-md"
             />
-            {errors.fullName && (
-              <p className="text-red-500 text-xs">{errors.fullName.message}</p>
+            {errors.firstName && (
+              <p className="text-red-500 text-xs">{errors.firstName.message}</p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="lastName" className="block text-sm font-medium">
+              نام خانوادگی *
+            </label>
+            <input
+              id="lastName"
+              {...register("lastName")}
+              placeholder="نام خانوادگی"
+              className="w-full px-3 py-2 border rounded-md"
+            />
+            {errors.lastName && (
+              <p className="text-red-500 text-xs">{errors.lastName.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="fatherName" className="block text-sm font-medium">
+              نام پدر
+            </label>
+            <input
+              id="fatherName"
+              {...register("fatherName")}
+              placeholder="نام پدر"
+              className="w-full px-3 py-2 border rounded-md"
+            />
           </div>
 
           <div className="space-y-2">
@@ -246,24 +315,79 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="phoneNumber" className="block text-sm font-medium">
-              شماره موبایل *
+            <label htmlFor="idCardNumber" className="block text-sm font-medium">
+              شماره شناسنامه
             </label>
             <input
-              id="phoneNumber"
-              {...register("phoneNumber")}
-              placeholder="09123456789"
-              maxLength={11}
+              id="idCardNumber"
+              {...register("idCardNumber")}
+              placeholder="شماره شناسنامه"
               className="w-full px-3 py-2 border rounded-md"
             />
-            {errors.phoneNumber && (
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="postalCode" className="block text-sm font-medium">
+              کدپستی
+            </label>
+            <input
+              id="postalCode"
+              {...register("postalCode")}
+              placeholder="کدپستی 10 رقمی"
+              maxLength={10}
+              className="w-full px-3 py-2 border rounded-md"
+            />
+            {errors.postalCode && (
               <p className="text-red-500 text-xs">
-                {errors.phoneNumber.message}
+                {errors.postalCode.message}
               </p>
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
+            <label className="block text-sm font-medium">
+              شماره موبایل (ها) *
+            </label>
+            {fields.map((field, index) => (
+              <div key={field.id} className="flex gap-2 items-start">
+                <input
+                  {...register(`phoneNumbers.${index}` as any)}
+                  placeholder="09123456789"
+                  maxLength={11}
+                  className="flex-1 px-3 py-2 border rounded-md"
+                />
+                {fields.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => remove(index)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-md"
+                  >
+                    <span className="text-lg">×</span>
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => append("" as any)}
+              className="flex items-center gap-2 px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-md border border-blue-200"
+            >
+              <span className="text-lg">+</span>
+              افزودن شماره موبایل
+            </button>
+            {errors.phoneNumbers && (
+              <p className="text-red-500 text-xs">
+                {errors.phoneNumbers.message}
+              </p>
+            )}
+            {errors.phoneNumbers?.root && (
+              <p className="text-red-500 text-xs">
+                {errors.phoneNumbers.root.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
             <label htmlFor="address" className="block text-sm font-medium">
               آدرس
             </label>
@@ -283,6 +407,11 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
           <div className="flex gap-4 flex-wrap">
             {PERSON_ROLES.map((role) => {
               const roleKey = role as keyof typeof PERSON_ROLES_DISPLAY;
+              const isSecretary = currentUserRole === "secretary";
+              const isCustomerRole = role === "customer";
+              const isDisabled =
+                isSecretary && !isCustomerRole && mode === "add";
+
               return (
                 <div key={role} className="flex items-center gap-2">
                   <input
@@ -294,11 +423,16 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
                     onChange={(e) =>
                       handleRoleChange(roleKey, e.target.checked)
                     }
-                    className="w-4 h-4"
+                    disabled={isDisabled}
+                    className={`w-4 h-4 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isDisabled ? "hidden" : ""
+                    }`}
                   />
                   <label
                     htmlFor={`role-${role}`}
-                    className="cursor-pointer text-sm"
+                    className={`cursor-pointer text-sm ${
+                      isDisabled ? "hidden" : ""
+                    }`}
                   >
                     {PERSON_ROLES_DISPLAY[roleKey]}
                   </label>
@@ -309,6 +443,11 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
           {errors.roles && (
             <p className="text-red-500 text-xs">{errors.roles.message}</p>
           )}
+          {/* {currentUserRole === "secretary" && mode === "add" && (
+            <p className="text-xs text-gray-500">
+              شما فقط می‌توانید مشتری جدید اضافه کنید
+            </p>
+          )} */}
         </div>
       </div>
 
@@ -527,7 +666,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
           <div dir="rtl">
             <DialogClose onClose={() => setOpen(false)} />
             <DialogHeader>
-              <DialogTitle className="!text-gray-800">
+              <DialogTitle className="text-gray-800!">
                 {mode === "edit" ? "ویرایش شخص" : "ثبت شخص جدید"}
               </DialogTitle>
             </DialogHeader>
