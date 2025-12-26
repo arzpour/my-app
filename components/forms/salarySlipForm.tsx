@@ -278,7 +278,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
   const formContent = (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">
+        <h3 className="text-base text-gray-700 font-semibold border-b pb-2">
           اطلاعات کارمند و دوره
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -375,7 +375,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">درآمدها</h3>
+        <h3 className="text-base text-gray-700 font-semibold border-b pb-2">درآمدها</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="baseSalary" className="block text-sm font-medium">
@@ -457,7 +457,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">کسورات</h3>
+        <h3 className="text-base text-gray-700 font-semibold border-b pb-2">کسورات</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="insurance" className="block text-sm font-medium">
@@ -593,7 +593,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
 
       <div className="space-y-4">
         <div className="p-4 bg-blue-50 rounded-md">
-          <p className="text-lg font-bold">
+          <p className="text-base text-gray-700 font-bold">
             پرداختی نهایی: {netPay.toLocaleString()} ریال
           </p>
         </div>
@@ -642,9 +642,9 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
   if (embedded) {
     return (
       <div dir="rtl">
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <h2 className="text-xl font-bold">محاسبه و صدور فیش حقوقی</h2>
-        </div>
+        </div> */}
         {formContent}
       </div>
     );

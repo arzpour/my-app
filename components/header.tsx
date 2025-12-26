@@ -16,12 +16,14 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-import { SettingsIcon } from "lucide-react";
+import { LucideLogOut, SettingsIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const Header = () => {
   const { chassisNo: chassisNoSaved } = useSelector(
     (state: RootState) => state.cars
   );
+  const router = useRouter();
 
   const { data: vehicles } = useGetVehicles();
 
@@ -75,6 +77,10 @@ const Header = () => {
     setShowDealModal(false);
     dispatch(setChassisNo(deal.vehicleSnapshot.vin));
     dispatch(setSelectedDealId(deal._id.toString()));
+  };
+
+  const logoutHandler = () => {
+    router.push("/");
   };
 
   const otherCostCategories =
@@ -402,6 +408,13 @@ const Header = () => {
       <p className="absolute right-2 -top-6 bg-white py-2 px-4 font-bold">
         اطلاعات خودرو
       </p>
+      <button
+        title="خروج"
+        className="absolute left-2 -top-4 cursor-pointer bg-white py-2 px-4"
+        onClick={logoutHandler}
+      >
+        <LucideLogOut className="w-5 h-5" />
+      </button>
 
       {/* Deal Selection Modal */}
       <Dialog open={showDealModal} onOpenChange={setShowDealModal}>

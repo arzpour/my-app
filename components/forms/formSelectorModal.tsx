@@ -46,17 +46,21 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
   const [selectedForm, setSelectedForm] = React.useState<FormType>(null);
 
   const forms = [
-    { id: "peoples", title: "ثبت/ویرایش شخص", icon: "👤" },
-    { id: "business_accounts", title: "تعریف حساب بانکی کسب‌وکار", icon: "🏦" },
-    { id: "deals", title: "ثبت خرید خودرو", icon: "🚗" },
-    { id: "sale_deal", title: "ثبت فروش خودرو", icon: "💵" },
-    { id: "expenses", title: "ثبت هزینه و آپشن", icon: "📝" },
-    { id: "transactions", title: "ثبت تراکنش", icon: "💰" },
-    { id: "cheque", title: "ثبت چک", icon: "🧾" },
+    { id: "peoples", title: "ثبت/ویرایش شخص", icon: "/7.png" },
+    {
+      id: "business_accounts",
+      title: "تعریف حساب بانکی کسب‌وکار",
+      icon: "/4.png",
+    },
+    { id: "deals", title: "ثبت خرید خودرو", icon: "/1.png" },
+    { id: "sale_deal", title: "ثبت فروش خودرو", icon: "/8.png" },
+    { id: "expenses", title: "ثبت هزینه و آپشن", icon: "/5.png" },
+    { id: "transactions", title: "ثبت تراکنش", icon: "/2.png" },
+    { id: "cheque", title: "ثبت چک", icon: "/9.png" },
     // { id: "cheque_actions", title: "عملیات روی چک", icon: "📋" },
-    { id: "loans", title: "ثبت وام پرسنلی", icon: "💳" },
-    { id: "salary_slip", title: "محاسبه و صدور فیش حقوقی", icon: "📄" },
-    { id: "salaries", title: "پرداخت حقوق", icon: "💼" },
+    { id: "loans", title: "ثبت وام پرسنلی", icon: "/6.png" },
+    { id: "salary_slip", title: "محاسبه و صدور فیش حقوقی", icon: "/3.png" },
+    { id: "salaries", title: "پرداخت حقوق", icon: "/3.png" },
   ];
 
   const handleFormSelect = (formId: string) => {
@@ -206,7 +210,9 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
           {!selectedForm ? (
             <>
               <DialogHeader>
-                <DialogTitle>فرم مورد نظر خود را انتخاب کنید</DialogTitle>
+                <DialogTitle className="!text-base !font-semibold text-gray-800">
+                  فرم مورد نظر خود را انتخاب کنید
+                </DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                 {forms.map((form) => (
@@ -215,11 +221,22 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
                     onClick={() => handleFormSelect(form.id)}
                     className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50 hover:border-blue-500 transition-all text-right"
                   >
-                    <span className="text-3xl">{form.icon}</span>
-                    <span className="flex-1 text-lg font-medium">
+                    {/* <span className="text-xl">{form.icon}</span> */}
+                    {/* <Image
+                      alt={`${form.icon}-icon`}
+                      src={form.icon ?? ""}
+                      width={500}
+                      height={500}
+                    /> */}
+                    <img
+                      alt={`${form.icon}-icon`}
+                      src={form.icon ?? ""}
+                      className="w-12 h-9"
+                    />
+                    <span className="flex-1 text-base font-medium">
                       {form.title}
                     </span>
-                    <ArrowLeftIcon className="size-5 text-gray-400" />
+                    <ArrowLeftIcon className="size-4 text-gray-400" />
                   </button>
                 ))}
               </div>
@@ -233,9 +250,9 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
                     className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
                   >
                     <ArrowRightIcon className="size-4" />
-                    <span>بازگشت</span>
+                    {/* <span>بازگشت</span> */}
                   </button>
-                  <DialogTitle className="flex-1">
+                  <DialogTitle className="flex-1 !text-lg !font-bold !text-gray-800">
                     {forms.find((f) => f.id === selectedForm)?.title}
                   </DialogTitle>
                 </div>

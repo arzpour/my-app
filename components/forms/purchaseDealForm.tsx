@@ -207,7 +207,9 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Vehicle Information */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">مشخصات خودرو</h3>
+        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
+          مشخصات خودرو
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="vin" className="block text-sm font-medium">
@@ -293,7 +295,9 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
 
       {/* Deal Information */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">اطلاعات معامله</h3>
+        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
+          اطلاعات معامله
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium">فروشنده *</label>
@@ -364,7 +368,9 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
 
       {/* Purchase Broker */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">کارگزار خرید</h3>
+        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
+          کارگزار خرید
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium">نام کارگزار</label>
@@ -427,7 +433,9 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
       {/* Partnerships */}
       <div className="space-y-4">
         <div className="flex justify-between items-center border-b pb-2">
-          <h3 className="text-lg font-semibold">شرکا (Partners)</h3>
+          <h3 className="text-base text-gray-800 font-semibold">
+            شرکا (Partners)
+          </h3>
           <button
             type="button"
             onClick={addPartnership}
@@ -511,9 +519,11 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
   if (embedded) {
     return (
       <div dir="rtl">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold">ثبت خرید خودرو</h2>
-        </div>
+        {/* <div className="mb-4">
+          <h2 className="text-base text-gray-800 font-semibold">
+            ثبت خرید خودرو
+          </h2>
+        </div> */}
         {formContent}
       </div>
     );
