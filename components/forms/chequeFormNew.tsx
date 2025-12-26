@@ -135,7 +135,7 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
   const formContent = (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">اطلاعات چک</h3>
+        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">اطلاعات چک</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium">نوع چک *</label>
@@ -275,7 +275,7 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">طرفین چک</h3>
+        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">طرفین چک</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {showPayer && (
             <div className="space-y-2">
@@ -326,7 +326,7 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">ارتباطات</h3>
+        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">ارتباطات</h3>
         <div className="space-y-2">
           <label className="block text-sm font-medium">
             مرتبط با معامله (اختیاری)
@@ -367,9 +367,9 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
   if (embedded) {
     return (
       <div dir="rtl">
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <h2 className="text-xl font-bold">ثبت چک</h2>
-        </div>
+        </div> */}
         {formContent}
       </div>
     );

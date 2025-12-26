@@ -24,8 +24,12 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
 }) => {
   const updateDeal = useUpdateDeal();
   const { data: allPeople } = useGetAllPeople();
-  const [selectedBuyer, setSelectedBuyer] = React.useState<IPeople | null>(null);
-  const [selectedBroker, setSelectedBroker] = React.useState<IPeople | null>(null);
+  const [selectedBuyer, setSelectedBuyer] = React.useState<IPeople | null>(
+    null
+  );
+  const [selectedBroker, setSelectedBroker] = React.useState<IPeople | null>(
+    null
+  );
   const [selectedDeal, setSelectedDeal] = React.useState<IDeal | null>(null);
 
   // Get in_stock deals
@@ -78,18 +82,19 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
           : undefined,
         salePrice: parseFloat(data.salePrice),
         saleDate: data.saleDate,
-        saleBroker: selectedBroker && data.saleBrokerPersonId
-          ? {
-              personId: data.saleBrokerPersonId,
-              fullName: selectedBroker.fullName,
-              commissionPercent: parseFloat(
-                data.saleBrokerCommissionPercent || "0"
-              ),
-              commissionAmount:
-                parseFloat(data.salePrice) *
-                (parseFloat(data.saleBrokerCommissionPercent || "0") / 100),
-            }
-          : undefined,
+        saleBroker:
+          selectedBroker && data.saleBrokerPersonId
+            ? {
+                personId: data.saleBrokerPersonId,
+                fullName: selectedBroker.fullName,
+                commissionPercent: parseFloat(
+                  data.saleBrokerCommissionPercent || "0"
+                ),
+                commissionAmount:
+                  parseFloat(data.salePrice) *
+                  (parseFloat(data.saleBrokerCommissionPercent || "0") / 100),
+              }
+            : undefined,
         status: "sold",
       };
 
@@ -109,7 +114,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
   const formContent = (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">
+        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
           انتخاب خودرو
         </h3>
         <div className="space-y-2">
@@ -142,7 +147,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">
+        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
           اطلاعات خریدار
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -173,7 +178,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">
+        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
           اطلاعات مالی فروش
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -189,9 +194,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
               className="w-full px-3 py-2 border rounded-md"
             />
             {errors.salePrice && (
-              <p className="text-red-500 text-xs">
-                {errors.salePrice.message}
-              </p>
+              <p className="text-red-500 text-xs">{errors.salePrice.message}</p>
             )}
           </div>
 
@@ -209,16 +212,16 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
               )}
             />
             {errors.saleDate && (
-              <p className="text-red-500 text-xs">
-                {errors.saleDate.message}
-              </p>
+              <p className="text-red-500 text-xs">{errors.saleDate.message}</p>
             )}
           </div>
         </div>
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">کارگزار فروش</h3>
+        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
+          کارگزار فروش
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium">نام کارگزار</label>
@@ -325,9 +328,9 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
   if (embedded) {
     return (
       <div dir="rtl">
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <h2 className="text-xl font-bold">ثبت فروش خودرو</h2>
-        </div>
+        </div> */}
         {formContent}
       </div>
     );
@@ -337,4 +340,3 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
 };
 
 export default SaleDealForm;
-

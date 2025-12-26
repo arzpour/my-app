@@ -284,11 +284,11 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
   if (embedded) {
     return (
       <div dir="rtl">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold">
+        {/* <div className="mb-4">
+          <h2 className="text-base text-gray-800 font-semibold">
             {mode === "edit" ? "ویرایش حساب بانکی" : "ثبت حساب بانکی جدید"}
           </h2>
-        </div>
+        </div> */}
         {formContent}
       </div>
     );
@@ -308,7 +308,7 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
           <div dir="rtl">
             <DialogClose onClose={() => setOpen(false)} />
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="base text-gray-800 font-semibold">
                 {mode === "edit" ? "ویرایش حساب بانکی" : "ثبت حساب بانکی جدید"}
               </DialogTitle>
             </DialogHeader>
