@@ -2238,8 +2238,11 @@ const CustomersDashboard = () => {
                     نام کامل
                   </TableHead>
                   <TableHead className="w-[50%] text-center">کدملی</TableHead>
-                  <TableHead className="w-[40%] text-center">نقش</TableHead>
-                  <TableHead className="w-[60%] text-center">وضعیت</TableHead>
+                  <TableHead className="w-[50%] text-center">نقش</TableHead>
+                  <TableHead className="w-[70%] text-center">وضعیت</TableHead>
+                  <TableHead className="w-[70%] text-center">
+                    تراز مالی
+                  </TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -2279,6 +2282,7 @@ const CustomersDashboard = () => {
                             const status = customerStatusMap.get(
                               person.nationalId?.toString() || ""
                             );
+
                             if (!status) return "—";
                             return (
                               <span
@@ -2299,6 +2303,30 @@ const CustomersDashboard = () => {
                                 )} */}
                               </span>
                             );
+                          })()}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {(() => {
+                            const status = customerStatusMap.get(
+                              person.nationalId?.toString() || ""
+                            );
+
+                            if (!status) return "—";
+                            return status.amount > 0 ? (
+                              <span className="text-xs mr-1">
+                                {" "}
+                                {status.amount.toLocaleString("en-US")}
+                              </span>
+                            ) : (
+                              0
+                            );
+
+                            // {/* {status.amount > 0 && (
+                            //   <span className="text-xs mr-1">
+                            //     {" "}
+                            //     ({status.amount.toLocaleString("en-US")})
+                            //   </span>
+                            // )} */}
                           })()}
                         </TableCell>
                       </TableRow>
