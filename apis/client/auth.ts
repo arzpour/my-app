@@ -6,6 +6,12 @@ type loginType = (data: {
   password: string;
 }) => Promise<ILogin>;
 export const login: loginType = async (data) => {
-  const response = await axiosInstance.post(urls.login, data);
+  const response = await axiosInstance.post(urls.auth.login, data);
+  return response.data;
+};
+
+type logoutType = () => Promise<void>;
+export const logout: logoutType = async () => {
+  const response = await axiosInstance.post(urls.auth.logout);
   return response.data;
 };
