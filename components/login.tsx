@@ -27,7 +27,8 @@ const Login = () => {
     if (!data) return;
     try {
       const res = await login.mutateAsync(data);
-      router.push("/panel");
+      // Use replace instead of push to avoid redirect issues
+      router.replace("/panel");
       dispatch(setRole(res.data.user.role));
       toast("وارد شدید", {
         icon: "✅",
