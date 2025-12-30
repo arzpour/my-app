@@ -9,14 +9,16 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-// import { createCar, updateCar } from "@/apis/client/cars";
+import { createVehicle, updateVehicle } from "@/apis/client/vehicles";
 import { useQueryClient } from "@tanstack/react-query";
 import PersianDatePicker from "../global/persianDatePicker";
+import { IVehicle, IDeal } from "@/types/new-backend-types";
+import { useGetAllDeals } from "@/apis/mutations/deals";
 
 interface VehicleFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  vehicleData?: ICarRes | null;
+  vehicleData?: ICarRes | IVehicle | null;
   mode: "add" | "edit";
 }
 
@@ -48,6 +50,81 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
   mode,
 }) => {
   const queryClient = useQueryClient();
+  const getAllDeals = useGetAllDeals();
+
+  const isIVehicle = (data: any): data is IVehicle => {
+    return data && "vin" in data && "model" in data;
+  };
+
+  const isICarRes = (data: any): data is ICarRes => {
+    return data && "ChassisNo" in data && "CarModel" in data;
+  };
+
+  const relatedDeal = React.useMemo(() => {
+    if (!vehicleData || !isIVehicle(vehicleData) || !getAllDeals.data) {
+      return null;
+    }
+    const deals = getAllDeals.data || [];
+    return deals.find((deal) => deal.vehicleSnapshot?.vin === vehicleData.vin);
+  }, [vehicleData, getAllDeals.data]);
+
+  const convertVehicleToCarRes = React.useMemo(() => {
+    if (!vehicleData) return null;
+
+    if (isICarRes(vehicleData)) {
+      return vehicleData;
+    }
+
+    if (isIVehicle(vehicleData)) {
+      if (relatedDeal) {
+        return {
+          _id: vehicleData._id.toString(),
+          RowNo: 0,
+          CarModel: vehicleData.model || "",
+          SaleAmount: relatedDeal.salePrice || 0,
+          PurchaseAmount: relatedDeal.purchasePrice || 0,
+          LicensePlate: vehicleData.plateNumber || "",
+          ChassisNo: vehicleData.vin || "",
+          SellerName: relatedDeal.seller?.fullName || "",
+          BuyerName: relatedDeal.buyer?.fullName || "",
+          SaleDate: relatedDeal.saleDate || "",
+          PurchaseDate: relatedDeal.purchaseDate || "",
+          SellerMobile: parseInt(relatedDeal.seller?.mobile || "0") || 0,
+          BuyerMobile: parseInt(relatedDeal.buyer?.mobile || "0") || 0,
+          PurchaseBroker: relatedDeal.purchaseBroker?.fullName || "",
+          SaleBroker: relatedDeal.saleBroker?.fullName || "",
+          Secretary: "",
+          DocumentsCopy: "",
+          SellerNationalID: parseInt(relatedDeal.seller?.nationalId || "0") || 0,
+          BuyerNationalID: parseInt(relatedDeal.buyer?.nationalId || "0") || 0,
+        } as ICarRes;
+      } else {
+        return {
+          _id: vehicleData._id.toString(),
+          RowNo: 0,
+          CarModel: vehicleData.model || "",
+          SaleAmount: 0,
+          PurchaseAmount: 0,
+          LicensePlate: vehicleData.plateNumber || "",
+          ChassisNo: vehicleData.vin || "",
+          SellerName: "",
+          BuyerName: "",
+          SaleDate: "",
+          PurchaseDate: "",
+          SellerMobile: 0,
+          BuyerMobile: 0,
+          PurchaseBroker: "",
+          SaleBroker: "",
+          Secretary: "",
+          DocumentsCopy: "",
+          SellerNationalID: 0,
+          BuyerNationalID: 0,
+        } as ICarRes;
+      }
+    }
+
+    return null;
+  }, [vehicleData, relatedDeal]);
 
   const {
     register,
@@ -57,34 +134,88 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
     getValues,
     setValue,
   } = useForm<VehicleFormData>({
-    defaultValues: vehicleData
+    defaultValues: convertVehicleToCarRes
       ? {
-          RowNo: vehicleData.RowNo || "",
-          CarModel: vehicleData.CarModel || "",
-          SaleAmount: vehicleData.SaleAmount || "",
-          PurchaseAmount: vehicleData.PurchaseAmount || "",
-          LicensePlate: vehicleData.LicensePlate || "",
-          ChassisNo: vehicleData.ChassisNo || "",
-          SellerName: vehicleData.SellerName || "",
-          BuyerName: vehicleData.BuyerName || "",
-          SaleDate: vehicleData.SaleDate || "",
-          PurchaseDate: vehicleData.PurchaseDate || "",
-          SellerMobile: vehicleData.SellerMobile || "",
-          BuyerMobile: vehicleData.BuyerMobile || "",
-          PurchaseBroker: vehicleData.PurchaseBroker || "",
-          SaleBroker: vehicleData.SaleBroker || "",
-          Secretary: vehicleData.Secretary || "",
-          DocumentsCopy: vehicleData.DocumentsCopy || "",
-          SellerNationalID: vehicleData.SellerNationalID || "",
-          BuyerNationalID: vehicleData.BuyerNationalID || "",
-        }
+        RowNo: convertVehicleToCarRes.RowNo || "",
+        CarModel: convertVehicleToCarRes.CarModel || "",
+        SaleAmount: convertVehicleToCarRes.SaleAmount || "",
+        PurchaseAmount: convertVehicleToCarRes.PurchaseAmount || "",
+        LicensePlate: convertVehicleToCarRes.LicensePlate || "",
+        ChassisNo: convertVehicleToCarRes.ChassisNo || "",
+        SellerName: convertVehicleToCarRes.SellerName || "",
+        BuyerName: convertVehicleToCarRes.BuyerName || "",
+        SaleDate: convertVehicleToCarRes.SaleDate || "",
+        PurchaseDate: convertVehicleToCarRes.PurchaseDate || "",
+        SellerMobile: convertVehicleToCarRes.SellerMobile || "",
+        BuyerMobile: convertVehicleToCarRes.BuyerMobile || "",
+        PurchaseBroker: convertVehicleToCarRes.PurchaseBroker || "",
+        SaleBroker: convertVehicleToCarRes.SaleBroker || "",
+        Secretary: convertVehicleToCarRes.Secretary || "",
+        DocumentsCopy: convertVehicleToCarRes.DocumentsCopy || "",
+        SellerNationalID: convertVehicleToCarRes.SellerNationalID || "",
+        BuyerNationalID: convertVehicleToCarRes.BuyerNationalID || "",
+      }
       : {
+        RowNo: "",
+        CarModel: "",
+        SaleAmount: "",
+        PurchaseAmount: "",
+        LicensePlate: "",
+        ChassisNo: "",
+        SellerName: "",
+        BuyerName: "",
+        SaleDate: "",
+        PurchaseDate: "",
+        SellerMobile: "",
+        BuyerMobile: "",
+        PurchaseBroker: "",
+        SaleBroker: "",
+        Secretary: "",
+        DocumentsCopy: "",
+        SellerNationalID: "",
+        BuyerNationalID: "",
+      },
+  });
+
+  React.useEffect(() => {
+    if (open && mode === "edit" && isIVehicle(vehicleData)) {
+      if (!getAllDeals.data) {
+        getAllDeals.mutate();
+      }
+    }
+  }, [open, mode, vehicleData, getAllDeals.data]);
+
+  React.useEffect(() => {
+    if (mode === "edit") {
+      if (convertVehicleToCarRes) {
+        reset({
+          RowNo: convertVehicleToCarRes.RowNo || "",
+          CarModel: convertVehicleToCarRes.CarModel || "",
+          SaleAmount: convertVehicleToCarRes.SaleAmount || "",
+          PurchaseAmount: convertVehicleToCarRes.PurchaseAmount || "",
+          LicensePlate: convertVehicleToCarRes.LicensePlate || "",
+          ChassisNo: convertVehicleToCarRes.ChassisNo || "",
+          SellerName: convertVehicleToCarRes.SellerName || "",
+          BuyerName: convertVehicleToCarRes.BuyerName || "",
+          SaleDate: convertVehicleToCarRes.SaleDate || "",
+          PurchaseDate: convertVehicleToCarRes.PurchaseDate || "",
+          SellerMobile: convertVehicleToCarRes.SellerMobile || "",
+          BuyerMobile: convertVehicleToCarRes.BuyerMobile || "",
+          PurchaseBroker: convertVehicleToCarRes.PurchaseBroker || "",
+          SaleBroker: convertVehicleToCarRes.SaleBroker || "",
+          Secretary: convertVehicleToCarRes.Secretary || "",
+          DocumentsCopy: convertVehicleToCarRes.DocumentsCopy || "",
+          SellerNationalID: convertVehicleToCarRes.SellerNationalID || "",
+          BuyerNationalID: convertVehicleToCarRes.BuyerNationalID || "",
+        });
+      } else if (isIVehicle(vehicleData)) {
+        reset({
           RowNo: "",
-          CarModel: "",
+          CarModel: vehicleData.model || "",
           SaleAmount: "",
           PurchaseAmount: "",
-          LicensePlate: "",
-          ChassisNo: "",
+          LicensePlate: vehicleData.plateNumber || "",
+          ChassisNo: vehicleData.vin || "",
           SellerName: "",
           BuyerName: "",
           SaleDate: "",
@@ -97,31 +228,8 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
           DocumentsCopy: "",
           SellerNationalID: "",
           BuyerNationalID: "",
-        },
-  });
-
-  React.useEffect(() => {
-    if (vehicleData && mode === "edit") {
-      reset({
-        RowNo: vehicleData.RowNo || "",
-        CarModel: vehicleData.CarModel || "",
-        SaleAmount: vehicleData.SaleAmount || "",
-        PurchaseAmount: vehicleData.PurchaseAmount || "",
-        LicensePlate: vehicleData.LicensePlate || "",
-        ChassisNo: vehicleData.ChassisNo || "",
-        SellerName: vehicleData.SellerName || "",
-        BuyerName: vehicleData.BuyerName || "",
-        SaleDate: vehicleData.SaleDate || "",
-        PurchaseDate: vehicleData.PurchaseDate || "",
-        SellerMobile: vehicleData.SellerMobile || "",
-        BuyerMobile: vehicleData.BuyerMobile || "",
-        PurchaseBroker: vehicleData.PurchaseBroker || "",
-        SaleBroker: vehicleData.SaleBroker || "",
-        Secretary: vehicleData.Secretary || "",
-        DocumentsCopy: vehicleData.DocumentsCopy || "",
-        SellerNationalID: vehicleData.SellerNationalID || "",
-        BuyerNationalID: vehicleData.BuyerNationalID || "",
-      });
+        });
+      }
     } else if (mode === "add") {
       reset({
         RowNo: "",
@@ -144,44 +252,43 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
         BuyerNationalID: "",
       });
     }
-  }, [vehicleData, mode, reset]);
+  }, [convertVehicleToCarRes, mode, reset, vehicleData]);
 
   const onSubmit: SubmitHandler<VehicleFormData> = async (data) => {
     try {
-      // Convert string numbers to actual numbers
-      const payload = {
-        ...data,
-        RowNo: data.RowNo ? Number(data.RowNo) : undefined,
-        SaleAmount: data.SaleAmount ? Number(data.SaleAmount) : undefined,
-        PurchaseAmount: data.PurchaseAmount
-          ? Number(data.PurchaseAmount)
-          : undefined,
-        SellerMobile: data.SellerMobile ? Number(data.SellerMobile) : undefined,
-        BuyerMobile: data.BuyerMobile ? Number(data.BuyerMobile) : undefined,
-        SellerNationalID: data.SellerNationalID
-          ? Number(data.SellerNationalID)
-          : undefined,
-        BuyerNationalID: data.BuyerNationalID
-          ? Number(data.BuyerNationalID)
-          : undefined,
+      const vehiclePayload: Partial<IVehicle> = {
+        vin: data.ChassisNo || "",
+        model: data.CarModel || "",
+        plateNumber: data.LicensePlate || "",
+        ...(mode === "edit" && isIVehicle(vehicleData)
+          ? {
+            productionYear: vehicleData.productionYear,
+            color: vehicleData.color || "",
+          }
+          : {
+            color: "",
+          }),
       };
 
       if (mode === "edit" && vehicleData?._id) {
-        // await updateCar(vehicleData._id, payload);
+        const vehicleId = isIVehicle(vehicleData)
+          ? vehicleData._id.toString()
+          : vehicleData._id;
+        await updateVehicle(vehicleId, vehiclePayload);
         toast("اطلاعات با موفقیت به‌روزرسانی شد", {
           icon: "✅",
           className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
         });
       } else {
-        // await createCar(payload);
+        await createVehicle(vehiclePayload);
         toast("اطلاعات با موفقیت ثبت شد", {
           icon: "✅",
           className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
         });
       }
 
-      // Invalidate and refetch cars data
-      queryClient.invalidateQueries({ queryKey: ["get-cars"] });
+      queryClient.invalidateQueries({ queryKey: ["get-all-vehicles"] });
+      queryClient.invalidateQueries({ queryKey: ["get-deals"] });
       onOpenChange(false);
     } catch (error) {
       console.error("Error saving vehicle:", error);

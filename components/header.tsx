@@ -97,7 +97,6 @@ const Header = () => {
       }
 
       toast.success("با موفقیت خارج شدید");
-      // Use replace instead of push to avoid redirect issues
       router.replace("/");
     } catch (error) {
       console.error("Logout error:", error);
@@ -106,7 +105,6 @@ const Header = () => {
         localStorage.clear();
         sessionStorage.clear();
       }
-      // Use replace instead of push to avoid redirect issues
       router.replace("/");
     }
   };
@@ -209,10 +207,7 @@ const Header = () => {
   const sellerSettlementStatus = React.useMemo(() => {
     if (!deals?.purchasePrice) return "—";
     const diff = Math.abs(totalPaidToSeller - sellerSettlementAmount);
-    // Use a larger threshold (10000 rials = 0.01 million) for settlement check
     if (diff < 10000) return "تسویه شده";
-    // If we paid less than purchase price, we owe seller (بدهکار)
-    // If we paid more than purchase price, seller owes us (بستانکار)
     return totalPaidToSeller < sellerSettlementAmount ? "بدهکار" : "بستانکار";
   }, [totalPaidToSeller, sellerSettlementAmount, deals?.purchasePrice]);
 
@@ -234,10 +229,7 @@ const Header = () => {
   const buyerSettlementStatus = React.useMemo(() => {
     if (!deals?.salePrice) return "—";
     const diff = Math.abs(totalReceivedFromBuyer - buyerSettlementAmount);
-    // Use a larger threshold (10000 rials = 0.01 million) for settlement check
     if (diff < 10000) return "تسویه شده";
-    // If we received less than sale price, buyer owes us (بدهکار)
-    // If we received more than sale price, we owe buyer (بستانکار)
     return totalReceivedFromBuyer < buyerSettlementAmount
       ? "بدهکار"
       : "بستانکار";
@@ -359,7 +351,7 @@ const Header = () => {
         </div>
       </div>
       <hr />
-      <div className="grid grid-cols-5 gap-8 items-center justify-start place-items-stretch">
+      <div className="grid grid-cols-5 gap-4 xl:gap-8 items-center justify-start place-items-stretch">
         <div className="flex gap-2 items-right items-baseline text-sm">
           <p className="text-sm">وضعیت خودرو:</p>
           <p className="px-7 bg-green-400 text-red-900 rounded py-1 text-sm">
@@ -390,7 +382,7 @@ const Header = () => {
 
         {/* <div className="flex gap-4 justify-between h-full space-y-1"> */}
         {/* <h3 className="text-sm text-blue-900 font-bold">سود:</h3> */}
-        <p className="text-sm text-green-700">
+        <p className="text-sm text-green-700 w-fit">
           سود ناخالص:{" "}
           <strong className="line-through text-black text-sm">
             {/* {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"} */}
@@ -406,9 +398,9 @@ const Header = () => {
         </p>
         {/* </div> */}
         <div className="flex gap-2 items-right items-baseline text-sm">
-          <p className="text-sm text-blue-800">وضعیت تسویه حساب با طرف اول:</p>
+          <p className="text-sm text-blue-800 w-full whitespace-nowrap">وضعیت مالی با طرف اول:</p>
           <p
-            className={`px-7 rounded py-1 text-sm ${sellerSettlementStatus === "تسویه شده"
+            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${sellerSettlementStatus === "تسویه شده"
               ? "bg-green-400 text-green-900"
               : sellerSettlementStatus === "بدهکار"
                 ? "bg-red-400 text-red-900"
@@ -422,9 +414,9 @@ const Header = () => {
         </div>
 
         <div className="flex gap-2 items-right items-baseline text-sm">
-          <p className="text-sm text-blue-800">وضعیت تسویه حساب با طرف دوم:</p>
+          <p className="text-sm text-blue-800 w-full whitespace-nowrap">وضعیت مالی با طرف دوم:</p>
           <p
-            className={`px-7 rounded py-1 text-sm ${buyerSettlementStatus === "تسویه شده"
+            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${buyerSettlementStatus === "تسویه شده"
               ? "bg-green-400 text-green-900"
               : buyerSettlementStatus === "بستانکار"
                 ? "bg-yellow-400 text-yellow-900"

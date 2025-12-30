@@ -877,9 +877,14 @@ import {
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import { IChequeNew, IDeal, ITransactionNew } from "@/types/new-backend-types";
 import React from "react";
+import { useDispatch } from "react-redux";
+import { setChassisNo, setSelectedDealId as setSelectedDealIdRedux } from "@/redux/slices/carSlice";
 
 const CustomersDashboard = () => {
   const [selectedNationalId, setSelectedNationalId] = React.useState<
+    string | null
+  >(null);
+  const [selectedChassisNo, setSelectedChassisNo] = React.useState<
     string | null
   >(null);
   const [searchValue, setSearchValue] = React.useState<string>("");
@@ -897,6 +902,7 @@ const CustomersDashboard = () => {
     null
   );
 
+  const dispatch = useDispatch();
   const getTransactionsByDealId = useGetTransactionsByDealId();
   const getChequesByDealId = useGetChequesByDealId();
   const { data: allPeople } = useGetAllPeople();
@@ -980,6 +986,17 @@ const CustomersDashboard = () => {
   const handleTransationDataByDealId = async (dealId: string) => {
     try {
       setSelectedDealId(dealId);
+      dispatch(setSelectedDealIdRedux(dealId));
+      const selectedDeal = selectedPersonDeals.find(
+        (d) => d._id.toString() === dealId
+      );
+      if (selectedDeal) {
+        const chassisNo = selectedDeal.vehicleSnapshot?.vin || null;
+        setSelectedChassisNo(chassisNo);
+        if (chassisNo) {
+          dispatch(setChassisNo(chassisNo));
+        }
+      }
       const res = await getTransactionsByDealId.mutateAsync(dealId ?? "");
       const filtered = res.filter((t) => {
         if (t.reason?.includes("حقوق") || t.reason?.includes("پرداخت حقوق")) {
@@ -1149,89 +1166,90 @@ const CustomersDashboard = () => {
       const isBuyer = buyerNationalIdStr === selectedNationalIdStr;
 
       return transactions.filter((t) => {
-        if (isSeller && t.type === "پرداخت") {
-          return (
-            t.reason === "خرید خودرو" ||
-            t.reason?.includes("خريد") ||
-            t.reason?.includes("خرید")
-          );
-        }
-        if (isBuyer && t.type === "دریافت") {
-          return t.reason === "فروش";
-        }
-        return false;
-      });
-    }
-
-    // State 3: Only Customer selected - show all vehicle-related transactions for this customer
-    // Filter: transactions must be from deals where this customer is involved (as seller or buyer)
-    if (allPersonTransactions.length > 0) {
-      return allPersonTransactions.filter((t) => {
-        // First: exclude salary transactions
         if (t.reason?.includes("حقوق") || t.reason?.includes("پرداخت حقوق")) {
           return false;
         }
 
-        // Second: check if transaction is vehicle-related
-        let isVehicleRelated = false;
         if (t.type === "پرداخت") {
           const reasonNormalized = t.reason?.replace(/\s/g, "") || "";
-          isVehicleRelated = (
+          const isVehicleRelated =
             t.reason === "خرید خودرو" ||
             t.reason?.includes("خريد") ||
             t.reason?.includes("خرید") ||
             t.reason === "درصد کارگزار" ||
             reasonNormalized.includes("هزینهوسیله") ||
-            reasonNormalized.includes("هزينهوسیله")
-          );
-        } else if (t.type === "دریافت") {
-          isVehicleRelated = t.reason === "فروش";
+            reasonNormalized.includes("هزينهوسیله");
+
+          if (isSeller && isVehicleRelated) {
+            return true;
+          }
         }
 
-        if (!isVehicleRelated) return false;
+        if (t.type === "دریافت") {
+          if (isBuyer && t.reason === "فروش") {
+            return true;
+          }
+        }
 
-        // Third: check if transaction is from a deal where this customer is involved
-        const dealForTransaction = selectedPersonDeals.find(
-          (d) => d._id.toString() === t.dealId
+        return false;
+      });
+    } else if (allPersonTransactions.length > 0) {
+      const allFilteredTransactions: ITransactionNew[] = [];
+
+      selectedPersonDeals.forEach((deal) => {
+        const dealTransactions = allPersonTransactions.filter(
+          (t) => t.dealId === deal._id.toString()
         );
-        if (!dealForTransaction) return false;
 
-        const sellerNationalIdStr =
-          dealForTransaction.seller.nationalId?.toString() || "";
-        const buyerNationalIdStr =
-          dealForTransaction.buyer.nationalId?.toString() || "";
+        const vehicleRelatedTransactions = dealTransactions.filter((t) => {
+          if (t.reason?.includes("حقوق") || t.reason?.includes("پرداخت حقوق")) {
+            return false;
+          }
+
+          if (t.type === "پرداخت") {
+            const reasonNormalized = t.reason?.replace(/\s/g, "") || "";
+            return (
+              t.reason === "خرید خودرو" ||
+              t.reason?.includes("خريد") ||
+              t.reason?.includes("خرید") ||
+              t.reason === "درصد کارگزار" ||
+              reasonNormalized.includes("هزینهوسیله") ||
+              reasonNormalized.includes("هزينهوسیله")
+            );
+          }
+
+          if (t.type === "دریافت") {
+            return t.reason === "فروش";
+          }
+
+          return false;
+        });
+
+        const sellerNationalIdStr = deal.seller.nationalId?.toString() || "";
+        const buyerNationalIdStr = deal.buyer.nationalId?.toString() || "";
         const selectedNationalIdStr = selectedNationalId?.toString() || "";
 
         const isSeller = sellerNationalIdStr === selectedNationalIdStr;
         const isBuyer = buyerNationalIdStr === selectedNationalIdStr;
 
-        // Show transaction if customer is involved in the deal
-        // For seller: show payments (خرید خودرو) - these are payments TO seller
-        // For buyer: show receipts (فروش) - these are receipts FROM buyer
-        if (isSeller && t.type === "پرداخت") {
-          return (
-            t.reason === "خرید خودرو" ||
-            t.reason?.includes("خريد") ||
-            t.reason?.includes("خرید")
-          );
-        }
-        if (isBuyer && t.type === "دریافت") {
-          return t.reason === "فروش";
-        }
+        vehicleRelatedTransactions.forEach((t) => {
+          if (isSeller && t.type === "پرداخت") {
+            if (
+              t.reason === "خرید خودرو" ||
+              t.reason?.includes("خريد") ||
+              t.reason?.includes("خرید")
+            ) {
+              allFilteredTransactions.push(t);
+            }
+          }
 
-        // Also show other vehicle-related transactions (broker commission, vehicle costs) 
-        // if customer is involved in the deal
-        if ((isSeller || isBuyer) && t.type === "پرداخت") {
-          const reasonNormalized = t.reason?.replace(/\s/g, "") || "";
-          return (
-            t.reason === "درصد کارگزار" ||
-            reasonNormalized.includes("هزینهوسیله") ||
-            reasonNormalized.includes("هزينهوسیله")
-          );
-        }
-
-        return false;
+          if (isBuyer && t.type === "دریافت" && t.reason === "فروش") {
+            allFilteredTransactions.push(t);
+          }
+        });
       });
+
+      return allFilteredTransactions;
     }
 
     return [];
@@ -1262,8 +1280,6 @@ const CustomersDashboard = () => {
     return { totalReceived: received, totalPayment: payment };
   }, [selectedNationalId, displayedTransactions]);
 
-  // diffPaymentReceived should match walletBalance in state 3 (customer only)
-  // In state 2 (customer + deal), it shows the difference for that specific deal
   const diffPaymentReceived = (totalPayment || 0) - (totalReceived || 0);
 
   React.useEffect(() => {
@@ -1320,7 +1336,6 @@ const CustomersDashboard = () => {
             (t) => t.dealId === deal._id.toString()
           );
 
-          // Count all "خرید خودرو" transactions for this deal, not just those with matching personId
           const paymentsToSeller = dealTransactions
             .filter(
               (t) =>
@@ -1347,7 +1362,6 @@ const CustomersDashboard = () => {
             (t) => t.dealId === deal._id.toString()
           );
 
-          // Count all "فروش" transactions for this deal, not just those with matching personId
           const receiptsFromBuyer = dealTransactions
             .filter(
               (t) =>
@@ -1360,30 +1374,13 @@ const CustomersDashboard = () => {
         }
       });
 
-      // totalPaidToSeller: what we paid to this person when they were seller
-      // totalReceivedFromBuyer: what we received from this person when they were buyer
-      // 
-      // If person was seller: we owe them (purchasePrice - paid) = sellerDebt (positive means we owe)
-      // If person was buyer: they owe us (salePrice - received) = buyerDebt (positive means they owe)
-      //
-      // walletBalance from customer perspective:
-      // - If they sold us a car: they should receive purchasePrice, we paid totalPaidToSeller
-      //   So they are owed: purchasePrice - totalPaidToSeller (positive = بستانکار)
-      // - If they bought a car: they should pay salePrice, we received totalReceivedFromBuyer
-      //   So they owe: salePrice - totalReceivedFromBuyer (positive = بدهکار)
-      //
-      // Net balance: (what they are owed as seller) - (what they owe as buyer)
-      // = (purchasePrice - totalPaidToSeller) - (salePrice - totalReceivedFromBuyer)
-      // = (purchasePrice - salePrice) - (totalPaidToSeller - totalReceivedFromBuyer)
-      const sellerCredit = totalPurchasePrice - totalPaidToSeller; // What we owe them (positive = they are بستانکار)
-      const buyerDebt = totalSalePrice - totalReceivedFromBuyer; // What they owe us (positive = they are بدهکار)
+      const sellerDebt = totalPurchasePrice - totalPaidToSeller;
+      const buyerDebt = totalSalePrice - totalReceivedFromBuyer;
 
-      // Net balance: positive = they are بستانکار (we owe them), negative = they are بدهکار (they owe us)
-      const walletBalance = sellerCredit - buyerDebt;
+      const walletBalance = buyerDebt - sellerDebt;
 
       const diff = Math.abs(walletBalance);
-      // Use a larger threshold (10000 rials) for settlement check
-      if (diff < 10000) {
+      if (diff < 0.01) {
         statusMap.set(nationalId, { status: "تسویه شده", amount: 0 });
       } else {
         statusMap.set(nationalId, {
@@ -1515,6 +1512,7 @@ const CustomersDashboard = () => {
                           setSelectedNationalId(person.nationalId.toString());
                           setTransactions([]);
                           setSelectedDealId(null);
+                          setSelectedChassisNo(null);
                         }}
                         className={`cursor-pointer ${selectedNationalId?.toString() ===
                           person.nationalId.toString()
@@ -1689,7 +1687,11 @@ const CustomersDashboard = () => {
                           handleTransationDataByDealId(deal._id.toString());
                           handleChequeDataByDealId(deal._id.toString());
                         }}
-                        className="hover:bg-gray-50 cursor-pointer"
+                        className={`hover:bg-gray-50 cursor-pointer ${selectedDealId === deal._id.toString() &&
+                          selectedChassisNo === deal.vehicleSnapshot?.vin
+                          ? "bg-blue-100"
+                          : ""
+                          }`}
                       >
                         <TableCell className="text-center">
                           {index + 1}
@@ -1732,12 +1734,13 @@ const CustomersDashboard = () => {
                     <TableHead className="w-12 text-center">تاریخ</TableHead>
                     <TableHead className="w-12 text-center">مبلغ</TableHead>
                     <TableHead className="w-12 text-center">تراکنش</TableHead>
+                    <TableHead className="w-12 text-center">روش پرداخت</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                  {displayedTransactions && displayedTransactions.length > 0
-                    ? displayedTransactions.map((item, index) => (
+                  {transactions && transactions.length > 0
+                    ? transactions.map((item, index) => (
                       <TableRow
                         key={`${item?._id}-${index}`}
                         className="hover:bg-gray-50 cursor-pointer"
@@ -1785,15 +1788,16 @@ const CustomersDashboard = () => {
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
-                    <TableHead className="w-12 text-center">ردیف</TableHead>
-                    <TableHead className="w-12 text-center">سریال چک</TableHead>
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[30%] text-center">ردیف</TableHead>
+                    <TableHead className="w-[70%] text-center">سریال چک</TableHead>
+                    <TableHead className="w-[70%] text-center">
                       شناسه صیادی
                     </TableHead>
-                    <TableHead className="w-12 text-center">مبلغ</TableHead>
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[90%] text-center">مبلغ</TableHead>
+                    <TableHead className="w-[60%] text-center">
                       تاریخ سررسید
                     </TableHead>
+                    <TableHead className="w-[50%] text-center">روش پرداخت</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -1801,7 +1805,12 @@ const CustomersDashboard = () => {
                   {displayedCheques?.map((item, index) => (
                     <TableRow
                       key={`${item?._id}-${index}`}
-                      className="hover:bg-gray-50 cursor-pointer"
+                      className={`hover:bg-gray-50 cursor-pointer ${selectedDealId &&
+                        selectedChassisNo &&
+                        item.relatedDealId?.toString() === selectedDealId
+                        ? "bg-blue-100"
+                        : ""
+                        }`}
                     >
                       <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell className="text-center">
@@ -1814,7 +1823,14 @@ const CustomersDashboard = () => {
                         {item?.amount?.toLocaleString("en-US") ?? ""}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item?.dueDate ?? ""}
+                        {item?.dueDate ?? "-"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {item?.type === "issued" || item?.type === "صادره"
+                          ? "صادره"
+                          : item?.type === "received" || item?.type === "وارده"
+                            ? "وارده"
+                            : "-"}
                       </TableCell>
                     </TableRow>
                   ))}

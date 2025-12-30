@@ -27,7 +27,6 @@ const Login = () => {
     if (!data) return;
     try {
       const res = await login.mutateAsync(data);
-      // Use replace instead of push to avoid redirect issues
       router.replace("/panel");
       dispatch(setRole(res.data.user.role));
       toast("وارد شدید", {
@@ -52,7 +51,6 @@ const Login = () => {
         >
           <h2 className="text-4xl text-gray-900 font-medium">ورود به پنل</h2>
           <p className="text-sm text-gray-500/90 my-3">
-            {/* Welcome back! Please sign in to continue */}
             خوش آمدید! برای ادامه وارد شوید
           </p>
 
@@ -125,7 +123,6 @@ const Login = () => {
               </label>
             </div>
             <a className="text-sm underline" href="#">
-              {/* Forgot password? */}
               فراموشی رمز
             </a>
           </div>
@@ -139,21 +136,11 @@ const Login = () => {
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
             )}
           </button>
-          {/* <p className="text-gray-500/90 text-sm mt-4">
-            Don’t have an account?{" "}
-            <a className="text-indigo-400 hover:underline" href="#">
-              Sign up
-            </a>
-          </p> */}
+
         </form>
       </div>
 
       <div className="w-full hidden md:inline-block">
-        {/* <img
-          className="h-full"
-          src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/login/leftSideImage.png"
-          alt="leftSideImage"
-        /> */}
 
         <img
           src="/Airbrush-OBJECT-REMOVER-1763980310364.jpg"
@@ -161,12 +148,6 @@ const Login = () => {
           className="h-full w-full object-cover"
         />
 
-        {/* 
-        <img
-          src="/photo-1496917756835-20cb06e75b4e.jpg"
-          alt="googleLogo"
-          className="h-full"
-        /> */}
       </div>
     </div>
   );

@@ -70,16 +70,16 @@ export interface IDeal {
   _id: Types.ObjectId;
   vehicleId: number;
   vehicleSnapshot: {
-    vin: string; // This is the ChassisNo/VIN
+    vin: string;
     model: string;
     productionYear: number;
     plateNumber: string;
   };
   status: string;
   purchaseDate: string;
-  purchasePrice: number; // Maps to PurchaseAmount
+  purchasePrice: number;
   saleDate: string;
-  salePrice: number; // Maps to SaleAmount
+  salePrice: number;
   seller: {
     personId: string;
     fullName: string;
@@ -271,15 +271,15 @@ export interface ISalaries {
 // ============================================
 export interface ITransactionNew {
   _id: Types.ObjectId;
-  amount: number; // Maps to TransactionAmount
-  transactionDate: string; // Maps to TransactionDate
+  amount: number;
+  transactionDate: string;
   type: string; // Maps to TransactionType ("پرداخت" | "دریافت" | "افزایش سرمایه" | "برداشت سرمایه")
-  reason: string; // Maps to TransactionReason
-  paymentMethod: string; // Maps to TransactionMethod
-  personId: string; // Maps to CustomerNationalID
-  dealId: string; // Maps to ChassisNo (but now it's a deal ID)
-  bussinessAccountId: string; // Maps to ShowroomCard
-  description: string; // Maps to Notes
+  reason: string;
+  paymentMethod: string;
+  personId: string;
+  dealId: string;
+  bussinessAccountId: string;
+  description: string;
   createdAt: string;
   updatedAt: string;
 }

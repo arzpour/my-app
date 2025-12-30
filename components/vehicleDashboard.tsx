@@ -2541,28 +2541,28 @@ const VehicleDashboard = () => {
     );
   }, [transactions, cheques, deal]);
 
-  const unpaidCheques = React.useMemo(() => {
+  const allChequesForDisplay = React.useMemo(() => {
     if (!cheques || cheques.length === 0) return [];
     return cheques;
   }, [cheques]);
 
   const totalIssuedChequesUnpaid =
-    unpaidCheques
-      ?.filter((c) => isIssuedCheque(c))
+    allChequesForDisplay
+      ?.filter((c) => isIssuedCheque(c) && !isChequePaid(c))
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
   const totalIssuedChequesPaid =
-    cheques
+    allChequesForDisplay
       ?.filter((c) => isIssuedCheque(c) && isChequePaid(c))
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
   const totalReceivedChequesUnpaid =
-    unpaidCheques
-      ?.filter((c) => isReceivedCheque(c))
+    allChequesForDisplay
+      ?.filter((c) => isReceivedCheque(c) && !isChequePaid(c))
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
   const totalReceivedChequesPaid =
-    cheques
+    allChequesForDisplay
       ?.filter((c) => isReceivedCheque(c) && isChequePaid(c))
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
@@ -2896,13 +2896,14 @@ const VehicleDashboard = () => {
               >
                 <TableHeader className="top-0 sticky">
                   <TableRow className="hover:bg-transparent bg-gray-100">
-                    <TableHead className="text-center">ردیف</TableHead>
-                    <TableHead className="text-center">تاریخ</TableHead>
-                    <TableHead className="text-center">مبلغ</TableHead>
-                    <TableHead className="text-center">شریک</TableHead>
-                    <TableHead className="text-center">دلیل تراکنش</TableHead>
-                    <TableHead className="text-center">روش پرداخت</TableHead>
-                    <TableHead className="text-center">حساب مبدا</TableHead>
+                    <TableHead className="w-[30%] text-center">ردیف</TableHead>
+                    <TableHead className="w-[70%] text-center">تاریخ</TableHead>
+                    <TableHead className="w-[120%] text-center">مبلغ</TableHead>
+                    <TableHead className="w-[80%] text-center">شریک</TableHead>
+                    <TableHead className="w-[80%] text-center">درصد</TableHead>
+                    <TableHead className="w-[80%] text-center">دلیل تراکنش</TableHead>
+                    <TableHead className="w-[80%] text-center">روش پرداخت</TableHead>
+                    <TableHead className="w-[80%] text-center">حساب مبدا</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -2944,7 +2945,7 @@ const VehicleDashboard = () => {
                               ? `${(
                                 partnership.profitSharePercentage * 100
                               ).toFixed(2)}%`
-                              : ""}
+                              : "-"}
                           </TableCell>
                           <TableCell className="text-center">
                             {partnership.investmentAmount > 0
@@ -2952,14 +2953,14 @@ const VehicleDashboard = () => {
                               : "سود شراکت"}
                           </TableCell>
                           <TableCell className="text-center">
-                            {relatedTransaction?.paymentMethod || ""}
+                            {relatedTransaction?.paymentMethod || "-"}
                           </TableCell>
                           <TableCell className="text-center">
                             {relatedTransaction?.bussinessAccountId
                               ? accountNameMap.get(
                                 relatedTransaction.bussinessAccountId
                               ) || relatedTransaction.bussinessAccountId
-                              : ""}
+                              : "-"}
                           </TableCell>
                         </TableRow>
                       );
@@ -3017,8 +3018,8 @@ const VehicleDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {unpaidCheques && unpaidCheques.length > 0
-                    ? unpaidCheques?.map((item, index) => (
+                  {allChequesForDisplay && allChequesForDisplay.length > 0
+                    ? allChequesForDisplay?.map((item, index) => (
                       <TableRow
                         key={`${item?._id}-${index}`}
                         className="has-data-[state=checked]:bg-muted/50"
@@ -3075,8 +3076,8 @@ const VehicleDashboard = () => {
                 </TableBody>
               </Table>
             </div>
-            <div className="grid grid-cols-4 gap-3 items-center justify-center mt-3">
-              <p className="flex gap-2 items-center">
+            <div className="grid grid-cols-4 gap-3 items-center mt-3">
+              <p className="flex gap-2 items-center justify-start">
                 <span className="text-xs">صادره وصول نشده</span>
                 <span className="text-xs">
                   {totalIssuedChequesUnpaid
@@ -3084,7 +3085,7 @@ const VehicleDashboard = () => {
                     : 0}
                 </span>
               </p>
-              <p className="flex gap-2 items-center">
+              <p className="flex gap-2 items-center justify-center">
                 <span className="text-xs">صادره وصول شده</span>
                 <span className="text-xs">
                   {totalIssuedChequesPaid
@@ -3092,7 +3093,7 @@ const VehicleDashboard = () => {
                     : 0}
                 </span>
               </p>
-              <p className="flex gap-2 items-center">
+              <p className="flex gap-2 items-center justify-center">
                 <span className="text-xs">وارده وصول نشده</span>
                 <span className="text-xs">
                   {totalReceivedChequesUnpaid
@@ -3100,7 +3101,7 @@ const VehicleDashboard = () => {
                     : 0}
                 </span>
               </p>
-              <p className="flex gap-2 items-center">
+              <p className="flex gap-2 items-center justify-end">
                 <span className="text-xs">وارده وصول شده</span>
                 <span className="text-xs">
                   {totalReceivedChequesPaid
