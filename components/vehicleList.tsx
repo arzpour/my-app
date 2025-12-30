@@ -103,6 +103,8 @@ const VehicleList = () => {
                   <TableHead className="text-center">مدل ماشین</TableHead>
                   <TableHead className="text-center">کدملی خریدار</TableHead>
                   <TableHead className="text-center">کدملی فروشنده</TableHead>
+                  <TableHead className="text-center">کارگزار خرید</TableHead>
+                  <TableHead className="text-center">کارگزار فروش</TableHead>
                   <TableHead className="text-center">مبلغ فروش</TableHead>
                   <TableHead className="text-center">مبلغ خرید</TableHead>
                   <TableHead className="text-center">پلاک</TableHead>
@@ -129,6 +131,12 @@ const VehicleList = () => {
                       </TableCell>
                       <TableCell className="text-center">
                         {relatedDeal?.seller?.nationalId || "—"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {relatedDeal?.purchaseBroker.fullName || "—"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {relatedDeal?.saleBroker.fullName || "—"}
                       </TableCell>
                       <TableCell className="text-center">
                         {relatedDeal?.salePrice

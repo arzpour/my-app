@@ -981,28 +981,28 @@ const VehicleDashboard = () => {
     );
   }, [transactions, cheques, deal]);
 
-  const unpaidCheques = React.useMemo(() => {
+  const allChequesForDisplay = React.useMemo(() => {
     if (!cheques || cheques.length === 0) return [];
-    return cheques.filter((c) => !isChequePaid(c));
+    return cheques;
   }, [cheques]);
 
   const totalIssuedChequesUnpaid =
-    unpaidCheques
-      ?.filter((c) => isIssuedCheque(c))
+    allChequesForDisplay
+      ?.filter((c) => isIssuedCheque(c) && !isChequePaid(c))
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
   const totalIssuedChequesPaid =
-    cheques
+    allChequesForDisplay
       ?.filter((c) => isIssuedCheque(c) && isChequePaid(c))
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
   const totalReceivedChequesUnpaid =
-    unpaidCheques
-      ?.filter((c) => isReceivedCheque(c))
+    allChequesForDisplay
+      ?.filter((c) => isReceivedCheque(c) && !isChequePaid(c))
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
   const totalReceivedChequesPaid =
-    cheques
+    allChequesForDisplay
       ?.filter((c) => isReceivedCheque(c) && isChequePaid(c))
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
@@ -1153,7 +1153,7 @@ const VehicleDashboard = () => {
                           <TableCell className="text-center">
                             {item?.bussinessAccountId
                               ? accountNameMap.get(item.bussinessAccountId) ||
-                                item.bussinessAccountId
+                              item.bussinessAccountId
                               : ""}
                           </TableCell>
                         </TableRow>
@@ -1292,7 +1292,7 @@ const VehicleDashboard = () => {
                         <TableCell className="text-center">
                           {item?.bussinessAccountId
                             ? accountNameMap.get(item.bussinessAccountId) ||
-                              item.bussinessAccountId
+                            item.bussinessAccountId
                             : ""}
                         </TableCell>
                       </TableRow>
@@ -1336,74 +1336,75 @@ const VehicleDashboard = () => {
               >
                 <TableHeader className="top-0 sticky">
                   <TableRow className="hover:bg-transparent bg-gray-100">
-                    <TableHead className="text-center">ردیف</TableHead>
-                    <TableHead className="text-center">تاریخ</TableHead>
-                    <TableHead className="text-center">مبلغ</TableHead>
-                    <TableHead className="text-center">شریک</TableHead>
-                    <TableHead className="text-center">دلیل تراکنش</TableHead>
-                    <TableHead className="text-center">روش پرداخت</TableHead>
-                    <TableHead className="text-center">حساب مبدا</TableHead>
+                    <TableHead className="w-[30%] text-center">ردیف</TableHead>
+                    <TableHead className="w-[70%] text-center">تاریخ</TableHead>
+                    <TableHead className="w-[120%] text-center">مبلغ</TableHead>
+                    <TableHead className="w-[80%] text-center">شریک</TableHead>
+                    <TableHead className="w-[80%] text-center">درصد</TableHead>
+                    <TableHead className="w-[80%] text-center">دلیل تراکنش</TableHead>
+                    <TableHead className="w-[80%] text-center">روش پرداخت</TableHead>
+                    <TableHead className="w-[80%] text-center">حساب مبدا</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
                   {deal?.partnerships && deal.partnerships.length > 0
                     ? deal.partnerships.map((partnership, index) => {
-                        const relatedTransaction = transactions?.find(
-                          (t) =>
-                            t.type === "پرداخت" &&
-                            t.personId?.toString() ===
-                              partnership.partner.personId
-                        );
+                      const relatedTransaction = transactions?.find(
+                        (t) =>
+                          t.type === "پرداخت" &&
+                          t.personId?.toString() ===
+                          partnership.partner.personId
+                      );
 
-                        return (
-                          <TableRow
-                            key={`${partnership.partner.personId}-${index}`}
-                            className="hover:bg-gray-50"
-                          >
-                            <TableCell className="text-center">
-                              {index + 1}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {relatedTransaction?.transactionDate ||
-                                deal.createdAt?.split("T")[0] ||
-                                ""}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {partnership.investmentAmount
-                                ? partnership.investmentAmount.toLocaleString(
-                                    "en-US"
-                                  )
-                                : ""}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {partnership.partner.name || ""}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {partnership.profitSharePercentage
-                                ? `${(
-                                    partnership.profitSharePercentage * 100
-                                  ).toFixed(2)}%`
-                                : ""}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {partnership.investmentAmount > 0
-                                ? "اصل شرکت"
-                                : "سود شراکت"}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {relatedTransaction?.paymentMethod || ""}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {relatedTransaction?.bussinessAccountId
-                                ? accountNameMap.get(
-                                    relatedTransaction.bussinessAccountId
-                                  ) || relatedTransaction.bussinessAccountId
-                                : ""}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
+                      return (
+                        <TableRow
+                          key={`${partnership.partner.personId}-${index}`}
+                          className="hover:bg-gray-50"
+                        >
+                          <TableCell className="text-center">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {relatedTransaction?.transactionDate ||
+                              deal.createdAt?.split("T")[0] ||
+                              ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {partnership.investmentAmount
+                              ? partnership.investmentAmount.toLocaleString(
+                                "en-US"
+                              )
+                              : ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {partnership.partner.name || ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {partnership.profitSharePercentage
+                              ? `${(
+                                partnership.profitSharePercentage * 100
+                              ).toFixed(2)}%`
+                              : "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {partnership.investmentAmount > 0
+                              ? "اصل شرکت"
+                              : "سود شراکت"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {relatedTransaction?.paymentMethod || "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {relatedTransaction?.bussinessAccountId
+                              ? accountNameMap.get(
+                                relatedTransaction.bussinessAccountId
+                              ) || relatedTransaction.bussinessAccountId
+                              : "-"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                     : null}
                 </TableBody>
               </Table>
@@ -1457,66 +1458,66 @@ const VehicleDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {unpaidCheques && unpaidCheques.length > 0
-                    ? unpaidCheques?.map((item, index) => (
-                        <TableRow
-                          key={`${item?._id}-${index}`}
-                          className="has-data-[state=checked]:bg-muted/50"
-                        >
-                          <TableCell className="text-center">
-                            {index + 1}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.type}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.payer?.fullName}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.amount?.toLocaleString("en-US") ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.dueDate}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.status}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.sayadiID ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.chequeNumber}
-                          </TableCell>
-                        </TableRow>
-                      ))
+                  {allChequesForDisplay && allChequesForDisplay.length > 0
+                    ? allChequesForDisplay?.map((item, index) => (
+                      <TableRow
+                        key={`${item?._id}-${index}`}
+                        className="has-data-[state=checked]:bg-muted/50"
+                      >
+                        <TableCell className="text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.type}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.payer?.fullName}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.amount?.toLocaleString("en-US") ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.dueDate}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.status}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.sayadiID ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.chequeNumber}
+                        </TableCell>
+                      </TableRow>
+                    ))
                     : null}
 
                   {[].length > 0
                     ? []?.map((item, index) => (
-                        <TableRow
-                          key={`${item}-${index}`}
-                          className="has-data-[state=checked]:bg-muted/50"
-                        >
-                          <TableCell className="text-center">
-                            {index + 1}
-                          </TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">
-                            {item ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                        </TableRow>
-                      ))
+                      <TableRow
+                        key={`${item}-${index}`}
+                        className="has-data-[state=checked]:bg-muted/50"
+                      >
+                        <TableCell className="text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">
+                          {item ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                      </TableRow>
+                    ))
                     : null}
                 </TableBody>
               </Table>
             </div>
-            <div className="grid grid-cols-4 gap-3 items-center justify-center mt-3">
-              <p className="flex gap-2 items-center">
+            <div className="grid grid-cols-4 gap-3 items-center mt-3">
+              <p className="flex gap-2 items-center justify-start">
                 <span className="text-xs">صادره وصول نشده</span>
                 <span className="text-xs">
                   {totalIssuedChequesUnpaid
@@ -1524,7 +1525,7 @@ const VehicleDashboard = () => {
                     : 0}
                 </span>
               </p>
-              <p className="flex gap-2 items-center">
+              <p className="flex gap-2 items-center justify-center">
                 <span className="text-xs">صادره وصول شده</span>
                 <span className="text-xs">
                   {totalIssuedChequesPaid
@@ -1532,7 +1533,7 @@ const VehicleDashboard = () => {
                     : 0}
                 </span>
               </p>
-              <p className="flex gap-2 items-center">
+              <p className="flex gap-2 items-center justify-center">
                 <span className="text-xs">وارده وصول نشده</span>
                 <span className="text-xs">
                   {totalReceivedChequesUnpaid
@@ -1540,7 +1541,7 @@ const VehicleDashboard = () => {
                     : 0}
                 </span>
               </p>
-              <p className="flex gap-2 items-center">
+              <p className="flex gap-2 items-center justify-end">
                 <span className="text-xs">وارده وصول شده</span>
                 <span className="text-xs">
                   {totalReceivedChequesPaid

@@ -97,7 +97,7 @@ const Header = () => {
       }
 
       toast.success("با موفقیت خارج شدید");
-      router.push("/");
+      router.replace("/");
     } catch (error) {
       console.error("Logout error:", error);
       queryClient.clear();
@@ -105,7 +105,7 @@ const Header = () => {
         localStorage.clear();
         sessionStorage.clear();
       }
-      router.push("/");
+      router.replace("/");
     }
   };
 
@@ -183,11 +183,14 @@ const Header = () => {
     );
   };
 
-  const sellerPersonId = deals?.seller?.personId?.toString();
   const paymentsToSeller =
     transactions
       ?.filter(
-        (t) => t.type === "پرداخت" && t.personId?.toString() === sellerPersonId
+        (t) =>
+          t.type === "پرداخت" &&
+          (t.reason === "خرید خودرو" ||
+            t.reason?.includes("خريد") ||
+            t.reason?.includes("خرید"))
       )
       .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
   const issuedPaidCheques =
@@ -196,7 +199,7 @@ const Header = () => {
         (c) =>
           isIssuedCheque(c) &&
           isChequePaid(c) &&
-          c.payee?.personId?.toString() === sellerPersonId
+          c.payee?.personId?.toString() === deals?.seller?.personId?.toString()
       )
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
   const totalPaidToSeller = paymentsToSeller + issuedPaidCheques;
@@ -204,16 +207,13 @@ const Header = () => {
   const sellerSettlementStatus = React.useMemo(() => {
     if (!deals?.purchasePrice) return "—";
     const diff = Math.abs(totalPaidToSeller - sellerSettlementAmount);
-    if (diff < 0.01) return "تسویه شده";
+    if (diff < 10000) return "تسویه شده";
     return totalPaidToSeller < sellerSettlementAmount ? "بدهکار" : "بستانکار";
   }, [totalPaidToSeller, sellerSettlementAmount, deals?.purchasePrice]);
 
-  const buyerPersonId = deals?.buyer?.personId?.toString();
   const receiptsFromBuyer =
     transactions
-      ?.filter(
-        (t) => t.type === "دریافت" && t.personId?.toString() === buyerPersonId
-      )
+      ?.filter((t) => t.type === "دریافت" && t.reason === "فروش")
       .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
   const receivedPaidCheques =
     cheques
@@ -221,7 +221,7 @@ const Header = () => {
         (c) =>
           isReceivedCheque(c) &&
           isChequePaid(c) &&
-          c.payer?.personId?.toString() === buyerPersonId
+          c.payer?.personId?.toString() === deals?.buyer?.personId?.toString()
       )
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
   const totalReceivedFromBuyer = receiptsFromBuyer + receivedPaidCheques;
@@ -229,10 +229,10 @@ const Header = () => {
   const buyerSettlementStatus = React.useMemo(() => {
     if (!deals?.salePrice) return "—";
     const diff = Math.abs(totalReceivedFromBuyer - buyerSettlementAmount);
-    if (diff < 0.01) return "تسویه شده";
+    if (diff < 10000) return "تسویه شده";
     return totalReceivedFromBuyer < buyerSettlementAmount
-      ? "بستانکار"
-      : "بدهکار";
+      ? "بدهکار"
+      : "بستانکار";
   }, [totalReceivedFromBuyer, buyerSettlementAmount, deals?.salePrice]);
 
   return (
@@ -351,7 +351,7 @@ const Header = () => {
         </div>
       </div>
       <hr />
-      <div className="grid grid-cols-5 gap-8 items-center justify-start place-items-stretch">
+      <div className="grid grid-cols-5 gap-4 xl:gap-8 items-center justify-start place-items-stretch">
         <div className="flex gap-2 items-right items-baseline text-sm">
           <p className="text-sm">وضعیت خودرو:</p>
           <p className="px-7 bg-green-400 text-red-900 rounded py-1 text-sm">
@@ -382,7 +382,7 @@ const Header = () => {
 
         {/* <div className="flex gap-4 justify-between h-full space-y-1"> */}
         {/* <h3 className="text-sm text-blue-900 font-bold">سود:</h3> */}
-        <p className="text-sm text-green-700">
+        <p className="text-sm text-green-700 w-fit">
           سود ناخالص:{" "}
           <strong className="line-through text-black text-sm">
             {/* {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"} */}
@@ -398,34 +398,32 @@ const Header = () => {
         </p>
         {/* </div> */}
         <div className="flex gap-2 items-right items-baseline text-sm">
-          <p className="text-sm text-blue-800">وضعیت تسویه حساب با طرف اول:</p>
+          <p className="text-sm text-blue-800 w-full whitespace-nowrap">وضعیت مالی با طرف اول:</p>
           <p
-            className={`px-7 rounded py-1 text-sm ${
-              sellerSettlementStatus === "تسویه شده"
-                ? "bg-green-400 text-green-900"
-                : sellerSettlementStatus === "بدهکار"
+            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${sellerSettlementStatus === "تسویه شده"
+              ? "bg-green-400 text-green-900"
+              : sellerSettlementStatus === "بدهکار"
                 ? "bg-red-400 text-red-900"
                 : sellerSettlementStatus === "بستانکار"
-                ? "bg-yellow-400 text-yellow-900"
-                : "bg-gray-200 text-gray-600"
-            }`}
+                  ? "bg-yellow-400 text-yellow-900"
+                  : "bg-gray-200 text-gray-600"
+              }`}
           >
             {sellerSettlementStatus}
           </p>
         </div>
 
         <div className="flex gap-2 items-right items-baseline text-sm">
-          <p className="text-sm text-blue-800">وضعیت تسویه حساب با طرف دوم:</p>
+          <p className="text-sm text-blue-800 w-full whitespace-nowrap">وضعیت مالی با طرف دوم:</p>
           <p
-            className={`px-7 rounded py-1 text-sm ${
-              buyerSettlementStatus === "تسویه شده"
-                ? "bg-green-400 text-green-900"
-                : buyerSettlementStatus === "بستانکار"
+            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${buyerSettlementStatus === "تسویه شده"
+              ? "bg-green-400 text-green-900"
+              : buyerSettlementStatus === "بستانکار"
                 ? "bg-yellow-400 text-yellow-900"
                 : buyerSettlementStatus === "بدهکار"
-                ? "bg-red-400 text-red-900"
-                : "bg-gray-200 text-gray-600"
-            }`}
+                  ? "bg-red-400 text-red-900"
+                  : "bg-gray-200 text-gray-600"
+              }`}
           >
             {buyerSettlementStatus}
           </p>

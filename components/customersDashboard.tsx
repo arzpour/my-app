@@ -14,9 +14,14 @@ import {
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import { IChequeNew, IDeal, ITransactionNew } from "@/types/new-backend-types";
 import React from "react";
+import { useDispatch } from "react-redux";
+import { setChassisNo, setSelectedDealId as setSelectedDealIdRedux } from "@/redux/slices/carSlice";
 
 const CustomersDashboard = () => {
   const [selectedNationalId, setSelectedNationalId] = React.useState<
+    string | null
+  >(null);
+  const [selectedChassisNo, setSelectedChassisNo] = React.useState<
     string | null
   >(null);
   const [searchValue, setSearchValue] = React.useState<string>("");
@@ -29,10 +34,12 @@ const CustomersDashboard = () => {
   >([]);
   const [transactions, setTransactions] = React.useState<ITransactionNew[]>([]);
   const [cheques, setCheques] = React.useState<IChequeNew[]>([]);
+  const [allPersonCheques, setAllPersonCheques] = React.useState<IChequeNew[]>([]);
   const [selectedDealId, setSelectedDealId] = React.useState<string | null>(
     null
   );
 
+  const dispatch = useDispatch();
   const getTransactionsByDealId = useGetTransactionsByDealId();
   const getChequesByDealId = useGetChequesByDealId();
   const { data: allPeople } = useGetAllPeople();
@@ -116,6 +123,17 @@ const CustomersDashboard = () => {
   const handleTransationDataByDealId = async (dealId: string) => {
     try {
       setSelectedDealId(dealId);
+      dispatch(setSelectedDealIdRedux(dealId));
+      const selectedDeal = selectedPersonDeals.find(
+        (d) => d._id.toString() === dealId
+      );
+      if (selectedDeal) {
+        const chassisNo = selectedDeal.vehicleSnapshot?.vin || null;
+        setSelectedChassisNo(chassisNo);
+        if (chassisNo) {
+          dispatch(setChassisNo(chassisNo));
+        }
+      }
       const res = await getTransactionsByDealId.mutateAsync(dealId ?? "");
       const filtered = res.filter((t) => {
         if (t.reason?.includes("حقوق") || t.reason?.includes("پرداخت حقوق")) {
@@ -155,6 +173,86 @@ const CustomersDashboard = () => {
     }
   };
 
+  React.useEffect(() => {
+    const fetchAllDealsCheques = async () => {
+      if (allDeals.length === 0) {
+        setAllPersonCheques([]);
+        return;
+      }
+
+      try {
+        const chequesPromises = allDeals.map((deal) =>
+          getChequesByDealId.mutateAsync(deal._id.toString())
+        );
+        const chequesArrays = await Promise.all(chequesPromises);
+        const allCheques = chequesArrays.flat();
+        setAllPersonCheques(allCheques);
+      } catch (error) {
+        console.error("Error fetching all deals cheques:", error);
+        setAllPersonCheques([]);
+      }
+    };
+
+    fetchAllDealsCheques();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allDeals]);
+
+  const displayedCheques = React.useMemo(() => {
+    if (!selectedNationalId) return [];
+
+    if (selectedDealId && cheques.length > 0) {
+      const selectedDeal = selectedPersonDeals.find(
+        (d) => d._id.toString() === selectedDealId
+      );
+      if (!selectedDeal) return [];
+
+      const sellerNationalIdStr =
+        selectedDeal.seller.nationalId?.toString() || "";
+      const buyerNationalIdStr =
+        selectedDeal.buyer.nationalId?.toString() || "";
+      const selectedNationalIdStr = selectedNationalId?.toString() || "";
+
+      const isSeller = sellerNationalIdStr === selectedNationalIdStr;
+      const isBuyer = buyerNationalIdStr === selectedNationalIdStr;
+
+      return cheques.filter((c) => {
+        if (isSeller) {
+          return (
+            c.type === "issued" ||
+            c.type === "صادره" ||
+            c.payee?.nationalId?.toString() === selectedNationalIdStr
+          );
+        }
+        if (isBuyer) {
+          return (
+            c.type === "received" ||
+            c.type === "وارده" ||
+            c.payer?.nationalId?.toString() === selectedNationalIdStr
+          );
+        }
+        return false;
+      });
+    }
+
+    if (allPersonCheques.length > 0) {
+      const selectedNationalIdStr = selectedNationalId?.toString() || "";
+      return allPersonCheques.filter((c) => {
+        return (
+          c.payer?.nationalId?.toString() === selectedNationalIdStr ||
+          c.payee?.nationalId?.toString() === selectedNationalIdStr
+        );
+      });
+    }
+
+    return [];
+  }, [
+    selectedNationalId,
+    selectedDealId,
+    cheques,
+    selectedPersonDeals,
+    allPersonCheques,
+  ]);
+
   const filteredPeopleList = React.useMemo(() => {
     if (!searchValue) return peopleList;
 
@@ -186,6 +284,109 @@ const CustomersDashboard = () => {
       .join(",");
   }, [selectedPersonDeals]);
 
+  const displayedTransactions = React.useMemo(() => {
+    if (!selectedNationalId) return [];
+
+    if (selectedDealId && transactions.length > 0) {
+      const selectedDeal = selectedPersonDeals.find(
+        (d) => d._id.toString() === selectedDealId
+      );
+      if (!selectedDeal) return [];
+
+      const sellerNationalIdStr =
+        selectedDeal.seller.nationalId?.toString() || "";
+      const buyerNationalIdStr =
+        selectedDeal.buyer.nationalId?.toString() || "";
+      const selectedNationalIdStr = selectedNationalId?.toString() || "";
+
+      const isSeller = sellerNationalIdStr === selectedNationalIdStr;
+      const isBuyer = buyerNationalIdStr === selectedNationalIdStr;
+
+      return transactions.filter((t) => {
+        if (isSeller && t.type === "پرداخت") {
+          return (
+            t.reason === "خرید خودرو" ||
+            t.reason?.includes("خريد") ||
+            t.reason?.includes("خرید")
+          );
+        }
+        if (isBuyer && t.type === "دریافت") {
+          return t.reason === "فروش";
+        }
+        return false;
+      });
+    }
+
+    if (allPersonTransactions.length > 0) {
+      return allPersonTransactions.filter((t) => {
+        if (t.reason?.includes("حقوق") || t.reason?.includes("پرداخت حقوق")) {
+          return false;
+        }
+
+        let isVehicleRelated = false;
+        if (t.type === "پرداخت") {
+          const reasonNormalized = t.reason?.replace(/\s/g, "") || "";
+          isVehicleRelated = (
+            t.reason === "خرید خودرو" ||
+            t.reason?.includes("خريد") ||
+            t.reason?.includes("خرید") ||
+            t.reason === "درصد کارگزار" ||
+            reasonNormalized.includes("هزینهوسیله") ||
+            reasonNormalized.includes("هزينهوسیله")
+          );
+        } else if (t.type === "دریافت") {
+          isVehicleRelated = t.reason === "فروش";
+        }
+
+        if (!isVehicleRelated) return false;
+
+        const dealForTransaction = selectedPersonDeals.find(
+          (d) => d._id.toString() === t.dealId
+        );
+        if (!dealForTransaction) return false;
+
+        const sellerNationalIdStr =
+          dealForTransaction.seller.nationalId?.toString() || "";
+        const buyerNationalIdStr =
+          dealForTransaction.buyer.nationalId?.toString() || "";
+        const selectedNationalIdStr = selectedNationalId?.toString() || "";
+
+        const isSeller = sellerNationalIdStr === selectedNationalIdStr;
+        const isBuyer = buyerNationalIdStr === selectedNationalIdStr;
+
+        if (isSeller && t.type === "پرداخت") {
+          return (
+            t.reason === "خرید خودرو" ||
+            t.reason?.includes("خريد") ||
+            t.reason?.includes("خرید")
+          );
+        }
+        if (isBuyer && t.type === "دریافت") {
+          return t.reason === "فروش";
+        }
+
+        if ((isSeller || isBuyer) && t.type === "پرداخت") {
+          const reasonNormalized = t.reason?.replace(/\s/g, "") || "";
+          return (
+            t.reason === "درصد کارگزار" ||
+            reasonNormalized.includes("هزینهوسیله") ||
+            reasonNormalized.includes("هزينهوسیله")
+          );
+        }
+
+        return false;
+      });
+    }
+
+    return [];
+  }, [
+    selectedNationalId,
+    selectedDealId,
+    transactions,
+    selectedPersonDeals,
+    allPersonTransactions,
+  ]);
+
   const { totalReceived, totalPayment } = React.useMemo(() => {
     if (!selectedNationalId) {
       return { totalReceived: 0, totalPayment: 0 };
@@ -194,101 +395,22 @@ const CustomersDashboard = () => {
     let received = 0;
     let payment = 0;
 
-    if (transactions.length > 0) {
-      transactions.forEach((t) => {
-        const dealForTransaction = selectedPersonDeals.find(
-          (d) => d._id.toString() === t.dealId
-        );
-
-        if (dealForTransaction) {
-          const sellerNationalIdStr =
-            dealForTransaction.seller.nationalId?.toString() || "";
-          const buyerNationalIdStr =
-            dealForTransaction.buyer.nationalId?.toString() || "";
-          const selectedNationalIdStr = selectedNationalId?.toString() || "";
-
-          const isSeller = sellerNationalIdStr === selectedNationalIdStr;
-          const isBuyer = buyerNationalIdStr === selectedNationalIdStr;
-
-          if (isSeller && t.type === "پرداخت") {
-            if (
-              t.reason === "خرید خودرو" ||
-              t.reason?.includes("خريد") ||
-              t.reason?.includes("خرید")
-            ) {
-              payment += t.amount || 0;
-            }
-          }
-
-          if (isBuyer && t.type === "دریافت") {
-            if (t.reason === "فروش") {
-              received += t.amount || 0;
-            }
-          }
+    displayedTransactions.forEach((t) => {
+      if (t.type === "پرداخت") {
+        const reasonNormalized = t.reason?.replace(/\s/g, "") || "";
+        const isVehicleCost =
+          reasonNormalized.includes("هزینهوسیله") ||
+          reasonNormalized.includes("هزينهوسیله");
+        if (!isVehicleCost) {
+          payment += t.amount || 0;
         }
-      });
-    } else if (allPersonTransactions.length > 0) {
-      selectedPersonDeals.forEach((deal) => {
-        const dealTransactions = allPersonTransactions.filter(
-          (t) => t.dealId === deal._id.toString()
-        );
-
-        const vehicleRelatedTransactions = dealTransactions.filter((t) => {
-          if (t.reason?.includes("حقوق") || t.reason?.includes("پرداخت حقوق")) {
-            return false;
-          }
-
-          if (t.type === "پرداخت") {
-            const reasonNormalized = t.reason?.replace(/\s/g, "") || "";
-            return (
-              t.reason === "خرید خودرو" ||
-              t.reason?.includes("خريد") ||
-              t.reason?.includes("خرید") ||
-              t.reason === "درصد کارگزار" ||
-              reasonNormalized.includes("هزینهوسیله") ||
-              reasonNormalized.includes("هزينهوسیله")
-            );
-          }
-
-          if (t.type === "دریافت") {
-            return t.reason === "فروش";
-          }
-
-          return false;
-        });
-
-        if (deal.seller.nationalId?.toString() === selectedNationalId) {
-          const paymentsToSeller = vehicleRelatedTransactions
-            .filter((t) => {
-              return (
-                t.type === "پرداخت" &&
-                (t.reason === "خرید خودرو" ||
-                  t.reason?.includes("خريد") ||
-                  t.reason?.includes("خرید"))
-              );
-            })
-            .reduce((sum, t) => sum + (t.amount || 0), 0);
-
-          payment += paymentsToSeller;
-        }
-
-        if (deal.buyer.nationalId?.toString() === selectedNationalId) {
-          const receiptsFromBuyer = vehicleRelatedTransactions
-            .filter((t) => t.type === "دریافت" && t.reason === "فروش")
-            .reduce((sum, t) => sum + (t.amount || 0), 0);
-          received += receiptsFromBuyer;
-        }
-      });
-    }
+      } else if (t.type === "دریافت") {
+        received += t.amount || 0;
+      }
+    });
 
     return { totalReceived: received, totalPayment: payment };
-  }, [
-    selectedNationalId,
-    selectedPersonDealIds,
-    allPersonTransactions,
-    transactions,
-    selectedPersonDeals,
-  ]);
+  }, [selectedNationalId, displayedTransactions]);
 
   const diffPaymentReceived = (totalPayment || 0) - (totalReceived || 0);
 
@@ -350,7 +472,6 @@ const CustomersDashboard = () => {
             .filter(
               (t) =>
                 t.type === "پرداخت" &&
-                t.personId?.toString() === sellerPersonId &&
                 (t.reason === "خرید خودرو" ||
                   t.reason?.includes("خريد") ||
                   t.reason?.includes("خرید"))
@@ -377,7 +498,6 @@ const CustomersDashboard = () => {
             .filter(
               (t) =>
                 t.type === "دریافت" &&
-                t.personId?.toString() === buyerPersonId &&
                 t.reason === "فروش"
             )
             .reduce((sum, t) => sum + (t.amount || 0), 0);
@@ -386,13 +506,13 @@ const CustomersDashboard = () => {
         }
       });
 
-      const sellerDebt = totalPurchasePrice - totalPaidToSeller;
+      const sellerCredit = totalPurchasePrice - totalPaidToSeller;
       const buyerDebt = totalSalePrice - totalReceivedFromBuyer;
 
-      const walletBalance = buyerDebt - sellerDebt;
+      const walletBalance = sellerCredit - buyerDebt;
 
       const diff = Math.abs(walletBalance);
-      if (diff < 0.01) {
+      if (diff < 10000) {
         statusMap.set(nationalId, { status: "تسویه شده", amount: 0 });
       } else {
         statusMap.set(nationalId, {
@@ -524,13 +644,13 @@ const CustomersDashboard = () => {
                           setSelectedNationalId(person.nationalId.toString());
                           setTransactions([]);
                           setSelectedDealId(null);
+                          setSelectedChassisNo(null);
                         }}
-                        className={`cursor-pointer ${
-                          selectedNationalId?.toString() ===
+                        className={`cursor-pointer ${selectedNationalId?.toString() ===
                           person.nationalId.toString()
-                            ? "bg-gray-200"
-                            : "bg-white"
-                        }`}
+                          ? "bg-gray-200"
+                          : "bg-white"
+                          }`}
                       >
                         <TableCell className="text-center">
                           {index + 1}
@@ -557,8 +677,8 @@ const CustomersDashboard = () => {
                                   status.status === "بدهکار"
                                     ? "text-red-600"
                                     : status.status === "بستانکار"
-                                    ? "text-green-600"
-                                    : "text-blue-600"
+                                      ? "text-green-600"
+                                      : "text-blue-600"
                                 }
                               >
                                 {status.status}
@@ -640,31 +760,35 @@ const CustomersDashboard = () => {
 
                 {carSeller && carSeller.length > 0
                   ? carSeller.map((deal: IDeal, index: number) => (
-                      <TableRow
-                        key={`${deal?._id}-${index}`}
-                        onClick={() => {
-                          handleTransationDataByDealId(deal._id.toString());
-                          handleChequeDataByDealId(deal._id.toString());
-                        }}
-                        className="hover:bg-gray-50 cursor-pointer"
-                      >
-                        <TableCell className="text-center">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {deal.vehicleSnapshot?.vin}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {deal.vehicleSnapshot?.model}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {deal.saleDate}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {deal.salePrice?.toLocaleString("en-US")}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    <TableRow
+                      key={`${deal?._id}-${index}`}
+                      onClick={() => {
+                        handleTransationDataByDealId(deal._id.toString());
+                        handleChequeDataByDealId(deal._id.toString());
+                      }}
+                      className={`hover:bg-gray-50 cursor-pointer ${selectedDealId === deal._id.toString() &&
+                        selectedChassisNo === deal.vehicleSnapshot?.vin
+                        ? "bg-blue-100"
+                        : ""
+                        }`}
+                    >
+                      <TableCell className="text-center">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {deal.vehicleSnapshot?.vin}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {deal.vehicleSnapshot?.model}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {deal.saleDate}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {deal.salePrice?.toLocaleString("en-US")}
+                      </TableCell>
+                    </TableRow>
+                  ))
                   : null}
               </Table>
             </div>
@@ -699,7 +823,11 @@ const CustomersDashboard = () => {
                           handleTransationDataByDealId(deal._id.toString());
                           handleChequeDataByDealId(deal._id.toString());
                         }}
-                        className="hover:bg-gray-50 cursor-pointer"
+                        className={`hover:bg-gray-50 cursor-pointer ${selectedDealId === deal._id.toString() &&
+                          selectedChassisNo === deal.vehicleSnapshot?.vin
+                          ? "bg-blue-100"
+                          : ""
+                          }`}
                       >
                         <TableCell className="text-center">
                           {index + 1}
@@ -742,35 +870,44 @@ const CustomersDashboard = () => {
                     <TableHead className="w-12 text-center">تاریخ</TableHead>
                     <TableHead className="w-12 text-center">مبلغ</TableHead>
                     <TableHead className="w-12 text-center">تراکنش</TableHead>
+                    <TableHead className="w-12 text-center">روش پرداخت</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                  {transactions && transactions.length > 0
-                    ? transactions.map((item, index) => (
-                        <TableRow
-                          key={`${item?._id}-${index}`}
-                          className="hover:bg-gray-50 cursor-pointer"
-                        >
-                          <TableCell className="text-center">
-                            {index + 1}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item.transactionDate}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.amount?.toLocaleString("en-US") ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item.type} - {item.reason}
-                          </TableCell>
-                        </TableRow>
-                      ))
+                  {displayedTransactions && displayedTransactions.length > 0
+                    ? displayedTransactions.map((item, index) => (
+                      <TableRow
+                        key={`${item?._id}-${index}`}
+                        className={`hover:bg-gray-50 cursor-pointer ${selectedDealId &&
+                          selectedChassisNo &&
+                          item.dealId === selectedDealId
+                          ? "bg-blue-100"
+                          : ""
+                          }`}
+                      >
+                        <TableCell className="w-[10%] text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="w-[30%] text-center">
+                          {item.transactionDate}
+                        </TableCell>
+                        <TableCell className="w-[30%] text-center">
+                          {item?.amount?.toLocaleString("en-US") ?? ""}
+                        </TableCell>
+                        <TableCell className="w-[30%] text-center">
+                          {item.type} - {item.reason}
+                        </TableCell>
+                        <TableCell className="w-[30%] text-center">
+                          {item.paymentMethod}
+                        </TableCell>
+                      </TableRow>
+                    ))
                     : null}
                 </TableBody>
               </Table>
             </div>
-            {transactions && transactions.length > 0 && (
+            {displayedTransactions && displayedTransactions.length > 0 && (
               <div className="flex justify-between items-center gap-2">
                 <div className="flex gap-3 items-baseline">
                   <p className="text-sm">پرداخت</p>
@@ -795,23 +932,29 @@ const CustomersDashboard = () => {
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
-                    <TableHead className="w-12 text-center">ردیف</TableHead>
-                    <TableHead className="w-12 text-center">سریال چک</TableHead>
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[30%] text-center">ردیف</TableHead>
+                    <TableHead className="w-[70%] text-center">سریال چک</TableHead>
+                    <TableHead className="w-[70%] text-center">
                       شناسه صیادی
                     </TableHead>
-                    <TableHead className="w-12 text-center">مبلغ</TableHead>
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[90%] text-center">مبلغ</TableHead>
+                    <TableHead className="w-[60%] text-center">
                       تاریخ سررسید
                     </TableHead>
+                    <TableHead className="w-[50%] text-center">روش پرداخت</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                  {cheques?.map((item, index) => (
+                  {displayedCheques?.map((item, index) => (
                     <TableRow
                       key={`${item?._id}-${index}`}
-                      className="hover:bg-gray-50 cursor-pointer"
+                      className={`hover:bg-gray-50 cursor-pointer ${selectedDealId &&
+                        selectedChassisNo &&
+                        item.relatedDealId?.toString() === selectedDealId
+                        ? "bg-blue-100"
+                        : ""
+                        }`}
                     >
                       <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell className="text-center">
@@ -824,30 +967,37 @@ const CustomersDashboard = () => {
                         {item?.amount?.toLocaleString("en-US") ?? ""}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item?.dueDate ?? ""}
+                        {item?.dueDate ?? "-"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {item?.type === "issued" || item?.type === "صادره"
+                          ? "صادره"
+                          : item?.type === "received" || item?.type === "وارده"
+                            ? "وارده"
+                            : "-"}
                       </TableCell>
                     </TableRow>
                   ))}
                   {[].length > 0
                     ? []?.map((item, index) => (
-                        <TableRow
-                          key={`${item}-${index}`}
-                          className="has-data-[state=checked]:bg-muted/50"
-                        >
-                          <TableCell className="text-center">
-                            {index + 1}
-                          </TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">
-                            {item ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                        </TableRow>
-                      ))
+                      <TableRow
+                        key={`${item}-${index}`}
+                        className="has-data-[state=checked]:bg-muted/50"
+                      >
+                        <TableCell className="text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">
+                          {item ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                      </TableRow>
+                    ))
                     : null}
                 </TableBody>
               </Table>

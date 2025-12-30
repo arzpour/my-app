@@ -7,6 +7,7 @@ const useGetDealsByVin = (vin: string) => {
     queryFn: () => getDealByVin(vin),
     refetchOnWindowFocus: false,
     retry: 1,
+    enabled: !!vin && vin.trim() !== "",
   });
 
   return { data, isLoading, isError, isSuccess, error };
