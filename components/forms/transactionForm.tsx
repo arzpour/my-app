@@ -43,7 +43,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     queryKey: ["get-all-deals"],
     queryFn: getAllDeals,
   });
-  const [selectedPerson, setSelectedPerson] = React.useState<IPeople | null>(null);
+  const [selectedPerson, setSelectedPerson] = React.useState<IPeople | null>(
+    null
+  );
   const [selectedDeal, setSelectedDeal] = React.useState<IDeal | null>(null);
 
   const {
@@ -52,6 +54,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     handleSubmit,
     watch,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<transactionChequeSchemaType>({
     resolver: zodResolver(transactionChequeSchema),
@@ -103,13 +106,19 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
       // If payment method is cheque, create cheque record
       if (data.paymentMethod === "چک" && showChequeFields) {
-        const payer = showPayer && data.chequePayerPersonId
-          ? allPeople?.find((p) => p._id?.toString() === data.chequePayerPersonId)
-          : null;
+        const payer =
+          showPayer && data.chequePayerPersonId
+            ? allPeople?.find(
+                (p) => p._id?.toString() === data.chequePayerPersonId
+              )
+            : null;
 
-        const payee = showPayee && data.chequePayeePersonId
-          ? allPeople?.find((p) => p._id?.toString() === data.chequePayeePersonId)
-          : null;
+        const payee =
+          showPayee && data.chequePayeePersonId
+            ? allPeople?.find(
+                (p) => p._id?.toString() === data.chequePayeePersonId
+              )
+            : null;
 
         const chequeData = {
           chequeNumber: parseInt(data.chequeNumber || "0"),
@@ -144,8 +153,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 fullName: "",
                 nationalId: "",
               },
-          relatedDealId: data.chequeRelatedDealId ? parseInt(data.chequeRelatedDealId) : 0,
-          relatedTransactionId: transaction._id ? parseInt(transaction._id.toString().slice(-8), 16) : 0,
+          relatedDealId: data.chequeRelatedDealId
+            ? parseInt(data.chequeRelatedDealId)
+            : 0,
+          relatedTransactionId: transaction._id
+            ? parseInt(transaction._id.toString().slice(-8), 16)
+            : 0,
           actions: [
             {
               actionType: "ثبت",
@@ -252,6 +265,31 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           </div>
 
           <div className="space-y-2">
+            <label
+              htmlFor="paymentMethod"
+              className="block text-sm font-medium"
+            >
+              روش پرداخت *
+            </label>
+            <select
+              id="paymentMethod"
+              {...register("paymentMethod")}
+              className="w-full px-3 py-2 border rounded-md"
+            >
+              {PAYMENT_METHODS.map((method) => (
+                <option key={method} value={method}>
+                  {method}
+                </option>
+              ))}
+            </select>
+            {errors.paymentMethod && (
+              <p className="text-red-500 text-xs">
+                {errors.paymentMethod.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
             <label className="block text-sm font-medium">طرف حساب *</label>
             <Controller
               name="personId"
@@ -273,52 +311,64 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             )}
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="bussinessAccountId" className="block text-sm font-medium">
-              حساب بانکی *
-            </label>
-            <select
-              id="bussinessAccountId"
-              {...register("bussinessAccountId")}
-              className="w-full px-3 py-2 border rounded-md"
-            >
-              <option value="">انتخاب حساب</option>
-              {allAccounts
-                ?.filter((acc) => acc.isActive)
-                .map((acc) => (
-                  <option key={acc._id?.toString()} value={acc._id?.toString()}>
-                    {acc.accountName} - {acc.bankName}
-                  </option>
-                ))}
-            </select>
-            {errors.bussinessAccountId && (
-              <p className="text-red-500 text-xs">
-                {errors.bussinessAccountId.message}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="paymentMethod" className="block text-sm font-medium">
-              روش پرداخت *
-            </label>
-            <select
-              id="paymentMethod"
-              {...register("paymentMethod")}
-              className="w-full px-3 py-2 border rounded-md"
-            >
-              {PAYMENT_METHODS.map((method) => (
-                <option key={method} value={method}>
-                  {method}
-                </option>
-              ))}
-            </select>
-            {errors.paymentMethod && (
-              <p className="text-red-500 text-xs">
-                {errors.paymentMethod.message}
-              </p>
-            )}
-          </div>
+          {getValues().paymentMethod === "مشتری به مشتری" ? (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">
+                طرف حساب دوم *
+              </label>
+              <Controller
+                name="secondPartyId"
+                control={control}
+                render={({ field }) => (
+                  <PersonSelect
+                    value={field.value}
+                    onValueChange={(personId, person) => {
+                      field.onChange(personId);
+                      setSelectedPerson(person || null);
+                    }}
+                    people={allPeople || []}
+                    placeholder=" انتخاب طرف حساب دوم"
+                  />
+                )}
+              />
+              {errors.personId && (
+                <p className="text-red-500 text-xs">
+                  {errors.personId.message}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <label
+                htmlFor="bussinessAccountId"
+                className="block text-sm font-medium"
+              >
+                حساب بانکی *
+              </label>
+              <select
+                id="bussinessAccountId"
+                {...register("bussinessAccountId")}
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                <option value="">انتخاب حساب</option>
+                {allAccounts
+                  ?.filter((acc) => acc.isActive)
+                  .map((acc) => (
+                    <option
+                      key={acc._id?.toString()}
+                      value={acc._id?.toString()}
+                    >
+                      {acc.accountName} - {acc.bankName}
+                    </option>
+                  ))}
+              </select>
+              {errors.bussinessAccountId && (
+                <p className="text-red-500 text-xs">
+                  {errors.bussinessAccountId.message}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="space-y-2">
             <label className="block text-sm font-medium">
@@ -400,7 +450,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="chequeNumber" className="block text-sm font-medium">
+              <label
+                htmlFor="chequeNumber"
+                className="block text-sm font-medium"
+              >
                 شماره چک *
               </label>
               <input
@@ -418,7 +471,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="chequeBankName" className="block text-sm font-medium">
+              <label
+                htmlFor="chequeBankName"
+                className="block text-sm font-medium"
+              >
                 نام بانک *
               </label>
               <select
@@ -441,7 +497,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="chequeBranchName" className="block text-sm font-medium">
+              <label
+                htmlFor="chequeBranchName"
+                className="block text-sm font-medium"
+              >
                 نام شعبه
               </label>
               <input
@@ -473,7 +532,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium">تاریخ سررسید *</label>
+              <label className="block text-sm font-medium">
+                تاریخ سررسید *
+              </label>
               <Controller
                 name="chequeDueDate"
                 control={control}
@@ -493,7 +554,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="chequeStatus" className="block text-sm font-medium">
+              <label
+                htmlFor="chequeStatus"
+                className="block text-sm font-medium"
+              >
                 وضعیت فعلی
               </label>
               <select

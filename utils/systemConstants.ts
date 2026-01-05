@@ -48,7 +48,13 @@ export const CHEQUE_STATUSES = [
 export const TRANSACTION_TYPES = ["پرداخت", "دریافت"];
 
 // روش پرداخت
-export const PAYMENT_METHODS = ["نقد", "کارت به کارت", "چک", "شبا"];
+export const PAYMENT_METHODS = [
+  "نقد",
+  "کارت به کارت",
+  "چک",
+  "شبا",
+  "مشتری به مشتری",
+];
 
 // علت تراکنش (Reason)
 export const TRANSACTION_REASONS = [
@@ -66,13 +72,14 @@ export const TRANSACTION_REASONS = [
 ];
 
 // نقش‌های شخص
-export const PERSON_ROLES = ["customer", "broker", "employee"];
+export const PERSON_ROLES = ["customer", "broker", "employee", "provider"];
 
 // نقش‌های شخص (نمایشی)
 export const PERSON_ROLES_DISPLAY = {
   customer: "مشتری",
   broker: "کارگزار",
   employee: "کارمند",
+  provider: "تامین کننده",
 };
 
 // نوع قرارداد کارمند
@@ -140,4 +147,3 @@ export const PERSIAN_MONTHS = [
 
 // سال‌های شمسی (از 1400 تا 1410)
 export const PERSIAN_YEARS = Array.from({ length: 11 }, (_, i) => 1400 + i);
-

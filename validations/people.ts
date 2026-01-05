@@ -26,7 +26,7 @@ export const peopleSchema = z
       .min(1, "حداقل یک شماره موبایل الزامی است"),
     address: z.string().optional(),
     roles: z
-      .array(z.enum(["customer", "broker", "employee"]))
+      .array(z.enum(["customer", "broker", "employee", "provider"]))
       .min(1, "حداقل یک نقش باید انتخاب شود"),
 
     purchaseCommissionPercent: z.string().optional(),

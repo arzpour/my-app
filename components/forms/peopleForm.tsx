@@ -222,7 +222,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
   };
 
   const handleRoleChange = (
-    role: "customer" | "broker" | "employee",
+    role: "customer" | "broker" | "employee" | "provider",
     checked: boolean
   ) => {
     const currentRoles = watch("roles");
@@ -418,7 +418,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
                     type="checkbox"
                     id={`role-${role}`}
                     checked={selectedRoles.includes(
-                      role as "customer" | "broker" | "employee"
+                      role as "customer" | "broker" | "employee" | "provider"
                     )}
                     onChange={(e) =>
                       handleRoleChange(roleKey, e.target.checked)

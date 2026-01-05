@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { saleDealSchema, saleDealSchemaType } from "@/validations/saleDeal";
 import { toast } from "sonner";
 import { useUpdateDeal, useGetAllDeals } from "@/apis/mutations/deals";
-import { getDealsByStatus } from "@/apis/client/deals";
+import { getAllDeals, getDealsByStatus } from "@/apis/client/deals";
 import { useQuery } from "@tanstack/react-query";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import PersonSelect from "../ui/person-select";
@@ -33,10 +33,17 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
   const [selectedDeal, setSelectedDeal] = React.useState<IDeal | null>(null);
 
   // Get in_stock deals
-  const { data: inStockDeals } = useQuery({
-    queryKey: ["get-deals-by-status", "in_stock"],
-    queryFn: () => getDealsByStatus("in_stock"),
+  // const { data: inStockDeals } = useQuery({
+  //   queryKey: ["get-deals-by-status", "in_stock"],
+  //   queryFn: () => getDealsByStatus("in_stock"),
+  // });
+
+  const { data: allDeals } = useQuery({
+    queryKey: ["get-all-deals"],
+    queryFn: getAllDeals,
   });
+
+  const customers = allPeople?.filter((el) => el.roles.includes("customer"));
 
   const {
     control,
@@ -124,7 +131,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
           <select
             {...register("dealId")}
             onChange={(e) => {
-              const deal = inStockDeals?.find(
+              const deal = allDeals?.find(
                 (d) => d._id?.toString() === e.target.value
               );
               setSelectedDeal(deal || null);
@@ -133,7 +140,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
             className="w-full px-3 py-2 border rounded-md"
           >
             <option value="">انتخاب خودرو</option>
-            {inStockDeals?.map((deal) => (
+            {allDeals?.map((deal) => (
               <option key={deal._id?.toString()} value={deal._id?.toString()}>
                 {deal.vehicleSnapshot.plateNumber || "بدون پلاک"} -{" "}
                 {deal.vehicleSnapshot.model} ({deal.vehicleSnapshot.vin})
@@ -163,7 +170,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
                     field.onChange(personId);
                     setSelectedBuyer(person || null);
                   }}
-                  people={allPeople || []}
+                  people={customers || []}
                   placeholder="انتخاب خریدار"
                 />
               )}

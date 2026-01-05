@@ -45,6 +45,8 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
     }>
   >([]);
 
+  const customers = allPeople?.filter((el) => el.roles.includes("customer"));
+
   const {
     control,
     register,
@@ -311,7 +313,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
                     field.onChange(personId);
                     setSelectedSeller(person || null);
                   }}
-                  people={allPeople || []}
+                  people={customers || []}
                   placeholder="انتخاب فروشنده"
                 />
               )}

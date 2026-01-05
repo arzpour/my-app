@@ -34,6 +34,8 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
     queryFn: getAllDeals,
   });
 
+  const providers = allPeople?.filter((el) => el.roles.includes("provider"));
+
   const {
     control,
     register,
@@ -117,7 +119,9 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
   const formContent = (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
-        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">انتخاب خودرو</h3>
+        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
+          انتخاب خودرو
+        </h3>
         <div className="space-y-2">
           <label className="block text-sm font-medium">
             انتخاب خودرو (پلاک/مدل) *
@@ -148,7 +152,9 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">اطلاعات هزینه</h3>
+        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
+          اطلاعات هزینه
+        </h3>
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium">نوع هزینه *</label>
@@ -184,7 +190,7 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
                   <PersonSelect
                     value={field.value}
                     onValueChange={field.onChange}
-                    people={allPeople || []}
+                    people={providers || []}
                     placeholder="انتخاب تامین کننده"
                   />
                 )}
