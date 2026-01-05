@@ -1,4 +1,3 @@
-
 // "use client";
 // import { useGetChequesByDealId } from "@/apis/mutations/cheques";
 // import { useGetAllDeals } from "@/apis/mutations/deals";
@@ -861,11 +860,13 @@
 
 // export default CustomersDashboard;
 
-
 "use client";
 import { useGetChequesByDealId } from "@/apis/mutations/cheques";
 import { useGetAllDeals } from "@/apis/mutations/deals";
-import { useGetTransactionsByDealId } from "@/apis/mutations/transaction";
+import {
+  useGetTransactionsByDealId,
+  useGetTransactionsByPersonId,
+} from "@/apis/mutations/transaction";
 import {
   Table,
   TableBody,
@@ -878,7 +879,11 @@ import useGetAllPeople from "@/hooks/useGetAllPeople";
 import { IChequeNew, IDeal, ITransactionNew } from "@/types/new-backend-types";
 import React from "react";
 import { useDispatch } from "react-redux";
-import { setChassisNo, setSelectedDealId as setSelectedDealIdRedux } from "@/redux/slices/carSlice";
+import {
+  setChassisNo,
+  setSelectedDealId as setSelectedDealIdRedux,
+} from "@/redux/slices/carSlice";
+import useGetAllTransactions from "@/hooks/useGetAllTransaction";
 
 const CustomersDashboard = () => {
   const [selectedNationalId, setSelectedNationalId] = React.useState<
@@ -897,7 +902,9 @@ const CustomersDashboard = () => {
   >([]);
   const [transactions, setTransactions] = React.useState<ITransactionNew[]>([]);
   const [cheques, setCheques] = React.useState<IChequeNew[]>([]);
-  const [allPersonCheques, setAllPersonCheques] = React.useState<IChequeNew[]>([]);
+  const [allPersonCheques, setAllPersonCheques] = React.useState<IChequeNew[]>(
+    []
+  );
   const [selectedDealId, setSelectedDealId] = React.useState<string | null>(
     null
   );
@@ -910,6 +917,7 @@ const CustomersDashboard = () => {
   const getChequesByDealId = useGetChequesByDealId();
   const { data: allPeople } = useGetAllPeople();
   const getAllDeals = useGetAllDeals();
+  const getTransactionsByPersonId = useGetTransactionsByPersonId();
 
   const peopleList = React.useMemo(() => {
     if (!allPeople) return [];
@@ -918,6 +926,17 @@ const CustomersDashboard = () => {
   // const peopleList = allPeople
   //   ?.map((person) => (person.roles.includes("customer") ? person : null))
   //   .filter((person) => person !== null);
+
+  const transactionsByPersonId = async () => {
+    try {
+      const res = await getTransactionsByPersonId.mutateAsync(
+        selectedPersonId ?? ""
+      );
+      setTransactions(res);
+    } catch (error) {
+      console.log("🚀 ~ CustomersDashboard ~ error:", error);
+    }
+  };
 
   const customerRolesMap = React.useMemo(() => {
     const rolesMap = new Map<string, Set<string>>();
@@ -1025,7 +1044,9 @@ const CustomersDashboard = () => {
         return false;
       });
 
-      const filteredTransactions = filtered.filter(el => el.personId === selectedPersonId)
+      const filteredTransactions = filtered.filter(
+        (el) => el.personId === selectedPersonId
+      );
       setTransactions(filteredTransactions);
     } catch (error) {
       console.log("🚀 ~ handleTransationDataByDealId ~ error:", error);
@@ -1368,11 +1389,7 @@ const CustomersDashboard = () => {
           );
 
           const receiptsFromBuyer = dealTransactions
-            .filter(
-              (t) =>
-                t.type === "دریافت" &&
-                t.reason === "فروش"
-            )
+            .filter((t) => t.type === "دریافت" && t.reason === "فروش")
             .reduce((sum, t) => sum + (t.amount || 0), 0);
 
           totalReceivedFromBuyer += receiptsFromBuyer;
@@ -1514,17 +1531,19 @@ const CustomersDashboard = () => {
                         key={`${person?._id}-${index}`}
                         onClick={() => {
                           // handleAllDeals();
-                          setSelectedPersonId(person._id)
+                          transactionsByPersonId();
+                          setSelectedPersonId(person._id);
                           setSelectedNationalId(person.nationalId.toString());
                           setTransactions([]);
                           setSelectedDealId(null);
                           setSelectedChassisNo(null);
                         }}
-                        className={`cursor-pointer ${selectedNationalId?.toString() ===
+                        className={`cursor-pointer ${
+                          selectedNationalId?.toString() ===
                           person.nationalId.toString()
-                          ? "bg-gray-200"
-                          : "bg-white"
-                          }`}
+                            ? "bg-gray-200"
+                            : "bg-white"
+                        }`}
                       >
                         <TableCell className="text-center">
                           {index + 1}
@@ -1551,8 +1570,8 @@ const CustomersDashboard = () => {
                                   status.status === "بدهکار"
                                     ? "text-red-600"
                                     : status.status === "بستانکار"
-                                      ? "text-green-600"
-                                      : "text-blue-600"
+                                    ? "text-green-600"
+                                    : "text-blue-600"
                                 }
                               >
                                 {status.status}
@@ -1634,35 +1653,36 @@ const CustomersDashboard = () => {
 
                 {carSeller && carSeller.length > 0
                   ? carSeller.map((deal: IDeal, index: number) => (
-                    <TableRow
-                      key={`${deal?._id}-${index}`}
-                      onClick={() => {
-                        handleTransationDataByDealId(deal._id.toString());
-                        handleChequeDataByDealId(deal._id.toString());
-                      }}
-                      className={`hover:bg-gray-50 cursor-pointer ${selectedDealId === deal._id.toString() &&
-                        selectedChassisNo === deal.vehicleSnapshot?.vin
-                        ? "bg-blue-100"
-                        : ""
+                      <TableRow
+                        key={`${deal?._id}-${index}`}
+                        onClick={() => {
+                          handleTransationDataByDealId(deal._id.toString());
+                          handleChequeDataByDealId(deal._id.toString());
+                        }}
+                        className={`hover:bg-gray-50 cursor-pointer ${
+                          selectedDealId === deal._id.toString() &&
+                          selectedChassisNo === deal.vehicleSnapshot?.vin
+                            ? "bg-blue-100"
+                            : ""
                         }`}
-                    >
-                      <TableCell className="text-center">
-                        {index + 1}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {deal.vehicleSnapshot?.vin}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {deal.vehicleSnapshot?.model}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {deal.purchaseDate}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {deal.purchasePrice?.toLocaleString("en-US")}
-                      </TableCell>
-                    </TableRow>
-                  ))
+                      >
+                        <TableCell className="text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {deal.vehicleSnapshot?.vin}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {deal.vehicleSnapshot?.model}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {deal.purchaseDate}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {deal.purchasePrice?.toLocaleString("en-US")}
+                        </TableCell>
+                      </TableRow>
+                    ))
                   : null}
               </Table>
             </div>
@@ -1697,11 +1717,12 @@ const CustomersDashboard = () => {
                           handleTransationDataByDealId(deal._id.toString());
                           handleChequeDataByDealId(deal._id.toString());
                         }}
-                        className={`hover:bg-gray-50 cursor-pointer ${selectedDealId === deal._id.toString() &&
+                        className={`hover:bg-gray-50 cursor-pointer ${
+                          selectedDealId === deal._id.toString() &&
                           selectedChassisNo === deal.vehicleSnapshot?.vin
-                          ? "bg-blue-100"
-                          : ""
-                          }`}
+                            ? "bg-blue-100"
+                            : ""
+                        }`}
                       >
                         <TableCell className="text-center">
                           {index + 1}
@@ -1743,51 +1764,56 @@ const CustomersDashboard = () => {
                     <TableHead className="w-[20%] text-center">ردیف</TableHead>
                     <TableHead className="w-[30%] text-center">تاریخ</TableHead>
                     <TableHead className="w-[40%] text-center">مبلغ</TableHead>
-                    <TableHead className="w-[60%] text-center">تراکنش</TableHead>
-                    <TableHead className="w-[40%] text-center">روش پرداخت</TableHead>
+                    <TableHead className="w-[60%] text-center">
+                      تراکنش
+                    </TableHead>
+                    <TableHead className="w-[40%] text-center">
+                      روش پرداخت
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
                   {transactions && transactions.length > 0
                     ? transactions.map((item, index) => {
-                      let customerReason
-                      let customerType
+                        let customerReason;
+                        let customerType;
 
-                      if (item.reason === "خرید خودرو") {
-                        customerReason = "فروش خودرو"
-                      } else if (item.reason === "فروش") {
-                        customerReason = "خرید خودرو"
-                      }
+                        if (item.reason === "خرید خودرو") {
+                          customerReason = "فروش خودرو";
+                        } else if (item.reason === "فروش") {
+                          customerReason = "خرید خودرو";
+                        }
 
-                      if (item.type === "دریافت") {
-                        customerType = "پرداخت"
-                      } else if (item.type === "پرداخت") {
-                        customerType = "دریافت"
-                      }
+                        if (item.type === "دریافت") {
+                          customerType = "پرداخت";
+                        } else if (item.type === "پرداخت") {
+                          customerType = "دریافت";
+                        }
 
-                      return <TableRow
-                        key={`${item?._id}-${index}`}
-                        className="hover:bg-gray-50 cursor-pointer"
-                      >
-                        <TableCell className="text-center">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item.transactionDate}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item?.amount?.toLocaleString("en-US") ?? ""}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {customerType} - {customerReason}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item.paymentMethod}
-                        </TableCell>
-
-                      </TableRow>;
-                    })
+                        return (
+                          <TableRow
+                            key={`${item?._id}-${index}`}
+                            className="hover:bg-gray-50 cursor-pointer"
+                          >
+                            <TableCell className="text-center">
+                              {index + 1}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {item.transactionDate}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {item?.amount?.toLocaleString("en-US") ?? ""}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {customerType} - {customerReason}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {item.paymentMethod}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     : null}
                 </TableBody>
               </Table>
@@ -1818,7 +1844,9 @@ const CustomersDashboard = () => {
                 <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
                     <TableHead className="w-[30%] text-center">ردیف</TableHead>
-                    <TableHead className="w-[70%] text-center">سریال چک</TableHead>
+                    <TableHead className="w-[70%] text-center">
+                      سریال چک
+                    </TableHead>
                     <TableHead className="w-[70%] text-center">
                       شناسه صیادی
                     </TableHead>
@@ -1826,7 +1854,9 @@ const CustomersDashboard = () => {
                     <TableHead className="w-[60%] text-center">
                       تاریخ سررسید
                     </TableHead>
-                    <TableHead className="w-[50%] text-center">روش پرداخت</TableHead>
+                    <TableHead className="w-[50%] text-center">
+                      روش پرداخت
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -1853,31 +1883,31 @@ const CustomersDashboard = () => {
                         {item?.type === "issued" || item?.type === "صادره"
                           ? "صادره"
                           : item?.type === "received" || item?.type === "وارده"
-                            ? "وارده"
-                            : "-"}
+                          ? "وارده"
+                          : "-"}
                       </TableCell>
                     </TableRow>
                   ))}
                   {[].length > 0
                     ? []?.map((item, index) => (
-                      <TableRow
-                        key={`${item}-${index}`}
-                        className="has-data-[state=checked]:bg-muted/50"
-                      >
-                        <TableCell className="text-center">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="text-center">{item}</TableCell>
-                        <TableCell className="text-center">
-                          {item ?? ""}
-                        </TableCell>
-                        <TableCell className="text-center">{item}</TableCell>
-                        <TableCell className="text-center">{item}</TableCell>
-                        <TableCell className="text-center">{item}</TableCell>
-                        <TableCell className="text-center">{item}</TableCell>
-                        <TableCell className="text-center">{item}</TableCell>
-                      </TableRow>
-                    ))
+                        <TableRow
+                          key={`${item}-${index}`}
+                          className="has-data-[state=checked]:bg-muted/50"
+                        >
+                          <TableCell className="text-center">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">
+                            {item ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                          <TableCell className="text-center">{item}</TableCell>
+                        </TableRow>
+                      ))
                     : null}
                 </TableBody>
               </Table>
