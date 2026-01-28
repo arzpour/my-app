@@ -21,7 +21,9 @@ type getPersonByNationalIdType = (nationalId: string) => Promise<IPeople>;
 export const getPersonByNationalId: getPersonByNationalIdType = async (
   nationalId
 ) => {
-  const response = await axiosInstance.get(urls.people.byNationalId(nationalId));
+  const response = await axiosInstance.get(
+    urls.people.byNationalId(nationalId)
+  );
   return response.data;
 };
 
@@ -47,18 +49,21 @@ export const createPerson: createPersonType = async (data) => {
 };
 
 // Update person
-type updatePersonType = (id: string, data: Partial<IPeople>) => Promise<IPeople>;
+type updatePersonType = (
+  id: string,
+  data: Partial<IPeople>
+) => Promise<IPeople>;
 export const updatePerson: updatePersonType = async (id, data) => {
   const response = await axiosInstance.put(urls.people.update(id), data);
   return response.data;
 };
 
 // Update wallet balance
-type updateWalletType = (
-  id: string,
-  data: { amount: number; type: string; description: string }
-) => Promise<IPeople>;
-export const updateWallet: updateWalletType = async (id, data) => {
+type updateWalletType = (_: {
+  id: string;
+  data: IUpdateWalletReq;
+}) => Promise<IPeople>;
+export const updateWallet: updateWalletType = async ({ id, data }) => {
   const response = await axiosInstance.put(urls.people.updateWallet(id), data);
   return response.data;
 };
@@ -68,4 +73,3 @@ type deletePersonType = (id: string) => Promise<void>;
 export const deletePerson: deletePersonType = async (id) => {
   await axiosInstance.delete(urls.people.delete(id));
 };
-

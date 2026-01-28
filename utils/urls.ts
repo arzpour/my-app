@@ -191,6 +191,9 @@ export const urls = {
     updateWallet: (id: string) => `/people/id/${id}/wallet`,
     delete: (id: string) => `/people/id/${id}`,
   },
+  users: {
+    list: "/users",
+  },
   vehicles: {
     list: "/vehicles",
     byId: (id: string) => `/vehicles/id/${id}`,

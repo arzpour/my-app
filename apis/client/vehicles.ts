@@ -31,8 +31,11 @@ export const createVehicle: createVehicleType = async (data) => {
 };
 
 // Update vehicle
-type updateVehicleType = (id: string, data: Partial<IVehicle>) => Promise<IVehicle>;
-export const updateVehicle: updateVehicleType = async (id, data) => {
+type updateVehicleType = (_: {
+  id: string;
+  data: Partial<IVehicle>;
+}) => Promise<IVehicle>;
+export const updateVehicle: updateVehicleType = async ({ id, data }) => {
   const response = await axiosInstance.put(urls.vehicles.update(id), data);
   return response.data;
 };
@@ -42,4 +45,3 @@ type deleteVehicleType = (id: string) => Promise<void>;
 export const deleteVehicle: deleteVehicleType = async (id) => {
   await axiosInstance.delete(urls.vehicles.delete(id));
 };
-
