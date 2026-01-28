@@ -883,7 +883,6 @@ import {
   setChassisNo,
   setSelectedDealId as setSelectedDealIdRedux,
 } from "@/redux/slices/carSlice";
-import useGetAllTransactions from "@/hooks/useGetAllTransaction";
 
 const CustomersDashboard = () => {
   const [selectedNationalId, setSelectedNationalId] = React.useState<
@@ -927,10 +926,10 @@ const CustomersDashboard = () => {
   //   ?.map((person) => (person.roles.includes("customer") ? person : null))
   //   .filter((person) => person !== null);
 
-  const transactionsByPersonId = async () => {
+  const transactionsByPersonId = async (personId: string) => {
     try {
       const res = await getTransactionsByPersonId.mutateAsync(
-        selectedPersonId ?? ""
+        personId ?? selectedPersonId ?? ""
       );
       setTransactions(res);
     } catch (error) {
@@ -942,21 +941,21 @@ const CustomersDashboard = () => {
     const rolesMap = new Map<string, Set<string>>();
 
     peopleList?.forEach((person) => {
-      const nationalId = person.nationalId?.toString();
+      const nationalId = person?.nationalId?.toString();
       if (!nationalId) return;
 
       const roles = new Set<string>();
 
       allDeals?.forEach((deal) => {
-        if (deal.buyer.nationalId?.toString() === nationalId) {
+        if (deal?.buyer?.nationalId?.toString() === nationalId) {
           roles.add("خریدار");
         }
-        if (deal.seller.nationalId?.toString() === nationalId) {
+        if (deal?.seller?.nationalId?.toString() === nationalId) {
           roles.add("فروشنده");
         }
       });
 
-      if (roles.size > 0) {
+      if (roles?.size > 0) {
         rolesMap.set(nationalId, roles);
       }
     });
@@ -966,7 +965,7 @@ const CustomersDashboard = () => {
 
   const getPersonRole = (nationalId: string): string => {
     const roles = customerRolesMap.get(nationalId);
-    if (!roles || roles.size === 0) return "—";
+    if (!roles || roles?.size === 0) return "—";
 
     if (roles.has("خریدار") && roles.has("فروشنده")) {
       return "خریدار / فروشنده";
@@ -988,20 +987,20 @@ const CustomersDashboard = () => {
     if (!selectedNationalId || allDeals.length === 0) return [];
     return allDeals.filter(
       (deal) =>
-        deal.buyer.nationalId === selectedNationalId ||
-        deal.seller.nationalId === selectedNationalId
+        deal?.buyer?.nationalId === selectedNationalId ||
+        deal?.seller?.nationalId === selectedNationalId
     );
   }, [allDeals, selectedNationalId]);
 
   const carSeller = React.useMemo(() => {
     return selectedPersonDeals.filter(
-      (deal) => deal.seller.nationalId === selectedNationalId
+      (deal) => deal?.seller?.nationalId === selectedNationalId
     );
   }, [selectedPersonDeals, selectedNationalId]);
 
   const carBuyer = React.useMemo(() => {
     return selectedPersonDeals.filter(
-      (deal) => deal.buyer.nationalId === selectedNationalId
+      (deal) => deal?.buyer?.nationalId === selectedNationalId
     );
   }, [selectedPersonDeals, selectedNationalId]);
 
@@ -1013,7 +1012,7 @@ const CustomersDashboard = () => {
         (d) => d._id.toString() === dealId
       );
       if (selectedDeal) {
-        const chassisNo = selectedDeal.vehicleSnapshot?.vin || null;
+        const chassisNo = selectedDeal?.vehicleSnapshot?.vin || null;
         setSelectedChassisNo(chassisNo);
         if (chassisNo) {
           dispatch(setChassisNo(chassisNo));
@@ -1026,7 +1025,7 @@ const CustomersDashboard = () => {
         }
 
         if (t.type === "پرداخت") {
-          const reasonNormalized = t.reason?.replace(/\s/g, "") || "";
+          const reasonNormalized = t?.reason?.replace(/\s/g, "") || "";
           return (
             t.reason === "خرید خودرو" ||
             t.reason?.includes("خريد") ||
@@ -1045,7 +1044,7 @@ const CustomersDashboard = () => {
       });
 
       const filteredTransactions = filtered.filter(
-        (el) => el.personId === selectedPersonId
+        (el) => el?.personId === selectedPersonId
       );
       setTransactions(filteredTransactions);
     } catch (error) {
@@ -1096,9 +1095,9 @@ const CustomersDashboard = () => {
       if (!selectedDeal) return [];
 
       const sellerNationalIdStr =
-        selectedDeal.seller.nationalId?.toString() || "";
+        selectedDeal?.seller?.nationalId?.toString() || "";
       const buyerNationalIdStr =
-        selectedDeal.buyer.nationalId?.toString() || "";
+        selectedDeal?.buyer?.nationalId?.toString() || "";
       const selectedNationalIdStr = selectedNationalId?.toString() || "";
 
       const isSeller = sellerNationalIdStr === selectedNationalIdStr;
@@ -1127,8 +1126,8 @@ const CustomersDashboard = () => {
       const selectedNationalIdStr = selectedNationalId?.toString() || "";
       return allPersonCheques.filter((c) => {
         return (
-          c.payer?.nationalId?.toString() === selectedNationalIdStr ||
-          c.payee?.nationalId?.toString() === selectedNationalIdStr
+          c?.payer?.nationalId?.toString() === selectedNationalIdStr ||
+          c?.payee?.nationalId?.toString() === selectedNationalIdStr
         );
       });
     }
@@ -1149,18 +1148,18 @@ const CustomersDashboard = () => {
 
     return peopleList?.filter(
       (user) =>
-        user.fullName?.toLowerCase().includes(lowerSearch) ||
-        user.nationalId?.toString().includes(lowerSearch)
+        user?.fullName?.toLowerCase().includes(lowerSearch) ||
+        user?.nationalId?.toString().includes(lowerSearch)
     );
   }, [searchValue, peopleList]);
 
   const totalBuyAmount = carBuyer.reduce(
-    (sum, deal) => sum + (deal.purchasePrice || 0),
+    (sum, deal) => sum + (deal?.salePrice || 0),
     0
   );
 
   const totalSellAmount = carSeller.reduce(
-    (sum, deal) => sum + (deal.salePrice || 0),
+    (sum, deal) => sum + (deal?.purchasePrice || 0),
     0
   );
 
@@ -1168,7 +1167,7 @@ const CustomersDashboard = () => {
 
   const selectedPersonDealIds = React.useMemo(() => {
     return selectedPersonDeals
-      .map((deal) => deal._id.toString())
+      .map((deal) => deal?._id.toString())
       .sort()
       .join(",");
   }, [selectedPersonDeals]);
@@ -1176,33 +1175,33 @@ const CustomersDashboard = () => {
   const displayedTransactions = React.useMemo(() => {
     if (!selectedNationalId) return [];
 
-    if (selectedDealId && transactions.length > 0) {
+    if (selectedDealId && transactions?.length > 0) {
       const selectedDeal = selectedPersonDeals.find(
-        (d) => d._id.toString() === selectedDealId
+        (d) => d?._id.toString() === selectedDealId
       );
       if (!selectedDeal) return [];
 
       const sellerNationalIdStr =
-        selectedDeal.seller.nationalId?.toString() || "";
+        selectedDeal?.seller?.nationalId?.toString() || "";
       const buyerNationalIdStr =
-        selectedDeal.buyer.nationalId?.toString() || "";
+        selectedDeal?.buyer?.nationalId?.toString() || "";
       const selectedNationalIdStr = selectedNationalId?.toString() || "";
 
       const isSeller = sellerNationalIdStr === selectedNationalIdStr;
       const isBuyer = buyerNationalIdStr === selectedNationalIdStr;
 
       return transactions.filter((t) => {
-        if (t.reason?.includes("حقوق") || t.reason?.includes("پرداخت حقوق")) {
+        if (t?.reason?.includes("حقوق") || t?.reason?.includes("پرداخت حقوق")) {
           return false;
         }
 
         if (t.type === "پرداخت") {
           const reasonNormalized = t.reason?.replace(/\s/g, "") || "";
           const isVehicleRelated =
-            t.reason === "خرید خودرو" ||
-            t.reason?.includes("خريد") ||
-            t.reason?.includes("خرید") ||
-            t.reason === "درصد کارگزار" ||
+            t?.reason === "خرید خودرو" ||
+            t?.reason?.includes("خريد") ||
+            t?.reason?.includes("خرید") ||
+            t?.reason === "درصد کارگزار" ||
             reasonNormalized.includes("هزینهوسیله") ||
             reasonNormalized.includes("هزينهوسیله");
 
@@ -1224,52 +1223,55 @@ const CustomersDashboard = () => {
 
       selectedPersonDeals.forEach((deal) => {
         const dealTransactions = allPersonTransactions.filter(
-          (t) => t.dealId === deal._id.toString()
+          (t) => t?.dealId === deal?._id.toString()
         );
 
         const vehicleRelatedTransactions = dealTransactions.filter((t) => {
-          if (t.reason?.includes("حقوق") || t.reason?.includes("پرداخت حقوق")) {
+          if (
+            t?.reason?.includes("حقوق") ||
+            t?.reason?.includes("پرداخت حقوق")
+          ) {
             return false;
           }
 
           if (t.type === "پرداخت") {
-            const reasonNormalized = t.reason?.replace(/\s/g, "") || "";
+            const reasonNormalized = t?.reason?.replace(/\s/g, "") || "";
             return (
-              t.reason === "خرید خودرو" ||
-              t.reason?.includes("خريد") ||
-              t.reason?.includes("خرید") ||
-              t.reason === "درصد کارگزار" ||
+              t?.reason === "خرید خودرو" ||
+              t?.reason?.includes("خريد") ||
+              t?.reason?.includes("خرید") ||
+              t?.reason === "درصد کارگزار" ||
               reasonNormalized.includes("هزینهوسیله") ||
               reasonNormalized.includes("هزينهوسیله")
             );
           }
 
           if (t.type === "دریافت") {
-            return t.reason === "فروش";
+            return t?.reason === "فروش";
           }
 
           return false;
         });
 
-        const sellerNationalIdStr = deal.seller.nationalId?.toString() || "";
-        const buyerNationalIdStr = deal.buyer.nationalId?.toString() || "";
+        const sellerNationalIdStr = deal?.seller?.nationalId?.toString() || "";
+        const buyerNationalIdStr = deal?.buyer?.nationalId?.toString() || "";
         const selectedNationalIdStr = selectedNationalId?.toString() || "";
 
         const isSeller = sellerNationalIdStr === selectedNationalIdStr;
         const isBuyer = buyerNationalIdStr === selectedNationalIdStr;
 
         vehicleRelatedTransactions.forEach((t) => {
-          if (isSeller && t.type === "پرداخت") {
+          if (isSeller && t?.type === "پرداخت") {
             if (
-              t.reason === "خرید خودرو" ||
-              t.reason?.includes("خريد") ||
-              t.reason?.includes("خرید")
+              t?.reason === "خرید خودرو" ||
+              t?.reason?.includes("خريد") ||
+              t?.reason?.includes("خرید")
             ) {
               allFilteredTransactions.push(t);
             }
           }
 
-          if (isBuyer && t.type === "دریافت" && t.reason === "فروش") {
+          if (isBuyer && t?.type === "دریافت" && t?.reason === "فروش") {
             allFilteredTransactions.push(t);
           }
         });
@@ -1296,10 +1298,10 @@ const CustomersDashboard = () => {
     let payment = 0;
 
     displayedTransactions.forEach((t) => {
-      if (t.type === "دریافت") {
-        payment += t.amount || 0;
-      } else if (t.type === "پرداخت") {
-        received += t.amount || 0;
+      if (t?.type === "دریافت") {
+        payment += t?.amount || 0;
+      } else if (t?.type === "پرداخت") {
+        received += t?.amount || 0;
       }
     });
 
@@ -1316,8 +1318,8 @@ const CustomersDashboard = () => {
       }
 
       try {
-        const transactionsPromises = allDeals.map((deal) =>
-          getTransactionsByDealId.mutateAsync(deal._id.toString())
+        const transactionsPromises = allDeals?.map((deal) =>
+          getTransactionsByDealId.mutateAsync(deal?._id.toString())
         );
         const transactionsArrays = await Promise.all(transactionsPromises);
         const allTransactions = transactionsArrays.flat();
@@ -1336,16 +1338,16 @@ const CustomersDashboard = () => {
     const statusMap = new Map<string, { status: string; amount: number }>();
 
     peopleList?.forEach((person) => {
-      const nationalId = person.nationalId?.toString();
+      const nationalId = person?.nationalId?.toString();
       if (!nationalId) return;
 
       const personDeals = allDeals.filter(
         (deal) =>
-          deal.buyer.nationalId?.toString() === nationalId ||
-          deal.seller.nationalId?.toString() === nationalId
+          deal?.buyer?.nationalId?.toString() === nationalId ||
+          deal?.seller?.nationalId?.toString() === nationalId
       );
 
-      if (personDeals.length === 0) {
+      if (personDeals?.length === 0) {
         statusMap.set(nationalId, { status: "—", amount: 0 });
         return;
       }
@@ -1354,23 +1356,23 @@ const CustomersDashboard = () => {
       let totalPurchasePrice = 0;
 
       personDeals.forEach((deal) => {
-        if (deal.seller.nationalId?.toString() === nationalId) {
-          totalPurchasePrice += deal.purchasePrice || 0;
+        if (deal?.seller?.nationalId?.toString() === nationalId) {
+          totalPurchasePrice += deal?.purchasePrice || 0;
 
-          const sellerPersonId = deal.seller.personId?.toString();
-          const dealTransactions = allDealsTransactions.filter(
-            (t) => t.dealId === deal._id.toString()
+          const sellerPersonId = deal?.seller?.personId?.toString();
+          const dealTransactions = allDealsTransactions?.filter(
+            (t) => t?.dealId === deal?._id.toString()
           );
 
           const paymentsToSeller = dealTransactions
             .filter(
               (t) =>
-                t.type === "پرداخت" &&
-                (t.reason === "خرید خودرو" ||
-                  t.reason?.includes("خريد") ||
-                  t.reason?.includes("خرید"))
+                t?.type === "پرداخت" &&
+                (t?.reason === "خرید خودرو" ||
+                  t?.reason?.includes("خريد") ||
+                  t?.reason?.includes("خرید"))
             )
-            .reduce((sum, t) => sum + (t.amount || 0), 0);
+            .reduce((sum, t) => sum + (t?.amount || 0), 0);
 
           totalPaidToSeller += paymentsToSeller;
         }
@@ -1380,17 +1382,17 @@ const CustomersDashboard = () => {
       let totalSalePrice = 0;
 
       personDeals.forEach((deal) => {
-        if (deal.buyer.nationalId?.toString() === nationalId) {
-          totalSalePrice += deal.salePrice || 0;
+        if (deal?.buyer?.nationalId?.toString() === nationalId) {
+          totalSalePrice += deal?.salePrice || 0;
 
-          const buyerPersonId = deal.buyer.personId?.toString();
-          const dealTransactions = allDealsTransactions.filter(
-            (t) => t.dealId === deal._id.toString()
+          const buyerPersonId = deal?.buyer?.personId?.toString();
+          const dealTransactions = allDealsTransactions?.filter(
+            (t) => t?.dealId === deal?._id.toString()
           );
 
           const receiptsFromBuyer = dealTransactions
-            .filter((t) => t.type === "دریافت" && t.reason === "فروش")
-            .reduce((sum, t) => sum + (t.amount || 0), 0);
+            .filter((t) => t?.type === "دریافت" && t?.reason === "فروش")
+            .reduce((sum, t) => sum + (t?.amount || 0), 0);
 
           totalReceivedFromBuyer += receiptsFromBuyer;
         }
@@ -1437,7 +1439,7 @@ const CustomersDashboard = () => {
     }
 
     const fetchAllPersonTransactions = async () => {
-      if (!selectedNationalId || selectedPersonDeals.length === 0) {
+      if (!selectedNationalId || selectedPersonDeals?.length === 0) {
         setAllPersonTransactions([]);
         lastFetchedIdsRef.current = "";
         return;
@@ -1447,8 +1449,8 @@ const CustomersDashboard = () => {
       isFetchingRef.current = true;
 
       try {
-        const transactionsPromises = selectedPersonDeals.map((deal) =>
-          getTransactionsByDealId.mutateAsync(deal._id.toString())
+        const transactionsPromises = selectedPersonDeals?.map((deal) =>
+          getTransactionsByDealId.mutateAsync(deal?._id.toString())
         );
         const transactionsArrays = await Promise.all(transactionsPromises);
         const allTransactions = transactionsArrays.flat();
@@ -1488,7 +1490,7 @@ const CustomersDashboard = () => {
         </div>
         <div className="flex justify-between items-center">
           <p className="text-sm">تفاضل مبالغ خرید و فروش مشتری(فروش - خرید):</p>
-          <p className="text-yellow-900">
+          <p dir="ltr" className="text-yellow-900">
             {diffBuySell?.toLocaleString("en-US")}
           </p>
         </div>
@@ -1496,7 +1498,7 @@ const CustomersDashboard = () => {
           <p className="text-sm">
             تفاضل مبالغ دریافتی و پرداختی(پرداخت - دریافت):
           </p>
-          <p className="text-yellow-900">
+          <p dir="ltr" className="text-yellow-900">
             {diffPaymentReceived?.toLocaleString("en-US")}
           </p>
         </div>
@@ -1511,11 +1513,11 @@ const CustomersDashboard = () => {
               <TableHeader className="top-0 sticky">
                 <TableRow className="bg-gray-100">
                   <TableHead className="w-[15%] text-center">ردیف</TableHead>
-                  <TableHead className="w-[65%] text-center">
+                  <TableHead className="w-[70%] text-center">
                     نام کامل
                   </TableHead>
-                  <TableHead className="w-[50%] text-center">کدملی</TableHead>
-                  <TableHead className="w-[50%] text-center">نقش</TableHead>
+                  <TableHead className="w-[80%] text-center">کدملی</TableHead>
+                  <TableHead className="w-[90%] text-center">نقش</TableHead>
                   <TableHead className="w-[70%] text-center">وضعیت</TableHead>
                   <TableHead className="w-[70%] text-center">
                     تراز مالی
@@ -1531,7 +1533,7 @@ const CustomersDashboard = () => {
                         key={`${person?._id}-${index}`}
                         onClick={() => {
                           // handleAllDeals();
-                          transactionsByPersonId();
+                          transactionsByPersonId(person._id);
                           setSelectedPersonId(person._id);
                           setSelectedNationalId(person.nationalId.toString());
                           setTransactions([]);
@@ -1549,7 +1551,7 @@ const CustomersDashboard = () => {
                           {index + 1}
                         </TableCell>
                         <TableCell className="text-center">
-                          {person.fullName}
+                          {person.firstName} {person.lastName}
                         </TableCell>
                         <TableCell className="text-center">
                           {person.nationalId}
@@ -1687,7 +1689,7 @@ const CustomersDashboard = () => {
               </Table>
             </div>
             {totalSellAmount && Number(totalSellAmount) > 0 ? (
-              <p className="text-green-400 mt-3 flex justify-end">
+              <p dir="ltr" className="text-green-400 mt-3 flex justify-end">
                 {totalSellAmount?.toLocaleString("en-US")}
               </p>
             ) : null}
@@ -1746,7 +1748,7 @@ const CustomersDashboard = () => {
               </Table>
             </div>
             {totalBuyAmount && Number(totalBuyAmount) > 0 ? (
-              <p className="text-yellow-600 mt-3 flex justify-end">
+              <p dir="ltr" className="text-yellow-600 mt-3 flex justify-end">
                 {totalBuyAmount?.toLocaleString("en-US")}
               </p>
             ) : null}
@@ -1822,13 +1824,13 @@ const CustomersDashboard = () => {
               <div className="flex justify-between items-center gap-2">
                 <div className="flex gap-3 items-baseline">
                   <p className="text-sm">پرداخت</p>
-                  <p className="text-red-500 mt-3 flex justify-end">
+                  <p dir="ltr" className="text-red-500 mt-3 flex justify-end">
                     {totalPayment?.toLocaleString("en-US")}
                   </p>
                 </div>
                 <div className="flex gap-3 items-baseline">
                   <p className="text-sm">دریافت</p>
-                  <p className="text-blue-500 mt-3 flex justify-end">
+                  <p dir="ltr" className="text-blue-500 mt-3 flex justify-end">
                     {totalReceived?.toLocaleString("en-US")}
                   </p>
                 </div>
