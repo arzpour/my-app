@@ -3,30 +3,34 @@
 import * as React from "react";
 import { CheckIcon, ChevronDownIcon, SearchIcon, PlusIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { IPeople } from "@/types/new-backend-types";
+import type { IPeople, IUsers } from "@/types/new-backend-types";
 
 interface PersonSelectProps {
   value?: string; // personId
-  onValueChange?: (personId: string, person?: IPeople) => void;
+  onValueChange?: (personId: string, person?: any) => void;
   people?: IPeople[];
+  users?: IUsers[];
   placeholder?: string;
   className?: string;
   searchPlaceholder?: string;
   onAddNew?: () => void; // Callback for adding new person
   filterByRole?: string[]; // Filter people by roles
   disabled?: boolean;
+  isUser?: boolean;
 }
 
 const PersonSelect: React.FC<PersonSelectProps> = ({
   value,
   onValueChange,
   people = [],
+  users = [],
   placeholder = "انتخاب شخص",
   className,
   searchPlaceholder = "جستجو بر اساس نام یا کد ملی...",
   onAddNew,
   filterByRole,
   disabled = false,
+  isUser,
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -46,12 +50,31 @@ const PersonSelect: React.FC<PersonSelectProps> = ({
   const filteredPeople = React.useMemo(() => {
     if (!searchTerm) return filteredPeopleByRole;
     const lowerSearch = searchTerm.toLowerCase();
-    return filteredPeopleByRole.filter(
-      (person) =>
-        person.fullName?.toLowerCase().includes(lowerSearch) ||
+    return filteredPeopleByRole.filter((person) => {
+      return (
+        person.firstName?.toLowerCase().includes(lowerSearch) ||
         person.nationalId?.toString().includes(searchTerm)
-    );
+      );
+    });
   }, [filteredPeopleByRole, searchTerm]);
+
+  // Filter by search term
+  const filteredUsers = React.useMemo(() => {
+    if (!searchTerm) return users;
+
+    const lowerSearch = searchTerm.toLowerCase();
+
+    return users.filter((user) => {
+      const fullName = `${user.firstname ?? ""} ${
+        user.lastname ?? ""
+      }`.toLowerCase();
+
+      return (
+        fullName.includes(lowerSearch) ||
+        user.username?.toLowerCase().includes(lowerSearch)
+      );
+    });
+  }, [users, searchTerm]);
 
   React.useEffect(() => {
     setIsMounted(true);
@@ -90,7 +113,12 @@ const PersonSelect: React.FC<PersonSelectProps> = ({
     return filteredPeopleByRole.find((p) => p._id?.toString() === value);
   }, [value, filteredPeopleByRole]);
 
-  const handleSelect = (person: IPeople) => {
+  const selectedUser = React.useMemo(() => {
+    if (!value) return null;
+    return filteredUsers.find((p) => p._id?.toString() === value);
+  }, [value, filteredUsers]);
+
+  const handleSelect = (person: IPeople | IUsers) => {
     const personId = person._id?.toString() || "";
     onValueChange?.(personId, person);
     setIsOpen(false);
@@ -98,9 +126,12 @@ const PersonSelect: React.FC<PersonSelectProps> = ({
   };
 
   const displayLabel = selectedPerson
-    ? `${selectedPerson.fullName} (${selectedPerson.nationalId})`
+    ? `${selectedPerson.firstName} ${selectedPerson.lastName} (${selectedPerson.nationalId})`
+    : selectedUser
+    ? `${selectedUser.firstname} ${selectedUser.lastname} (${selectedUser.username})`
     : placeholder;
 
+  const data = isUser ? filteredUsers : filteredPeople;
   return (
     <div ref={selectRef} className={cn("relative w-full", className)}>
       {/* Trigger Button */}
@@ -161,8 +192,8 @@ const PersonSelect: React.FC<PersonSelectProps> = ({
 
           {/* Options List */}
           <div className="max-h-[200px] overflow-y-auto p-1">
-            {filteredPeople.length > 0 ? (
-              filteredPeople.map((person) => {
+            {data.length > 0 ? (
+              data.map((person) => {
                 const personId = person._id?.toString() || "";
                 const isSelected = value === personId;
                 return (
@@ -180,10 +211,20 @@ const PersonSelect: React.FC<PersonSelectProps> = ({
                       {isSelected && <CheckIcon className="size-4" />}
                     </span>
                     <div className="flex flex-col items-start">
-                      <span className="font-medium">{person.fullName}</span>
-                      <span className="text-xs text-muted-foreground">
-                        کد ملی: {person.nationalId}
+                      <span className="font-medium">
+                        {isUser
+                          ? `${(person as IUsers).firstname} ${
+                              (person as IUsers).lastname
+                            }`
+                          : `${(person as IPeople).firstName} ${
+                              (person as IPeople).lastName
+                            }`}
                       </span>
+                      {(person as IPeople)?.nationalId && (
+                        <span className="text-xs text-muted-foreground">
+                          کد ملی: {(person as IPeople)?.nationalId}
+                        </span>
+                      )}
                     </div>
                   </button>
                 );

@@ -28,7 +28,7 @@
 "use client";
 import FormSelectorModal from "@/components/forms/formSelectorModal";
 import TabsComponent from "@/components/tabs";
-import VehicleList from "@/components/vehicleList";
+import VehicleList from "@/components/lists/vehicleList";
 import { RootState } from "@/redux/store";
 import React from "react";
 import { useSelector } from "react-redux";

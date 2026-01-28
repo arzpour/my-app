@@ -227,6 +227,19 @@ export interface IPeople {
 }
 
 // ============================================
+// USERS
+// ============================================
+interface IUsers {
+  _id: Types.ObjectId;
+  username: string;
+  password: string;
+  role: "accountant" | "secretary";
+  firstname?: string;
+  lastname?: string;
+  comparePassword(userPassword: string): Promise<boolean>;
+}
+
+// ============================================
 // SALARIES
 // ============================================
 export interface ISalaries {
@@ -297,6 +310,7 @@ export interface IVehicle {
   dealHistoryIds: string[];
   createdAt: string;
   updatedAt: string;
+  status: "in_stock" | "sold";
 }
 
 // ============================================

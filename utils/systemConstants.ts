@@ -1,9 +1,7 @@
-/**
- * System Constants - لیست‌های ثابت سیستم
- * These constants are used across forms for dropdowns and selections
- */
 
-// لیست بانک‌ها
+
+import { DateObject } from "react-multi-date-picker";
+
 export const BANK_NAMES = [
   "ملی",
   "ملت",
@@ -26,13 +24,10 @@ export const BANK_NAMES = [
   "سایر",
 ];
 
-// وضعیت‌های وام
 export const LOAN_STATUSES = ["در حال پرداخت", "تسویه شده"];
 
-// وضعیت‌های قسط
 export const INSTALLMENT_STATUSES = ["پرداخت شده", "معوق"];
 
-// وضعیت‌های چک
 export const CHEQUE_STATUSES = [
   "در جریان",
   "پاس شده",
@@ -44,10 +39,8 @@ export const CHEQUE_STATUSES = [
   "ثبت شده",
 ];
 
-// نوع تراکنش
 export const TRANSACTION_TYPES = ["پرداخت", "دریافت"];
 
-// روش پرداخت
 export const PAYMENT_METHODS = [
   "نقد",
   "کارت به کارت",
@@ -56,7 +49,6 @@ export const PAYMENT_METHODS = [
   "مشتری به مشتری",
 ];
 
-// علت تراکنش (Reason)
 export const TRANSACTION_REASONS = [
   "خرید خودرو",
   "فروش خودرو",
@@ -71,10 +63,8 @@ export const TRANSACTION_REASONS = [
   "سایر هزینه‌ها",
 ];
 
-// نقش‌های شخص
 export const PERSON_ROLES = ["customer", "broker", "employee", "provider"];
 
-// نقش‌های شخص (نمایشی)
 export const PERSON_ROLES_DISPLAY = {
   customer: "مشتری",
   broker: "کارگزار",
@@ -82,14 +72,19 @@ export const PERSON_ROLES_DISPLAY = {
   provider: "تامین کننده",
 };
 
-// نوع قرارداد کارمند
+export const roleMap: Record<string, string> = {
+  customer: "مشتری",
+  broker: "کارگزار",
+  employee: "کارمند",
+  provider: "تامین کننده",
+};
+
 export const CONTRACT_TYPES = [
   { value: "full_time", label: "تمام وقت" },
   { value: "part_time", label: "پاره وقت" },
   { value: "contractual", label: "قراردادی" },
 ];
 
-// دسته‌بندی هزینه‌های مستقیم (Direct Costs)
 export const DIRECT_COST_CATEGORIES = [
   { value: "Preparation", label: "آماده‌سازی" },
   { value: "Repairs", label: "تعمیرات فنی" },
@@ -99,7 +94,6 @@ export const DIRECT_COST_CATEGORIES = [
   { value: "Inspection", label: "کارشناسی" },
 ];
 
-// دسته‌بندی هزینه‌های سربار (Overhead Costs)
 export const OVERHEAD_COST_CATEGORIES = [
   { value: "Rent", label: "اجاره" },
   { value: "Utilities", label: "قبوض" },
@@ -109,19 +103,16 @@ export const OVERHEAD_COST_CATEGORIES = [
   { value: "Other", label: "سایر" },
 ];
 
-// نوع هزینه
 export const EXPENSE_TYPES = [
   { value: "option", label: "نصب آپشن" },
   { value: "other", label: "سایر هزینه‌ها" },
 ];
 
-// نوع چک
 export const CHEQUE_TYPES = [
   { value: "received", label: "دریافتی" },
   { value: "issued", label: "پرداختی" },
 ];
 
-// عملیات روی چک
 export const CHEQUE_ACTIONS = [
   { value: "paid", label: "پاس شدن" },
   { value: "returned", label: "برگشت خوردن" },
@@ -129,7 +120,6 @@ export const CHEQUE_ACTIONS = [
   { value: "returned_to_owner", label: "عودت دادن" },
 ];
 
-// ماه‌های شمسی
 export const PERSIAN_MONTHS = [
   "فروردین",
   "اردیبهشت",
@@ -145,5 +135,13 @@ export const PERSIAN_MONTHS = [
   "اسفند",
 ];
 
-// سال‌های شمسی (از 1400 تا 1410)
 export const PERSIAN_YEARS = Array.from({ length: 11 }, (_, i) => 1400 + i);
+
+export const persianToEnglish = (
+  value: DateObject | string | number
+): string => {
+  const persianToEnglishDigit = (char: string) =>
+    String("۰۱۲۳۴۵۶۷۸۹".indexOf(char));
+
+  return value.toString().replace(/[۰-۹]/g, persianToEnglishDigit);
+};
