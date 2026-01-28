@@ -19,8 +19,14 @@ import ChequeActionsForm from "./chequeActionsForm";
 import ChequeFormNew from "./chequeFormNew";
 import SalarySlipForm from "./salarySlipForm";
 import SalariesForm from "./salariesForm";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import PeopleList from "../lists/peopleList";
+import BusinessAccountList from "../lists/businessAccountList";
+import { useGetPersonById } from "@/apis/mutations/people";
+import { IBusinessAccounts, IPeople } from "@/types/new-backend-types";
+import { useGetBusinessAccountById } from "@/apis/mutations/businessAccounts";
+import { resetPlateState } from "@/redux/slices/plateSlice";
 
 type FormType =
   | "transactions"
@@ -46,7 +52,17 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
   onOpenChange,
 }) => {
   const [selectedForm, setSelectedForm] = React.useState<FormType>(null);
+  const [mode, setMode] = React.useState<"add" | "edit">("add");
+  const [personId, setPersonId] = React.useState<string>("");
+  const [accountId, setAccountId] = React.useState<string>("");
+
+  const [personData, setPersonData] = React.useState<IPeople>();
+  const [accountData, setAccountData] = React.useState<IBusinessAccounts>();
+
   const { role } = useSelector((state: RootState) => state.cars);
+  const getPersonById = useGetPersonById();
+  const getBusinessAccountById = useGetBusinessAccountById();
+  const dispatch = useDispatch();
 
   const forms = [
     { id: "peoples", title: "ثبت/ویرایش شخص", icon: "/7.png" },
@@ -76,12 +92,40 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
 
   const handleBack = () => {
     setSelectedForm(null);
+    setMode("edit");
   };
 
   const handleClose = () => {
     setSelectedForm(null);
     onOpenChange(false);
+    setMode("add");
+    dispatch(resetPlateState());
   };
+
+  const getPersonDataById = async () => {
+    try {
+      const res = await getPersonById.mutateAsync(personId);
+      setPersonData(res);
+    } catch (error) {
+      console.log("🚀 ~ FormSelectorModal ~ error:", error);
+    }
+  };
+
+  const getBusinessAccountDataById = async () => {
+    try {
+      const res = await getBusinessAccountById.mutateAsync(accountId);
+      setAccountData(res);
+    } catch (error) {
+      console.log("🚀 ~ FormSelectorModal ~ error:", error);
+    }
+  };
+
+  React.useEffect(() => {
+    getPersonDataById();
+  }, [personId]);
+  React.useEffect(() => {
+    getBusinessAccountDataById();
+  }, [accountId]);
 
   const renderForm = () => {
     switch (selectedForm) {
@@ -89,25 +133,34 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
         return (
           <div className="p-4">
             <PeopleForm
-              personData={null}
-              mode="add"
+              personData={mode === "add" ? null : personData}
+              mode={mode}
               embedded={true}
               onSuccess={() => {
                 handleClose();
               }}
+              setMode={setMode}
             />
+            <p className="text-gray-700 font-semibold">لیست افراد</p>
+            <PeopleList setMode={setMode} setPersonId={setPersonId} />
           </div>
         );
       case "business_accounts":
         return (
           <div className="p-4">
             <BusinessAccountForm
-              accountData={null}
-              mode="add"
+              accountData={mode === "add" ? null : accountData}
+              mode={mode}
               embedded={true}
               onSuccess={() => {
                 handleClose();
               }}
+              setMode={setMode}
+            />
+            <p className="text-gray-700 font-semibold">لیست حساب بانکی</p>
+            <BusinessAccountList
+              setMode={setMode}
+              setAccountId={setAccountId}
             />
           </div>
         );
