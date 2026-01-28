@@ -1,17 +1,14 @@
 "use client";
 import CheckDashboard from "@/components/checkDashboard";
 import CustomersDashboard from "@/components/customersDashboard";
-// import FinanciersDashboard from "@/components/financiersDashboard";
 import OperatorsDashboard from "@/components/operatorsDashboard";
-// import TransactionDashboard from "@/components/transactionDashboard";
 import VehicleDashboard from "@/components/vehicleDashboard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import FormSelectorModal from "./forms/formSelectorModal";
 import React from "react";
-import VehicleList from "./vehicleList";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
-// import OptionForm from "./forms/optionForm";
+import VehicleList from "./lists/vehicleList";
+import FinanciersDashboard from "./financiersDashboard";
+import TransactionDashboard from "./transactionDashboard";
 
 const tabs = [
   {
@@ -34,16 +31,16 @@ const tabs = [
     title: "داشبورد کارگزاران",
     content: <OperatorsDashboard />,
   },
-  // {
-  //   id: "financiersDashboard",
-  //   title: "داشبورد سرمایه گزاران",
-  //   content: <FinanciersDashboard />,
-  // },
-  // {
-  //   id: "transactionDashboard",
-  //   title: "گزارش تراکنش ها",
-  //   content: <TransactionDashboard />,
-  // },
+  {
+    id: "financiersDashboard",
+    title: "داشبورد سرمایه گزاران",
+    content: <FinanciersDashboard />,
+  },
+  {
+    id: "transactionDashboard",
+    title: "گزارش تراکنش ها",
+    content: <TransactionDashboard />,
+  },
   {
     id: "vehicleList",
     title: "فهرست وسایل نقلیه",
@@ -78,12 +75,12 @@ const TabsComponent = () => {
               </TabsTrigger>
             ))}
           </div>
-            <button
-              onClick={() => setFormModalOpen(true)}
-              className="text-sm bg-gray-100 cursor-pointer px-6 py-1 rounded-lg text-black transition-colors duration-200 flex items-center gap-2"
-            >
-              <span>ثبت اطلاعات</span>
-            </button>
+          <button
+            onClick={() => setFormModalOpen(true)}
+            className="text-sm bg-gray-100 cursor-pointer px-4 py-1 rounded-lg text-black transition-colors duration-200 flex items-center gap-2"
+          >
+            <span>ثبت اطلاعات</span>
+          </button>
         </TabsList>
 
         {tabs.map((tab) => (

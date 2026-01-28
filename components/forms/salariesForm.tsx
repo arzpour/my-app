@@ -101,7 +101,7 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
       getLoansByBorrower(selectedEmployee._id.toString())
         .then((loans) => {
           const activeLoans = loans.filter(
-            (loan) => loan.status === "در حال پرداخت"
+            (loan) => loan.status === "در حال پرداخت",
           );
           setEmployeeLoans(activeLoans);
         })
@@ -116,7 +116,7 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
     if (selectedEmployee?.employmentDetails?.baseSalary) {
       setValue(
         "baseSalary",
-        selectedEmployee.employmentDetails.baseSalary.toString()
+        selectedEmployee.employmentDetails.baseSalary.toString(),
       );
     }
   }, [selectedEmployee, setValue]);
@@ -136,12 +136,12 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
     const loanTotal =
       loanInstallments?.reduce(
         (sum, l) => sum + parseFloat(l.amount || "0"),
-        0
+        0,
       ) || 0;
     const otherTotal =
       otherDeductions?.reduce(
         (sum, d) => sum + parseFloat(d.amount || "0"),
-        0
+        0,
       ) || 0;
     return ins + taxAmount + loanTotal + otherTotal;
   }, [insurance, tax, loanInstallments, otherDeductions]);
@@ -181,7 +181,7 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
 
   const currentInstallments = React.useMemo(
     () => getCurrentMonthInstallments(),
-    [employeeLoans, forYear, forMonth]
+    [employeeLoans, forYear, forMonth],
   );
 
   const onSubmit: SubmitHandler<salarySlipSchemaType> = async (data) => {
@@ -209,7 +209,7 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
       const salaryData = {
         employee: {
           personId: selectedEmployee._id?.toString() || "",
-          fullName: selectedEmployee.fullName,
+          fullName: `${selectedEmployee.firstName} ${selectedEmployee.lastName}`,
           nationalId: selectedEmployee.nationalId?.toString() || "",
         },
         forYear: parseInt(data.forYear),
@@ -352,19 +352,50 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-base text-gray-700 font-semibold border-b pb-2">درآمدها</h3>
+        <h3 className="text-base text-gray-700 font-semibold border-b pb-2">
+          درآمدها
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="baseSalary" className="block text-sm font-medium">
               حقوق پایه (ریال) *
             </label>
-            <input
+            {/* <input
               id="baseSalary"
               {...register("baseSalary")}
               type="number"
               placeholder="حقوق پایه"
               className="w-full px-3 py-2 border rounded-md"
+              value={getValues().baseSalary.toLocaleString()}
+            /> */}
+            <Controller
+              name="baseSalary"
+              control={control}
+              render={({ field }) => {
+                const formattedValue = field.value
+                  ? Number(field.value).toLocaleString("en-US")
+                  : "";
+
+                return (
+                  <input
+                    {...field}
+                    type="text"
+                    inputMode="numeric"
+                    id="baseSalary"
+                    placeholder="حقوق پایه"
+                    className="w-full px-3 py-2 border rounded-md"
+                    value={formattedValue}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/,/g, "");
+                      if (!isNaN(Number(rawValue))) {
+                        field.onChange(rawValue);
+                      }
+                    }}
+                  />
+                );
+              }}
             />
+
             {errors.baseSalary && (
               <p className="text-red-500 text-xs">
                 {errors.baseSalary.message}
@@ -376,12 +407,41 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
             <label htmlFor="overtimePay" className="block text-sm font-medium">
               اضافه کاری (ریال)
             </label>
-            <input
+            {/* <input
               id="overtimePay"
               {...register("overtimePay")}
               type="number"
               placeholder="0"
               className="w-full px-3 py-2 border rounded-md"
+              value={getValues().overtimePay.toLocaleString()}
+            /> */}
+
+            <Controller
+              name="overtimePay"
+              control={control}
+              render={({ field }) => {
+                const formattedValue = field.value
+                  ? Number(field.value).toLocaleString("en-US")
+                  : "";
+
+                return (
+                  <input
+                    {...field}
+                    type="text"
+                    inputMode="numeric"
+                    id="overtimePay"
+                    placeholder="0"
+                    className="w-full px-3 py-2 border rounded-md"
+                    value={formattedValue}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/,/g, "");
+                      if (!isNaN(Number(rawValue))) {
+                        field.onChange(rawValue);
+                      }
+                    }}
+                  />
+                );
+              }}
             />
           </div>
         </div>
@@ -434,18 +494,49 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-base text-gray-700 font-semibold border-b pb-2">کسورات</h3>
+        <h3 className="text-base text-gray-700 font-semibold border-b pb-2">
+          کسورات
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="insurance" className="block text-sm font-medium">
               بیمه (ریال)
             </label>
-            <input
+            {/* <input
               id="insurance"
               {...register("insurance")}
               type="number"
               placeholder="0"
               className="w-full px-3 py-2 border rounded-md"
+              value={getValues().insurance.toLocaleString()}
+            /> */}
+
+            <Controller
+              name="insurance"
+              control={control}
+              render={({ field }) => {
+                const formattedValue = field.value
+                  ? Number(field.value).toLocaleString("en-US")
+                  : "";
+
+                return (
+                  <input
+                    {...field}
+                    type="text"
+                    id="insurance"
+                    inputMode="numeric"
+                    placeholder="0"
+                    className="w-full px-3 py-2 border rounded-md"
+                    value={formattedValue}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/,/g, "");
+                      if (!isNaN(Number(rawValue))) {
+                        field.onChange(rawValue);
+                      }
+                    }}
+                  />
+                );
+              }}
             />
           </div>
 
@@ -453,12 +544,41 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
             <label htmlFor="tax" className="block text-sm font-medium">
               مالیات (ریال)
             </label>
-            <input
+            {/* <input
               id="tax"
               {...register("tax")}
               type="number"
               placeholder="0"
               className="w-full px-3 py-2 border rounded-md"
+              value={getValues().tax.toLocaleString()}
+            /> */}
+
+            <Controller
+              name="tax"
+              control={control}
+              render={({ field }) => {
+                const formattedValue = field.value
+                  ? Number(field.value).toLocaleString("en-US")
+                  : "";
+
+                return (
+                  <input
+                    {...field}
+                    type="text"
+                    id="tax"
+                    inputMode="numeric"
+                    placeholder="0"
+                    className="w-full px-3 py-2 border rounded-md"
+                    value={formattedValue}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/,/g, "");
+                      if (!isNaN(Number(rawValue))) {
+                        field.onChange(rawValue);
+                      }
+                    }}
+                  />
+                );
+              }}
             />
           </div>
         </div>
@@ -469,7 +589,7 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
             <div className="space-y-2">
               {currentInstallments.map((inst, index) => {
                 const loan = employeeLoans.find(
-                  (l) => l._id?.toString() === inst.loanId
+                  (l) => l._id?.toString() === inst.loanId,
                 );
                 return (
                   <label
@@ -481,7 +601,7 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
                       checked={loanInstallments?.some(
                         (li) =>
                           li.loanId === inst.loanId &&
-                          li.installmentNumber === inst.installmentNumber
+                          li.installmentNumber === inst.installmentNumber,
                       )}
                       onChange={(e) => {
                         const current = loanInstallments || [];
@@ -496,8 +616,8 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
                                   li.loanId === inst.loanId &&
                                   li.installmentNumber ===
                                     inst.installmentNumber
-                                )
-                            )
+                                ),
+                            ),
                           );
                         }
                       }}

@@ -15,6 +15,10 @@ import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
 import { PERSIAN_YEARS } from "@/utils/systemConstants";
 import type { IPeople, IDeal, IVehicle } from "@/types/new-backend-types";
+import PlateComponent from "./plate";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { resetPlateState } from "@/redux/slices/plateSlice";
 
 interface PurchaseDealFormProps {
   dealData?: IDeal | null;
@@ -32,10 +36,10 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
   const createDeal = useCreateDeal();
   const { data: allPeople } = useGetAllPeople();
   const [selectedSeller, setSelectedSeller] = React.useState<IPeople | null>(
-    null
+    null,
   );
   const [selectedBroker, setSelectedBroker] = React.useState<IPeople | null>(
-    null
+    null,
   );
   const [partnerships, setPartnerships] = React.useState<
     Array<{
@@ -44,6 +48,11 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
       profitSharePercentage: string;
     }>
   >([]);
+
+  const { centerAlphabet, centerDigits, ir, leftDigits } = useSelector(
+    (state: RootState) => state.plate,
+  );
+  const dispatch = useDispatch();
 
   const customers = allPeople?.filter((el) => el.roles.includes("customer"));
 
@@ -108,27 +117,23 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
   };
 
   const onSubmit: SubmitHandler<purchaseDealSchemaType> = async (data) => {
+    const plateData = `${leftDigits} ${centerAlphabet} ${centerDigits} ${ir}`;
     try {
-      // First, create vehicle
       const vehicleData: Partial<IVehicle> = {
         vin: data.vin,
         model: data.model,
         productionYear: parseInt(data.productionYear),
-        plateNumber: data.plateNumber || "",
+        plateNumber: plateData || data.plateNumber || "",
         color: data.color || "",
         dealHistoryIds: [],
+        status: "in_stock",
       };
 
       const vehicle = await createVehicle(vehicleData);
 
-      // Then, create deal
       const seller = allPeople?.find(
-        (p) => p._id?.toString() === data.sellerPersonId
+        (p) => p._id?.toString() === data.sellerPersonId,
       );
-
-      // Convert vehicle._id to number for vehicleId
-      // Backend expects vehicleId as number, so we need to extract numeric part
-      // If vehicle has an id field (number), use it, otherwise try to convert _id
       const vehicleIdNumber =
         (vehicle as any).id ||
         (vehicle as any).vehicleId ||
@@ -148,18 +153,18 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
         seller: seller
           ? {
               personId: seller._id?.toString() || "",
-              fullName: seller.fullName,
+              fullName: `${seller.firstName} ${seller.lastName}`,
               nationalId: seller.nationalId?.toString() || "",
-              mobile: seller.phoneNumber?.toString() || "",
+              mobile: seller.phoneNumbers?.map((el) => el)?.toString() || "",
             }
           : undefined,
         purchaseBroker:
           selectedBroker && data.purchaseBrokerPersonId
             ? {
                 personId: data.purchaseBrokerPersonId,
-                fullName: selectedBroker.fullName,
+                fullName: `${selectedBroker.firstName} ${selectedBroker.lastName}`,
                 commissionPercent: parseFloat(
-                  data.purchaseBrokerCommissionPercent || "0"
+                  data.purchaseBrokerCommissionPercent || "0",
                 ),
                 commissionAmount:
                   parseFloat(data.purchasePrice) *
@@ -169,13 +174,15 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
             : undefined,
         partnerships: partnerships.map((p) => {
           const partner = allPeople?.find(
-            (person) => person._id?.toString() === p.partnerPersonId
+            (person) => person._id?.toString() === p.partnerPersonId,
           );
           return {
             partner: partner
               ? {
                   personId: partner._id?.toString() || "",
-                  name: partner.fullName,
+                  name:
+                    partner.fullName ??
+                    `${partner.firstName} ${partner.lastName}`,
                   nationalID: partner.nationalId?.toString() || "",
                   mobile: partner.phoneNumber?.toString() || "",
                 }
@@ -198,6 +205,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
 
       await createDeal.mutateAsync(dealData);
       toast.success("خرید خودرو با موفقیت ثبت شد");
+      dispatch(resetPlateState());
       onSuccess?.();
     } catch (error: any) {
       console.error("Error creating purchase deal:", error);
@@ -270,18 +278,6 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="plateNumber" className="block text-sm font-medium">
-              شماره پلاک
-            </label>
-            <input
-              id="plateNumber"
-              {...register("plateNumber")}
-              placeholder="شماره پلاک"
-              className="w-full px-3 py-2 border rounded-md"
-            />
-          </div>
-
-          <div className="space-y-2">
             <label htmlFor="color" className="block text-sm font-medium">
               رنگ
             </label>
@@ -291,6 +287,20 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
               placeholder="رنگ خودرو"
               className="w-full px-3 py-2 border rounded-md"
             />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="plateNumber" className="block text-sm font-medium">
+              شماره پلاک
+            </label>
+            {/* <input
+              id="plateNumber"
+              {...register("plateNumber")}
+              placeholder="شماره پلاک"
+              className="w-full px-3 py-2 border rounded-md"
+            /> */}
+
+            <PlateComponent />
           </div>
         </div>
       </div>
@@ -306,17 +316,19 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
             <Controller
               name="sellerPersonId"
               control={control}
-              render={({ field }) => (
-                <PersonSelect
-                  value={field.value}
-                  onValueChange={(personId, person) => {
-                    field.onChange(personId);
-                    setSelectedSeller(person || null);
-                  }}
-                  people={customers || []}
-                  placeholder="انتخاب فروشنده"
-                />
-              )}
+              render={({ field }) => {
+                return (
+                  <PersonSelect
+                    value={field.value}
+                    onValueChange={(personId, person) => {
+                      field.onChange(personId);
+                      setSelectedSeller((person as IPeople) || null);
+                    }}
+                    people={customers || []}
+                    placeholder="انتخاب فروشنده"
+                  />
+                );
+              }}
             />
             {errors.sellerPersonId && (
               <p className="text-red-500 text-xs">
@@ -332,13 +344,42 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
             >
               قیمت خرید (ریال) *
             </label>
-            <input
+            {/* <input
               id="purchasePrice"
               {...register("purchasePrice")}
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder="قیمت خرید"
               className="w-full px-3 py-2 border rounded-md"
+              value={Number(getValues().purchasePrice).toLocaleString("en-US")}
+            /> */}
+            <Controller
+              name="purchasePrice"
+              control={control}
+              render={({ field }) => {
+                const formattedValue = field.value
+                  ? Number(field.value).toLocaleString("en-US")
+                  : "";
+
+                return (
+                  <input
+                    {...field}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="قیمت خرید"
+                    className="w-full px-3 py-2 border rounded-md"
+                    value={formattedValue}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/,/g, "");
+                      if (!isNaN(Number(rawValue))) {
+                        field.onChange(rawValue);
+                      }
+                    }}
+                  />
+                );
+              }}
             />
+
             {errors.purchasePrice && (
               <p className="text-red-500 text-xs">
                 {errors.purchasePrice.message}
@@ -382,14 +423,14 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
               render={({ field }) => (
                 <PersonSelect
                   value={field.value}
-                  onValueChange={(personId, person) => {
+                  onValueChange={(personId, person: IPeople) => {
                     field.onChange(personId);
-                    setSelectedBroker(person || null);
+                    setSelectedBroker((person as IPeople) || null);
                     if (person?.brokerDetails?.currentRates) {
                       setValue(
                         "purchaseBrokerCommissionPercent",
                         person.brokerDetails.currentRates
-                          .purchaseCommissionPercent
+                          .purchaseCommissionPercent,
                       );
                     }
                   }}
@@ -468,7 +509,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
               </label>
               <input
                 type="number"
-                value={partnership.investmentAmount}
+                value={partnership.investmentAmount.toLocaleString()}
                 onChange={(e) =>
                   updatePartnership(index, "investmentAmount", e.target.value)
                 }
@@ -485,7 +526,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
                   updatePartnership(
                     index,
                     "profitSharePercentage",
-                    e.target.value
+                    e.target.value,
                   )
                 }
                 placeholder="درصد"

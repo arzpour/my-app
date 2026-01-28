@@ -1,4 +1,3 @@
-
 "use client";
 import {
   Table,
@@ -25,7 +24,7 @@ const VehicleList = () => {
   const getAllDeals = useGetAllDeals();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [selectedVehicle, setSelectedVehicle] = React.useState<IVehicle | null>(
-    null
+    null,
   );
   const [modalMode, setModalMode] = React.useState<"add" | "edit">("add");
 
@@ -69,11 +68,11 @@ const VehicleList = () => {
     setIsModalOpen(true);
   };
 
-  const handleAdd = () => {
-    setSelectedVehicle(null);
-    setModalMode("add");
-    setIsModalOpen(true);
-  };
+  // const handleAdd = () => {
+  //   setSelectedVehicle(null);
+  //   setModalMode("add");
+  //   setIsModalOpen(true);
+  // };
 
   const vehiclesList = vehicles || [];
 
@@ -101,8 +100,8 @@ const VehicleList = () => {
                   <TableHead className="text-center">ردیف</TableHead>
                   <TableHead className="text-center">شاسی</TableHead>
                   <TableHead className="text-center">مدل ماشین</TableHead>
-                  <TableHead className="text-center">کدملی خریدار</TableHead>
-                  <TableHead className="text-center">کدملی فروشنده</TableHead>
+                  <TableHead className="text-center">خریدار</TableHead>
+                  <TableHead className="text-center">فروشنده</TableHead>
                   <TableHead className="text-center">کارگزار خرید</TableHead>
                   <TableHead className="text-center">کارگزار فروش</TableHead>
                   <TableHead className="text-center">مبلغ فروش</TableHead>
@@ -114,6 +113,7 @@ const VehicleList = () => {
               <TableBody>
                 {vehiclesList.map((vehicle, index) => {
                   const relatedDeal = vinToDealMap.get(vehicle.vin);
+
                   return (
                     <TableRow
                       key={`${vehicle._id}-${index}`}
@@ -127,29 +127,29 @@ const VehicleList = () => {
                         {vehicle.model || "—"}
                       </TableCell>
                       <TableCell className="text-center">
-                        {relatedDeal?.buyer?.nationalId || "—"}
+                        {relatedDeal?.buyer?.fullName || "—"}
                       </TableCell>
                       <TableCell className="text-center">
-                        {relatedDeal?.seller?.nationalId || "—"}
+                        {relatedDeal?.seller?.fullName || "—"}
                       </TableCell>
                       <TableCell className="text-center">
-                        {relatedDeal?.purchaseBroker.fullName || "—"}
+                        {relatedDeal?.purchaseBroker?.fullName || "—"}
                       </TableCell>
                       <TableCell className="text-center">
-                        {relatedDeal?.saleBroker.fullName || "—"}
+                        {relatedDeal?.saleBroker?.fullName || "—"}
                       </TableCell>
                       <TableCell className="text-center">
                         {relatedDeal?.salePrice
-                          ? relatedDeal.salePrice.toLocaleString("en-US")
+                          ? relatedDeal?.salePrice?.toLocaleString("en-US")
                           : "—"}
                       </TableCell>
                       <TableCell className="text-center">
                         {relatedDeal?.purchasePrice
-                          ? relatedDeal.purchasePrice.toLocaleString("en-US")
+                          ? relatedDeal?.purchasePrice?.toLocaleString("en-US")
                           : "—"}
                       </TableCell>
                       <TableCell className="text-center">
-                        {vehicle.plateNumber || "—"}
+                        {vehicle?.plateNumber || "—"}
                       </TableCell>
                       <TableCell className="text-center flex gap-3 items-center justify-center">
                         <Pencil

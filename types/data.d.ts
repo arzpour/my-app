@@ -19,7 +19,7 @@ interface ICarRes {
   PurchaseBroker: string;
   SaleBroker: string;
   Secretary: string;
-  DocumentsCopy: string;
+  DocumentsCopy: string[];
   SellerNationalID: number;
   BuyerNationalID: number;
   status?: string;
@@ -108,4 +108,24 @@ interface IUniqeUsersData {
 interface ICarDataByNationalIdOrName {
   purchases: ICarRes[];
   sales: ICarRes[];
+}
+
+interface PlateState {
+  leftDigits: number | null;
+  centerAlphabet: string | null;
+  centerDigits: number | null;
+  ir: number | null;
+}
+
+interface PlateData {
+  leftDigits: number;
+  centerAlphabet: string | null;
+  centerDigits: number;
+  ir: number;
+}
+
+interface IUpdateWalletReq {
+  amount: string;
+  type: string;
+  description: string | undefined;
 }

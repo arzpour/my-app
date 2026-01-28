@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { IPeople, IBusinessAccounts } from "@/types/new-backend-types";
+import {  roleMap } from "@/utils/systemConstants";
 
 const SettingsManagement = () => {
   const { data: allPeople, isLoading: peopleLoading } = useGetAllPeople();
@@ -23,8 +24,11 @@ const SettingsManagement = () => {
     queryFn: getAllBusinessAccounts,
   });
 
-  const [editingPerson, setEditingPerson] = React.useState<IPeople | null>(null);
-  const [editingAccount, setEditingAccount] = React.useState<IBusinessAccounts | null>(null);
+  const [editingPerson, setEditingPerson] = React.useState<IPeople | null>(
+    null
+  );
+  const [editingAccount, setEditingAccount] =
+    React.useState<IBusinessAccounts | null>(null);
 
   return (
     <div className="space-y-8 p-4" dir="rtl">
@@ -45,11 +49,13 @@ const SettingsManagement = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>نام و نام خانوادگی</TableHead>
-                <TableHead>کد ملی</TableHead>
-                <TableHead>موبایل</TableHead>
-                <TableHead>نقش‌ها</TableHead>
-                <TableHead>عملیات</TableHead>
+                <TableHead className="w-[30%] text-right">
+                  نام و نام خانوادگی
+                </TableHead>
+                <TableHead className="w-[30%] text-right">کد ملی</TableHead>
+                <TableHead className="w-[30%] text-right">موبایل</TableHead>
+                <TableHead className="w-[30%] text-right">نقش‌ها</TableHead>
+                <TableHead className="w-[30%] text-right">عملیات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -67,11 +73,6 @@ const SettingsManagement = () => {
                     <TableCell>{person.phoneNumber}</TableCell>
                     <TableCell>
                       {person.roles?.map((role) => {
-                        const roleMap: Record<string, string> = {
-                          customer: "مشتری",
-                          broker: "کارگزار",
-                          employee: "کارمند",
-                        };
                         return (
                           <span
                             key={role}
@@ -122,12 +123,12 @@ const SettingsManagement = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>نام حساب</TableHead>
-                <TableHead>بانک</TableHead>
-                <TableHead>شماره حساب</TableHead>
-                <TableHead>موجودی</TableHead>
-                <TableHead>وضعیت</TableHead>
-                <TableHead>عملیات</TableHead>
+                <TableHead className="w-[30%] text-right">نام حساب</TableHead>
+                <TableHead className="w-[30%] text-right">بانک</TableHead>
+                <TableHead className="w-[30%] text-right">شماره حساب</TableHead>
+                <TableHead className="w-[30%] text-right">موجودی</TableHead>
+                <TableHead className="w-[30%] text-right">وضعیت</TableHead>
+                <TableHead className="w-[30%] text-right">عملیات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -184,4 +185,3 @@ const SettingsManagement = () => {
 };
 
 export default SettingsManagement;
-

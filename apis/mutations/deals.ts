@@ -19,6 +19,8 @@ export const useCreateDeal = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-all-deals"] });
       queryClient.invalidateQueries({ queryKey: ["get-deal-by-vin"] });
+      queryClient.invalidateQueries({ queryKey: ["get-vehicles"] });
+      queryClient.invalidateQueries({ queryKey: ["get-all-vehicles"] });
       toast.success("معامله با موفقیت ثبت شد");
     },
     onError: (error: any) => {
@@ -40,7 +42,7 @@ export const useUpdateDeal = () => {
     },
     onError: (error: any) => {
       toast.error(
-        error?.response?.data?.message || "خطا در به‌روزرسانی معامله"
+        error?.response?.data?.message || "خطا در به‌روزرسانی معامله",
       );
     },
   });

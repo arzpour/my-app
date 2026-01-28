@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createPerson, updatePerson } from "../client/people";
+import { createPerson, getPersonById, updatePerson, updateWallet } from "../client/people";
 import { toast } from "sonner";
 
 export const useCreatePerson = () => {
@@ -30,6 +30,20 @@ export const useUpdatePerson = () => {
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "خطا در به‌روزرسانی شخص");
     },
+  });
+};
+
+export const useGetPersonById = () => {
+  return useMutation({
+    mutationKey: ["get-person-by-id"],
+    mutationFn: getPersonById,
+  });
+};
+
+export const useUpdateWallet = () => {
+  return useMutation({
+    mutationKey: ["update-wallet"],
+    mutationFn: updateWallet,
   });
 };
 

@@ -27,6 +27,7 @@ interface BusinessAccountFormProps {
   mode?: "add" | "edit";
   onSuccess?: () => void;
   embedded?: boolean; // If true, render without Dialog wrapper
+  setMode?: React.Dispatch<React.SetStateAction<"add" | "edit">> | undefined;
 }
 
 const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
@@ -34,6 +35,7 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
   mode = "add",
   onSuccess,
   embedded = false,
+  setMode,
 }) => {
   const [open, setOpen] = React.useState(embedded);
   const createAccount = useCreateBusinessAccount();
@@ -85,7 +87,7 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
         accountName: data.accountName,
         bankName: data.bankName,
         branchName: data.branchName,
-        accountNumber: Number(data.accountNumber),
+        accountNumber: data.accountNumber,
         iban: data.iban,
         cardNumber: data.cardNumber || "",
         isActive: data.isActive,
@@ -111,7 +113,7 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
   };
 
   const formContent = (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mb-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <label htmlFor="accountName" className="block text-sm font-medium">
@@ -261,6 +263,7 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
             if (!embedded) setOpen(false);
             reset();
             if (embedded && onSuccess) onSuccess();
+            setMode?.("add");
           }}
           className="px-4 py-2 border rounded-md hover:bg-gray-50"
         >

@@ -1,10 +1,10 @@
-import { getAllPeople } from "@/apis/client/people";
+import { getAllUsers } from "@/apis/client/users";
 import { useQuery } from "@tanstack/react-query";
 
-const useGetAllPeople = () => {
+const useGetAllUsers = () => {
   const { data, isLoading, isError, error, isSuccess } = useQuery({
-    queryKey: ["get-all-people"],
-    queryFn: getAllPeople,
+    queryKey: ["get-all-users"],
+    queryFn: getAllUsers,
     refetchOnWindowFocus: false,
     retry: 1,
   });
@@ -12,5 +12,4 @@ const useGetAllPeople = () => {
   return { data, isLoading, isError, isSuccess, error };
 };
 
-export default useGetAllPeople;
-
+export default useGetAllUsers;

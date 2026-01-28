@@ -1,5 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createBusinessAccount, updateBusinessAccount } from "../client/businessAccounts";
+import {
+  createBusinessAccount,
+  getBusinessAccountById,
+  updateBusinessAccount,
+} from "../client/businessAccounts";
 import { toast } from "sonner";
 
 export const useCreateBusinessAccount = () => {
@@ -8,7 +12,9 @@ export const useCreateBusinessAccount = () => {
   return useMutation({
     mutationFn: createBusinessAccount,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["get-all-business-accounts"] });
+      queryClient.invalidateQueries({
+        queryKey: ["get-all-business-accounts"],
+      });
       toast.success("حساب بانکی با موفقیت ثبت شد");
     },
     onError: (error: any) => {
@@ -24,12 +30,22 @@ export const useUpdateBusinessAccount = () => {
     mutationFn: ({ id, data }: { id: string; data: any }) =>
       updateBusinessAccount(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["get-all-business-accounts"] });
+      queryClient.invalidateQueries({
+        queryKey: ["get-all-business-account"],
+      });
       toast.success("اطلاعات حساب بانکی با موفقیت به‌روزرسانی شد");
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "خطا در به‌روزرسانی حساب بانکی");
+      toast.error(
+        error?.response?.data?.message || "خطا در به‌روزرسانی حساب بانکی",
+      );
     },
   });
 };
 
+export const useGetBusinessAccountById = () => {
+  return useMutation({
+    mutationKey: ["get-business-account-by-id"],
+    mutationFn: getBusinessAccountById,
+  });
+};

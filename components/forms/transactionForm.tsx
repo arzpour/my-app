@@ -24,6 +24,7 @@ import {
   CHEQUE_STATUSES,
 } from "@/utils/systemConstants";
 import type { IPeople, IDeal } from "@/types/new-backend-types";
+import { useUpdateWallet } from "@/apis/mutations/people";
 
 interface TransactionFormProps {
   onSuccess?: () => void;
@@ -87,6 +88,17 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const showPayer = showChequeFields && chequeType === "دریافتی";
   const showPayee = showChequeFields && chequeType === "پرداختی";
 
+  const updateWallet = useUpdateWallet();
+
+  const addToWalletHandler = async (id: string, data: IUpdateWalletReq) => {
+    try {
+      const res = await updateWallet.mutateAsync({ id, data });
+      console.log("🚀 ~ addToWalletHandler ~ res:", res);
+    } catch (error) {
+      console.log("🚀 ~ addToWalletHandler ~ error:", error);
+    }
+  };
+
   const onSubmit: SubmitHandler<transactionChequeSchemaType> = async (data) => {
     try {
       // First, create transaction
@@ -134,7 +146,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           payer: payer
             ? {
                 personId: payer._id?.toString() || "",
-                fullName: payer.fullName,
+                fullName: `${payer.firstName} ${payer.lastName}`,
                 nationalId: payer.nationalId?.toString() || "",
               }
             : {
@@ -145,7 +157,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           payee: payee
             ? {
                 personId: payee._id?.toString() || "",
-                fullName: payee.fullName,
+                fullName: `${payee.firstName} ${payee.lastName}`,
                 nationalId: payee.nationalId?.toString() || "",
               }
             : {
@@ -173,6 +185,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       }
 
       toast.success("تراکنش با موفقیت ثبت شد");
+
+      const walletData = {
+        amount: data.amount,
+        type: data.type,
+        description: data.description,
+      };
+      addToWalletHandler(data.personId, walletData);
+
       onSuccess?.();
     } catch (error: any) {
       console.error("Error creating transaction:", error);

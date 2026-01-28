@@ -34,6 +34,7 @@ interface PeopleFormProps {
   mode?: "add" | "edit";
   onSuccess?: () => void;
   embedded?: boolean; // If true, render without Dialog wrapper
+  setMode?: React.Dispatch<React.SetStateAction<"add" | "edit">>;
 }
 
 const PeopleForm: React.FC<PeopleFormProps> = ({
@@ -41,11 +42,11 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
   mode = "add",
   onSuccess,
   embedded = false,
+  setMode,
 }) => {
   const [open, setOpen] = React.useState(embedded);
   const createPerson = useCreatePerson();
   const updatePerson = useUpdatePerson();
-  const { data: allPeople } = useGetAllPeople();
   const { role: currentUserRole } = useSelector(
     (state: RootState) => state.cars
   );
@@ -90,8 +91,9 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
   React.useEffect(() => {
     if (mode === "edit" && personData) {
       const fullNameParts = personData.fullName?.split(" ") || [];
-      const firstName = fullNameParts[0] || "";
-      const lastName = fullNameParts.slice(1).join(" ") || "";
+      const firstName = personData?.firstName || fullNameParts[0] || "";
+      const lastName =
+        personData?.lastName || fullNameParts.slice(1).join(" ") || "";
 
       const phoneNumbers = personData.phoneNumbers
         ? Array.isArray(personData.phoneNumbers)
@@ -246,7 +248,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
   };
 
   const formContent = (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mb-8">
       {/* Basic Information */}
       <div className="space-y-4">
         <h3 className="text-base text-gray-700 font-semibold border-b pb-2">
@@ -594,12 +596,40 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
               <label htmlFor="baseSalary" className="block text-sm font-medium">
                 حقوق پایه (ریال) *
               </label>
-              <input
+              {/* <input
                 id="baseSalary"
                 {...register("baseSalary")}
                 placeholder="مثلاً 65000000"
                 type="number"
                 className="w-full px-3 py-2 border rounded-md"
+              /> */}
+
+              <Controller
+                name="baseSalary"
+                control={control}
+                render={({ field }) => {
+                  const formattedValue = field.value
+                    ? Number(field.value).toLocaleString("en-US")
+                    : "";
+
+                  return (
+                    <input
+                      {...field}
+                      type="text"
+                      inputMode="numeric"
+                      id="baseSalary"
+                      placeholder="مثلاً 65000000"
+                      className="w-full px-3 py-2 border rounded-md"
+                      value={formattedValue}
+                      onChange={(e) => {
+                        const rawValue = e.target.value.replace(/,/g, "");
+                        if (!isNaN(Number(rawValue))) {
+                          field.onChange(rawValue);
+                        }
+                      }}
+                    />
+                  );
+                }}
               />
               {errors.baseSalary && (
                 <p className="text-red-500 text-xs">
@@ -619,6 +649,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
             if (!embedded) setOpen(false);
             reset();
             if (embedded && onSuccess) onSuccess();
+            setMode?.("add" );
           }}
           className="px-4 py-2 border rounded-md hover:bg-gray-50"
         >

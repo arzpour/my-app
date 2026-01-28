@@ -6,7 +6,7 @@ import useGetTransactionByDealId from "@/hooks/useGetTransactionByDealId";
 import useGetChequesByDealId from "@/hooks/useGetChequesByDealId";
 import { setChassisNo, setSelectedDealId } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
-import { IDeal, IChequeNew } from "@/types/new-backend-types";
+import { IDeal, IChequeNew, IPeople } from "@/types/new-backend-types";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation";
 import { useLogout } from "@/apis/mutations/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useGetPersonById } from "@/apis/mutations/people";
 
 const Header = () => {
   const { chassisNo: chassisNoSaved } = useSelector(
@@ -36,6 +37,8 @@ const Header = () => {
 
   const getDealsByVin = useGetDealsByVin(chassisNoSaved);
 
+  const getPersonById = useGetPersonById();
+
   const dealsData = getDealsByVin.data;
   const allDeals = React.useMemo(() => {
     if (!dealsData) return [];
@@ -45,6 +48,8 @@ const Header = () => {
 
   const [selectedDeal, setSelectedDeal] = React.useState<IDeal | null>(null);
   const [showDealModal, setShowDealModal] = React.useState(false);
+  const [buyerInfo, setBuyerInfo] = React.useState<IPeople | null>(null);
+  const [sellerInfo, setSellerInfo] = React.useState<IPeople | null>(null);
 
   React.useEffect(() => {
     if (allDeals.length === 1) {
@@ -71,6 +76,24 @@ const Header = () => {
     : [];
 
   const dispatch = useDispatch();
+
+  const getSellerInfoById = async () => {
+    try {
+      const res = await getPersonById.mutateAsync(deals?.seller?.personId);
+      setSellerInfo(res);
+    } catch (error) {
+      console.error("error:", error);
+    }
+  };
+
+  const getBuyerInfoById = async () => {
+    try {
+      const res = await getPersonById.mutateAsync(deals?.buyer?.personId);
+      setBuyerInfo(res);
+    } catch (error) {
+      console.error("error:", error);
+    }
+  };
 
   const handleSelectChassis = async (vin: string) => {
     dispatch(setChassisNo(vin));
@@ -134,12 +157,13 @@ const Header = () => {
 
   let buyAmountWithPercent: number | null = null;
   let sellAmountWithPercent: number | null = null;
-  const buyPercent = deals?.purchaseBroker?.commissionPercent
-    ? parseFloat(String(deals.purchaseBroker.commissionPercent)) * 100
-    : 0;
-  const sellPercent = deals?.saleBroker?.commissionPercent
-    ? parseFloat(String(deals.saleBroker.commissionPercent)) * 100
-    : 0;
+  // const buyPercent = deals?.purchaseBroker?.commissionPercent
+  //   ? parseFloat(String(deals.purchaseBroker.commissionPercent)) * 100
+  //   : 0;
+  // console.log("🚀 ~ Header ~ deals:", deals);
+  // const sellPercent = deals?.saleBroker?.commissionPercent
+  //   ? parseFloat(String(deals.saleBroker.commissionPercent)) * 100
+  //   : 0;
 
   if (grossProfit !== null) {
     const amountWithoutPercent = grossProfit - totalOtherCosts;
@@ -235,6 +259,13 @@ const Header = () => {
       : "بستانکار";
   }, [totalReceivedFromBuyer, buyerSettlementAmount, deals?.salePrice]);
 
+  React.useEffect(() => {
+    if (deals) {
+      getSellerInfoById();
+      getBuyerInfoById();
+    }
+  }, [deals]);
+
   return (
     <div className="border border-b-2 border-gray-300 rounded flex flex-col gap-2 p-4 pb-2.5 relative">
       <div className="grid grid-cols-9 gap-3 auto-rows-min items-start justify-start place-items-stretch">
@@ -311,11 +342,13 @@ const Header = () => {
           <h3 className="text-sm text-blue-900 font-bold">
             کارگزار خرید:{" "}
             <span className="text-green-700 text-xs">
-              {buyPercent > 0 ? `${buyPercent.toFixed(2)}%` : "0%"}
+              {deals?.purchaseBroker?.commissionPercent > 0
+                ? `${deals?.purchaseBroker?.commissionPercent}%`
+                : "0%"}
             </span>
           </h3>
           <p className="text-sm">{deals?.purchaseBroker?.fullName ?? "-"}</p>
-          <p className="text-sm text-green-700 font-bold">
+          <p dir="ltr" className="text-sm text-green-700 font-bold text-right">
             {buyAmountWithPercent?.toLocaleString("en-US") ?? "—"}
           </p>
         </div>
@@ -323,11 +356,13 @@ const Header = () => {
           <h3 className="text-sm text-blue-900 font-bold">
             کارگزار فروش:{" "}
             <span className="text-green-700 text-xs">
-              {sellPercent > 0 ? `${sellPercent.toFixed(2)}%` : "0%"}
+              {deals?.saleBroker?.commissionPercent > 0
+                ? `${deals?.saleBroker?.commissionPercent}%`
+                : "0%"}
             </span>
           </h3>
           <p className="text-sm">{deals?.saleBroker?.fullName ?? "-"}</p>
-          <p className="text-sm text-green-700 font-bold">
+          <p dir="ltr" className="text-sm text-green-700 font-bold text-right">
             {sellAmountWithPercent?.toLocaleString("en-US") ?? "—"}
           </p>
         </div>
@@ -335,18 +370,30 @@ const Header = () => {
           <h3 className="text-sm text-blue-900 font-bold">
             طرف اول: <span></span>
           </h3>
-          <p className="text-sm">{deals?.seller?.fullName ?? "-"}</p>
+          <p className="text-sm">
+            {sellerInfo?.firstName || sellerInfo?.lastName
+              ? `${sellerInfo?.firstName} ${sellerInfo?.lastName}`
+              : sellerInfo?.fullName ?? deals?.seller?.fullName ?? "-"}
+          </p>
           <p className="text-sm text-orange-500">
-            {deals?.seller?.mobile ?? "-"}
+            {sellerInfo?.phoneNumbers?.map((el) => el) ??
+              deals?.seller?.mobile ??
+              "-"}
           </p>
         </div>
         <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">
             طرف دوم: <span></span>
           </h3>
-          <p className="text-sm">{deals?.buyer?.fullName ?? "-"}</p>
+          <p className="text-sm">
+            {buyerInfo?.firstName || buyerInfo?.lastName
+              ? `${buyerInfo?.firstName} ${buyerInfo?.lastName}`
+              : buyerInfo?.fullName ?? deals?.buyer?.fullName ?? "-"}
+          </p>
           <p className="text-sm text-orange-500">
-            {deals?.buyer?.mobile ?? "-"}
+            {buyerInfo?.phoneNumbers?.map((el) => el) ??
+              deals?.buyer?.mobile ??
+              "-"}
           </p>
         </div>
       </div>
@@ -354,8 +401,16 @@ const Header = () => {
       <div className="grid grid-cols-5 gap-4 xl:gap-8 items-center justify-start place-items-stretch">
         <div className="flex gap-2 items-right items-baseline text-sm">
           <p className="text-sm">وضعیت خودرو:</p>
-          <p className="px-7 bg-green-400 text-red-900 rounded py-1 text-sm">
-            فروخته شد
+          <p
+            className={`px-7 rounded py-1 text-sm ${
+              deals?.buyer
+                ? "bg-red-400 text-white"
+                : deals?.seller
+                ? "bg-green-400 text-red-900"
+                : "bg-yellow-400 text-red-900"
+            }`}
+          >
+            {deals?.buyer ? "فروخته شد" : deals?.seller ? "موجود" : "نامعلوم"}
           </p>
         </div>
         {/* <div className="flex gap-2 items-right items-center text-sm">
@@ -398,32 +453,38 @@ const Header = () => {
         </p>
         {/* </div> */}
         <div className="flex gap-2 items-right items-baseline text-sm">
-          <p className="text-sm text-blue-800 w-full whitespace-nowrap">وضعیت مالی با طرف اول:</p>
+          <p className="text-sm text-blue-800 w-full whitespace-nowrap">
+            وضعیت مالی با طرف اول:
+          </p>
           <p
-            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${sellerSettlementStatus === "تسویه شده"
-              ? "bg-green-400 text-green-900"
-              : sellerSettlementStatus === "بدهکار"
+            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${
+              sellerSettlementStatus === "تسویه شده"
+                ? "bg-green-400 text-green-900"
+                : sellerSettlementStatus === "بدهکار"
                 ? "bg-red-400 text-red-900"
                 : sellerSettlementStatus === "بستانکار"
-                  ? "bg-yellow-400 text-yellow-900"
-                  : "bg-gray-200 text-gray-600"
-              }`}
+                ? "bg-yellow-400 text-yellow-900"
+                : "bg-gray-200 text-gray-600"
+            }`}
           >
             {sellerSettlementStatus}
           </p>
         </div>
 
         <div className="flex gap-2 items-right items-baseline text-sm">
-          <p className="text-sm text-blue-800 w-full whitespace-nowrap">وضعیت مالی با طرف دوم:</p>
+          <p className="text-sm text-blue-800 w-full whitespace-nowrap">
+            وضعیت مالی با طرف دوم:
+          </p>
           <p
-            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${buyerSettlementStatus === "تسویه شده"
-              ? "bg-green-400 text-green-900"
-              : buyerSettlementStatus === "بستانکار"
+            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${
+              buyerSettlementStatus === "تسویه شده"
+                ? "bg-green-400 text-green-900"
+                : buyerSettlementStatus === "بستانکار"
                 ? "bg-yellow-400 text-yellow-900"
                 : buyerSettlementStatus === "بدهکار"
-                  ? "bg-red-400 text-red-900"
-                  : "bg-gray-200 text-gray-600"
-              }`}
+                ? "bg-red-400 text-red-900"
+                : "bg-gray-200 text-gray-600"
+            }`}
           >
             {buyerSettlementStatus}
           </p>
