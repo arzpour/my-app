@@ -40,7 +40,6 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
     control,
     register,
     handleSubmit,
-    watch,
     setValue,
     formState: { errors },
   } = useForm<dealExpensesSchemaType>({
@@ -55,7 +54,7 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
     },
   });
 
-  const expenseType = watch("expenseType");
+  // const expenseType = watch("expenseType");
 
   const onSubmit: SubmitHandler<dealExpensesSchemaType> = async (data) => {
     try {
@@ -65,7 +64,7 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
       }
 
       const provider = allPeople?.find(
-        (p) => p._id?.toString() === data.providerPersonId
+        (p) => p._id?.toString() === data.providerPersonId,
       );
 
       const expenseItem = {
@@ -130,7 +129,7 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
             {...register("dealId")}
             onChange={(e) => {
               const deal = allDeals?.find(
-                (d) => d._id?.toString() === e.target.value
+                (d) => d._id?.toString() === e.target.value,
               );
               setSelectedDeal(deal || null);
               setValue("dealId", e.target.value);
@@ -226,12 +225,40 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
               <label htmlFor="cost" className="block text-sm font-medium">
                 مبلغ هزینه (ریال) *
               </label>
-              <input
+              {/* <input
                 id="cost"
                 {...register("cost")}
                 type="number"
                 placeholder="مبلغ"
                 className="w-full px-3 py-2 border rounded-md"
+                value={Number(getValues().cost).toLocaleString("en-US")}
+              /> */}
+              <Controller
+                name="cost"
+                control={control}
+                render={({ field }) => {
+                  const formattedValue = field.value
+                    ? Number(field.value).toLocaleString("en-US")
+                    : "";
+
+                  return (
+                    <input
+                      {...field}
+                      type="text"
+                      id="cost"
+                      inputMode="numeric"
+                      placeholder="مبلغ"
+                      className="w-full px-3 py-2 border rounded-md"
+                      value={formattedValue}
+                      onChange={(e) => {
+                        const rawValue = e.target.value.replace(/,/g, "");
+                        if (!isNaN(Number(rawValue))) {
+                          field.onChange(rawValue);
+                        }
+                      }}
+                    />
+                  );
+                }}
               />
               {errors.cost && (
                 <p className="text-red-500 text-xs">{errors.cost.message}</p>

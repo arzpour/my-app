@@ -12,6 +12,7 @@ import useGetAllPeople from "@/hooks/useGetAllPeople";
 import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
 import type { IPeople, IDeal } from "@/types/new-backend-types";
+import { useUpdateVehicle } from "@/apis/mutations/vehicle";
 
 interface SaleDealFormProps {
   onSuccess?: () => void;
@@ -42,8 +43,10 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
     queryKey: ["get-all-deals"],
     queryFn: getAllDeals,
   });
+  const updateVehicle = useUpdateVehicle();
 
   const customers = allPeople?.filter((el) => el.roles.includes("customer"));
+  const carsForSale = allDeals?.filter((el) => el.status === "in_stock");
 
   const {
     control,
@@ -82,9 +85,9 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
         buyer: buyer
           ? {
               personId: buyer._id?.toString() || "",
-              fullName: buyer.fullName,
+              fullName: `${buyer.firstName} ${buyer.lastName}`,
               nationalId: buyer.nationalId?.toString() || "",
-              mobile: buyer.phoneNumber?.toString() || "",
+              mobile: buyer.phoneNumbers?.map((el) => el)?.toString() || "",
             }
           : undefined,
         salePrice: parseFloat(data.salePrice),
@@ -93,7 +96,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
           selectedBroker && data.saleBrokerPersonId
             ? {
                 personId: data.saleBrokerPersonId,
-                fullName: selectedBroker.fullName,
+                fullName: `${selectedBroker.firstName} ${selectedBroker.lastName}`,
                 commissionPercent: parseFloat(
                   data.saleBrokerCommissionPercent || "0"
                 ),
@@ -111,6 +114,11 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
       });
 
       toast.success("فروش خودرو با موفقیت ثبت شد");
+
+      await updateVehicle.mutateAsync({
+        id: selectedDeal.vehicleId.toString(),
+        data: { status: "sold" },
+      });
       onSuccess?.();
     } catch (error: any) {
       console.error("Error updating sale deal:", error);
@@ -140,7 +148,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
             className="w-full px-3 py-2 border rounded-md"
           >
             <option value="">انتخاب خودرو</option>
-            {allDeals?.map((deal) => (
+            {(carsForSale ?? [])?.map((deal) => (
               <option key={deal._id?.toString()} value={deal._id?.toString()}>
                 {deal.vehicleSnapshot.plateNumber || "بدون پلاک"} -{" "}
                 {deal.vehicleSnapshot.model} ({deal.vehicleSnapshot.vin})
@@ -193,12 +201,40 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
             <label htmlFor="salePrice" className="block text-sm font-medium">
               قیمت فروش نهایی (ریال) *
             </label>
-            <input
+            {/* <input
               id="salePrice"
               {...register("salePrice")}
               type="number"
               placeholder="قیمت فروش"
               className="w-full px-3 py-2 border rounded-md"
+              value={getValues().salePrice.toLocaleString()}
+            /> */}
+            <Controller
+              name="salePrice"
+              control={control}
+              render={({ field }) => {
+                const formattedValue = field.value
+                  ? Number(field.value).toLocaleString("en-US")
+                  : "";
+
+                return (
+                  <input
+                    {...field}
+                    type="text"
+                    id="salePrice"
+                    inputMode="numeric"
+                    placeholder="قیمت فروش"
+                    className="w-full px-3 py-2 border rounded-md"
+                    value={formattedValue}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/,/g, "");
+                      if (!isNaN(Number(rawValue))) {
+                        field.onChange(rawValue);
+                      }
+                    }}
+                  />
+                );
+              }}
             />
             {errors.salePrice && (
               <p className="text-red-500 text-xs">{errors.salePrice.message}</p>

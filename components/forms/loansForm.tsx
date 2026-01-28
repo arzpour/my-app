@@ -10,7 +10,8 @@ import useGetAllPeople from "@/hooks/useGetAllPeople";
 import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
 import { LOAN_STATUSES } from "@/utils/systemConstants";
-import type { IPeople, ILoan } from "@/types/new-backend-types";
+import type {  ILoan } from "@/types/new-backend-types";
+import { useUpdateWallet } from "@/apis/mutations/people";
 
 interface LoansFormProps {
   onSuccess?: () => void;
@@ -46,6 +47,17 @@ const LoansForm: React.FC<LoansFormProps> = ({
 
   const totalAmount = watch("totalAmount");
   const numberOfInstallments = watch("numberOfInstallments");
+
+  const updateWallet = useUpdateWallet();
+
+  const addToWalletHandler = async (id: string, data: IUpdateWalletReq) => {
+    try {
+      const res = await updateWallet.mutateAsync({ id, data });
+      console.log("🚀 ~ addToWalletHandler ~ res:", res);
+    } catch (error) {
+      console.log("🚀 ~ addToWalletHandler ~ error:", error);
+    }
+  };
 
   // Calculate installment amount
   React.useEffect(() => {
@@ -114,7 +126,7 @@ const LoansForm: React.FC<LoansFormProps> = ({
       const loanData: Partial<ILoan> = {
         borrower: {
           personId: personIdNumber,
-          fullName: borrower.fullName,
+          fullName: `${borrower.firstName} ${borrower.lastName}`,
           nationalId: borrower.nationalId || 0,
         },
         totalAmount: parseFloat(data.totalAmount),
@@ -128,6 +140,13 @@ const LoansForm: React.FC<LoansFormProps> = ({
 
       await createLoan.mutateAsync(loanData);
       onSuccess?.();
+
+      const walletData = {
+        amount: data.totalAmount,
+        type: data.status,
+        description: data.description,
+      };
+      addToWalletHandler(data.borrowerPersonId, walletData);
     } catch (error: any) {
       console.error("Error creating loan:", error);
       // Error is already handled by mutation hook
@@ -137,7 +156,9 @@ const LoansForm: React.FC<LoansFormProps> = ({
   const formContent = (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
-        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">اطلاعات وام</h3>
+        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
+          اطلاعات وام
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="block text-sm font-medium">کارمند *</label>
@@ -168,12 +189,38 @@ const LoansForm: React.FC<LoansFormProps> = ({
             <label htmlFor="totalAmount" className="block text-sm font-medium">
               مبلغ وام (ریال) *
             </label>
-            <input
+            {/* <input
               id="totalAmount"
               {...register("totalAmount")}
               type="number"
               placeholder="مبلغ وام"
               className="w-full px-3 py-2 border rounded-md"
+            /> */}
+            <Controller
+              name="totalAmount"
+              control={control}
+              render={({ field }) => {
+                const formattedValue = field.value
+                  ? Number(field.value).toLocaleString("en-US")
+                  : "";
+                return (
+                  <input
+                    {...field}
+                    type="text"
+                    inputMode="numeric"
+                    id="totalAmount"
+                    placeholder="مبلغ وام"
+                    className="w-full px-3 py-2 border rounded-md"
+                    value={formattedValue}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/,/g, "");
+                      if (!isNaN(Number(rawValue))) {
+                        field.onChange(rawValue);
+                      }
+                    }}
+                  />
+                );
+              }}
             />
             {errors.totalAmount && (
               <p className="text-red-500 text-xs">
@@ -230,12 +277,39 @@ const LoansForm: React.FC<LoansFormProps> = ({
             >
               مبلغ هر قسط (ریال)
             </label>
-            <input
+            {/* <input
               id="installmentAmount"
               {...register("installmentAmount")}
               type="number"
               readOnly
               className="w-full px-3 py-2 border rounded-md bg-gray-100"
+            /> */}
+            <Controller
+              name="installmentAmount"
+              control={control}
+              render={({ field }) => {
+                const formattedValue = field.value
+                  ? Number(field.value).toLocaleString("en-US")
+                  : "";
+                return (
+                  <input
+                    {...field}
+                    type="text"
+                    inputMode="numeric"
+                    id="installmentAmount"
+                    placeholder="مبلغ وام"
+                    className="w-full px-3 py-2 border rounded-md bg-gray-100"
+                    value={formattedValue}
+                    readOnly
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/,/g, "");
+                      if (!isNaN(Number(rawValue))) {
+                        field.onChange(rawValue);
+                      }
+                    }}
+                  />
+                );
+              }}
             />
             {totalAmount && numberOfInstallments && (
               <p className="text-xs text-gray-500">
