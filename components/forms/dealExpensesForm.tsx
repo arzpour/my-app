@@ -15,6 +15,7 @@ import useGetAllPeople from "@/hooks/useGetAllPeople";
 import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
 import type { IDeal } from "@/types/new-backend-types";
+import useUpdateWalletHandler from "@/hooks/useUpdateWalletHandler";
 
 interface DealExpensesFormProps {
   onSuccess?: () => void;
@@ -33,6 +34,7 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
     queryKey: ["get-all-deals"],
     queryFn: getAllDeals,
   });
+  const { updateWalletHandler } = useUpdateWalletHandler();
 
   const providers = allPeople?.filter((el) => el.roles.includes("provider"));
 
@@ -109,6 +111,15 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
 
       toast.success("هزینه با موفقیت ثبت شد");
       onSuccess?.();
+
+      const price = Number(data.cost);
+
+      const walletData = {
+        amount: price,
+        type: `هزینه خودرو ${data.expenseType || ""}`,
+        description: data.description || "هزینه خودرو",
+      };
+      updateWalletHandler(data.providerPersonId ?? "", walletData);
     } catch (error: any) {
       console.error("Error adding expense:", error);
       toast.error(error?.response?.data?.message || "خطا در ثبت هزینه");
