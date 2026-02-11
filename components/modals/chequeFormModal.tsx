@@ -7,27 +7,32 @@ import { chequeNewSchema, chequeNewSchemaType } from "@/validations/chequeNew";
 import { toast } from "sonner";
 import { createCheque } from "@/apis/client/chequesNew";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
-import { getAllDeals } from "@/apis/client/deals";
-import { useQuery } from "@tanstack/react-query";
 import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
 import { BANK_NAMES, CHEQUE_STATUSES } from "@/utils/systemConstants";
 import type { IPeople, IDeal, IChequeNew } from "@/types/new-backend-types";
+import useGetChequeById from "@/hooks/useGetChequeById";
+import { useUpdateCheque } from "@/apis/mutations/cheques";
+import { useGetAllDeals } from "@/apis/mutations/deals";
 
 interface ChequeFormNewProps {
   onSuccess?: () => void;
   embedded?: boolean;
+  chequeId: string;
+  setIsOpenEditModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
+const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
   onSuccess,
   embedded = false,
+  chequeId,
+  setIsOpenEditModal,
 }) => {
   const { data: allPeople } = useGetAllPeople();
-  const { data: allDeals } = useQuery({
-    queryKey: ["get-all-deals"],
-    queryFn: getAllDeals,
-  });
+  const { data: allDeals } = useGetAllDeals();
+  const { data: chequeInfoById } = useGetChequeById(chequeId);
+  const updateCheque = useUpdateCheque();
+
   const [selectedPayer, setSelectedPayer] = React.useState<IPeople | null>(
     null,
   );
@@ -46,19 +51,20 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
   } = useForm<chequeNewSchemaType>({
     resolver: zodResolver(chequeNewSchema) as any,
     defaultValues: {
-      type: "دریافتی",
-      chequeNumber: "",
-      chequeSerial: "",
-      bankName: "",
-      amount: "",
-      issueDate: "",
-      dueDate: "",
-      status: "در جریان",
-      payerPersonId: "",
-      payeePersonId: "",
-      customerId: "",
-      relatedDealId: "",
-      relatedTransactionId: "",
+      type: (chequeInfoById?.type as "دریافتی" | "پرداختی") ?? "دریافتی",
+      chequeNumber: chequeInfoById?.chequeNumber.toString() ?? "",
+      chequeSerial: chequeInfoById?.chequeSerial ?? "",
+      bankName: chequeInfoById?.branchName ?? "",
+      amount: chequeInfoById?.amount.toString() ?? "",
+      issueDate: chequeInfoById?.issueDate ?? "",
+      dueDate: chequeInfoById?.dueDate ?? "",
+      status: chequeInfoById?.status ?? "در جریان",
+      payerPersonId: chequeInfoById?.payer.personId ?? "",
+      payeePersonId: chequeInfoById?.payee.personId ?? "",
+      customerId: chequeInfoById?.customer.personId ?? "",
+      relatedDealId: chequeInfoById?.relatedDealId.toString() ?? "",
+      relatedTransactionId:
+        chequeInfoById?.relatedTransactionId.toString() ?? "",
     },
   });
 
@@ -135,20 +141,21 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
           : 0,
         actions: [
           {
-            actionType: "ثبت",
+            actionType: "ویرایش",
             actionDate: new Date().toISOString(),
-            actorUserId: "", // TODO: Get from auth context
-            description: "ثبت اولیه چک",
+            actorUserId: "",
+            description: "ویرایش چک",
           },
         ],
       };
 
-      await createCheque(chequeData);
-      toast.success("چک با موفقیت ثبت شد");
+      await updateCheque.mutateAsync({ id: chequeId, data: chequeData });
+      toast.success("چک با موفقیت ویرایش شد");
+      setIsOpenEditModal(false);
       onSuccess?.();
     } catch (error: any) {
-      console.error("Error creating cheque:", error);
-      toast.error(error?.response?.data?.message || "خطا در ثبت چک");
+      console.error("Error editing cheque:", error);
+      toast.error(error?.response?.data?.message || "خطا در ویرایش چک");
     }
   };
 
@@ -457,4 +464,4 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
   return <div dir="rtl">{formContent}</div>;
 };
 
-export default ChequeFormNew;
+export default ChequeFormModal;

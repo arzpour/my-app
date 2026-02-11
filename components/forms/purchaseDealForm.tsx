@@ -19,6 +19,7 @@ import PlateComponent from "./plate";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { resetPlateState } from "@/redux/slices/plateSlice";
+import useUpdateWalletHandler from "@/hooks/useUpdateWalletHandler";
 
 interface PurchaseDealFormProps {
   dealData?: IDeal | null;
@@ -82,6 +83,8 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
 
   const purchasePrice = watch("purchasePrice");
   const brokerCommissionPercent = watch("purchaseBrokerCommissionPercent");
+
+  const { updateWalletHandler } = useUpdateWalletHandler();
 
   // Calculate broker commission
   React.useEffect(() => {
@@ -207,6 +210,25 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
       toast.success("خرید خودرو با موفقیت ثبت شد");
       dispatch(resetPlateState());
       onSuccess?.();
+
+      const price = Number(data.purchasePrice);
+
+      const walletDataForPurchaseBroker = {
+        amount: -price,
+        type: "خرید ماشین",
+        description: "خرید ماشین",
+      };
+      updateWalletHandler(
+        data.purchaseBrokerPersonId ?? "",
+        walletDataForPurchaseBroker,
+      );
+
+      const walletDataForSeller = {
+        amount: price,
+        type: "فروش ماشین",
+        description: "فروش ماشین",
+      };
+      updateWalletHandler(data.sellerPersonId, walletDataForSeller);
     } catch (error: any) {
       console.error("Error creating purchase deal:", error);
       toast.error(error?.response?.data?.message || "خطا در ثبت خرید خودرو");

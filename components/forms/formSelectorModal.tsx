@@ -82,7 +82,7 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
       // { id: "cheque", title: "ثبت چک", icon: "/9.png" },
       // { id: "cheque_actions", title: "عملیات روی چک", icon: "📋" },
       { id: "loans", title: "ثبت وام پرسنلی", icon: "/6.png" },
-      { id: "salary_slip", title: "محاسبه و صدور فیش حقوقی", icon: "/3.png" }
+      { id: "salary_slip", title: "محاسبه و صدور فیش حقوقی", icon: "/3.png" },
       // { id: "salaries", title: "پرداخت حقوق", icon: "/3.png" },
     );
 
@@ -93,6 +93,8 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
   const handleBack = () => {
     setSelectedForm(null);
     setMode("edit");
+    setPersonId("");
+    setPersonData(undefined);
   };
 
   const handleClose = () => {
@@ -140,6 +142,7 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
                 handleClose();
               }}
               setMode={setMode}
+              handleBack={handleBack}
             />
             <p className="text-gray-700 font-semibold">لیست افراد</p>
             <PeopleList setMode={setMode} setPersonId={setPersonId} />

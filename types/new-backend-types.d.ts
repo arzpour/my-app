@@ -29,24 +29,33 @@ export interface IBusinessAccounts {
 // ============================================
 // CHEQUES (NEW STRUCTURE)
 // ============================================
+
+export type ChequeType = "دریافتی" | "پرداختی" | string;
 export interface IChequeNew {
   _id: Types.ObjectId;
   chequeNumber: number;
+  chequeSerial: string;
   bankName: string;
   branchName: string;
   vin: string;
   issueDate: string;
   dueDate: string;
   amount: number;
-  type: string; // "issued" | "received"
+  type: ChequeType; // "issued" | "received"
   status: string; // "paid" | "unpaid" | etc.
   sayadiID: string;
+  description: string;
   payer: {
     personId: string;
     fullName: string;
     nationalId: string;
   };
   payee: {
+    personId: string;
+    fullName: string;
+    nationalId: string;
+  };
+  customer: {
     personId: string;
     fullName: string;
     nationalId: string;
@@ -218,6 +227,7 @@ export interface IPeople {
   wallet: {
     balance: number;
     transactions: {
+      _id: string;
       amount: number;
       type: string;
       description: string;

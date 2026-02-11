@@ -59,7 +59,8 @@ const PeopleList: React.FC<IPeopleList> = ({ setMode, setPersonId }) => {
                           "—"}
                       </TableCell>
                       <TableCell className="text-center">
-                        {people?.roles.map((el) => roleMap[el]) || "—"}
+                        {people?.roles.map((el) => roleMap[el]).join(" , ") ||
+                          "—"}
                       </TableCell>
                       <TableCell className="text-center flex gap-3 items-center justify-center">
                         <Pencil

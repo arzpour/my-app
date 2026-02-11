@@ -1,5 +1,3 @@
-
-
 import { DateObject } from "react-multi-date-picker";
 
 export const BANK_NAMES = [
@@ -49,18 +47,25 @@ export const PAYMENT_METHODS = [
   "مشتری به مشتری",
 ];
 
-export const TRANSACTION_REASONS = [
+export const TRANSACTION_REASONS_FOR_PAYMENT = [
+  // "وام",
+  // "حقوق",
+  "آپشن",
+  "اجاره",
+  "تنخواه",
+  "تبلیغات",
   "خرید خودرو",
-  "فروش خودرو",
-  "پرداخت هزینه",
-  "پرداخت حقوق",
+  "اصل سرمایه",
+  "سود سرمایه",
   "درصد کارگزار",
-  "شارژ تنخواه",
-  "نقد کردن چک",
-  "دریافت وام",
-  "بازپرداخت وام",
-  "هزینه وسیله",
   "سایر هزینه‌ها",
+  "جابجایی(وسیله نقلیه)",
+];
+
+export const TRANSACTION_REASONS_FOR_RECEIPT = [
+  "فروش خودرو",
+  // "سرمایه گذاری",
+  "اقساط وام",
 ];
 
 export const PERSON_ROLES = ["customer", "broker", "employee", "provider"];
@@ -120,6 +125,20 @@ export const CHEQUE_ACTIONS = [
   { value: "returned_to_owner", label: "عودت دادن" },
 ];
 
+export const CHEQUE_LAST_STATUS = [
+  { value: "waitingForDateBook", label: "در انتظار سررسید" },
+  { value: "dateBooked", label: "سررسید شده" },
+  { value: "received", label: "وصول شده" },
+  { value: "notReceived", label: "وصول نشده" },
+  { value: "revert", label: "برگشتی" },
+  { value: "inProgress", label: "در جریان پیگیری" },
+  { value: "defeasance", label: "ابطال شده" },
+  { value: "changeWithAnother", label: "تعویض با چک دیگر" },
+  { value: "depositedToAccount", label: "سپرده شده به حساب" },
+  { value: "makeOver", label: "واگذاری به شخص ثالث" },
+  { value: "robbery/lost", label: "مفقود / سرقت شده" },
+];
+
 export const PERSIAN_MONTHS = [
   "فروردین",
   "اردیبهشت",
@@ -138,7 +157,7 @@ export const PERSIAN_MONTHS = [
 export const PERSIAN_YEARS = Array.from({ length: 11 }, (_, i) => 1400 + i);
 
 export const persianToEnglish = (
-  value: DateObject | string | number
+  value: DateObject | string | number,
 ): string => {
   const persianToEnglishDigit = (char: string) =>
     String("۰۱۲۳۴۵۶۷۸۹".indexOf(char));

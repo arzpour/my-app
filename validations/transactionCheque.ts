@@ -17,10 +17,11 @@ export const transactionChequeSchema = z
       ["نقد", "کارت به کارت", "چک", "شبا", "مشتری به مشتری"] as const,
       {
         message: "روش پرداخت الزامی است",
-      }
+      },
     ),
     dealId: z.string().optional(), // Optional - only if related to a deal
     description: z.string().optional(),
+    chequeDescription: z.string().optional(),
 
     // Cheque fields (required if paymentMethod is "چک")
     chequeNumber: z.string().optional(),
@@ -32,6 +33,7 @@ export const transactionChequeSchema = z
     chequeStatus: z.string().optional(),
     chequePayerPersonId: z.string().optional(),
     chequePayeePersonId: z.string().optional(),
+    chequeCustomerPersonId: z.string().optional(),
     chequeRelatedDealId: z.string().optional(),
     chequeImage: z.any().optional(), // File upload
   })
@@ -53,7 +55,7 @@ export const transactionChequeSchema = z
     {
       message: "اطلاعات چک الزامی است",
       path: ["chequeNumber"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -66,7 +68,7 @@ export const transactionChequeSchema = z
     {
       message: "صادرکننده چک الزامی است",
       path: ["chequePayerPersonId"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -79,7 +81,20 @@ export const transactionChequeSchema = z
     {
       message: "گیرنده چک الزامی است",
       path: ["chequePayeePersonId"],
-    }
+    },
+  )
+  .refine(
+    (data) => {
+      // If cheque type is issued, customer is required
+      if (data.paymentMethod === "چک" && data.chequeType === "دریافتی") {
+        return data.chequeCustomerPersonId;
+      }
+      return true;
+    },
+    {
+      message: "مشتری الزامی است",
+      path: ["chequeCustomerPersonId"],
+    },
   )
   .refine(
     (data) => {
@@ -91,7 +106,7 @@ export const transactionChequeSchema = z
     {
       message: "طرف حساب دوم الزامی است",
       path: ["secondPartyId"],
-    }
+    },
   );
 
 export type transactionChequeSchemaType = z.infer<

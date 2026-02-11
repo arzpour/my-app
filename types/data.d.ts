@@ -125,7 +125,7 @@ interface PlateData {
 }
 
 interface IUpdateWalletReq {
-  amount: string;
+  amount: number;
   type: string;
   description: string | undefined;
 }

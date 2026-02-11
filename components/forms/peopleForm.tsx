@@ -35,6 +35,7 @@ interface PeopleFormProps {
   onSuccess?: () => void;
   embedded?: boolean; // If true, render without Dialog wrapper
   setMode?: React.Dispatch<React.SetStateAction<"add" | "edit">>;
+  handleBack?: () => void;
 }
 
 const PeopleForm: React.FC<PeopleFormProps> = ({
@@ -43,12 +44,13 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
   onSuccess,
   embedded = false,
   setMode,
+  handleBack,
 }) => {
   const [open, setOpen] = React.useState(embedded);
   const createPerson = useCreatePerson();
   const updatePerson = useUpdatePerson();
   const { role: currentUserRole } = useSelector(
-    (state: RootState) => state.cars
+    (state: RootState) => state.cars,
   );
 
   const {
@@ -87,49 +89,51 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
 
   const selectedRoles = watch("roles");
 
+  const normalizePhone = (p: string) => (p.startsWith("0") ? p : `0${p}`);
+
   // Populate form when editing
   React.useEffect(() => {
     if (mode === "edit" && personData) {
-      const fullNameParts = personData.fullName?.split(" ") || [];
+      const fullNameParts = personData?.fullName?.split(" ") || [];
       const firstName = personData?.firstName || fullNameParts[0] || "";
       const lastName =
         personData?.lastName || fullNameParts.slice(1).join(" ") || "";
 
-      const phoneNumbers = personData.phoneNumbers
+      const phoneNumbers = personData?.phoneNumbers
         ? Array.isArray(personData.phoneNumbers)
-          ? personData.phoneNumbers.map((p: number) => p.toString())
-          : [String(personData.phoneNumbers)]
-        : personData.phoneNumber
-        ? [personData.phoneNumber.toString()]
-        : [""];
+          ? personData.phoneNumbers.map((p) => normalizePhone(p.toString()))
+          : [normalizePhone(String(personData.phoneNumbers))]
+        : personData?.phoneNumber
+          ? [normalizePhone(personData.phoneNumber.toString())]
+          : [""];
 
       reset({
         firstName: firstName,
         lastName: lastName,
-        fatherName: personData.fatherName || "",
-        nationalId: personData.nationalId?.toString() || "",
-        idCardNumber: personData.idCardNumber?.toString() || "",
-        postalCode: personData.postalCode?.toString() || "",
+        fatherName: personData?.fatherName || "",
+        nationalId: personData?.nationalId?.toString() || "",
+        idCardNumber: personData?.idCardNumber?.toString() || "",
+        postalCode: personData?.postalCode?.toString() || "",
         phoneNumbers: phoneNumbers.length > 0 ? phoneNumbers : [""],
-        address: personData.address || "",
-        roles: (personData.roles || []) as (
+        address: personData?.address || "",
+        roles: (personData?.roles || []) as (
           | "customer"
           | "broker"
           | "employee"
         )[],
         purchaseCommissionPercent:
-          personData.brokerDetails?.currentRates?.purchaseCommissionPercent ||
+          personData?.brokerDetails?.currentRates?.purchaseCommissionPercent ||
           "",
         saleCommissionPercent:
-          personData.brokerDetails?.currentRates?.saleCommissionPercent || "",
-        startDate: personData.employmentDetails?.startDate || "",
+          personData?.brokerDetails?.currentRates?.saleCommissionPercent || "",
+        startDate: personData?.employmentDetails?.startDate || "",
         contractType:
-          (personData.employmentDetails?.contractType as
+          (personData?.employmentDetails?.contractType as
             | "full_time"
             | "part_time"
             | "contractual"
             | undefined) || undefined,
-        baseSalary: personData.employmentDetails?.baseSalary?.toString() || "",
+        baseSalary: personData?.employmentDetails?.baseSalary?.toString() || "",
       });
     }
   }, [personData, mode, reset]);
@@ -210,13 +214,13 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
           id: personData._id.toString(),
           data: payload,
         });
+        handleBack?.();
       } else {
         await createPerson.mutateAsync(payload);
+        setOpen(false);
+        onSuccess?.();
       }
-
       reset();
-      setOpen(false);
-      onSuccess?.();
     } catch (error: any) {
       console.error("Error saving person:", error);
       toast.error(error?.response?.data?.message || "خطا در ثبت اطلاعات");
@@ -225,7 +229,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
 
   const handleRoleChange = (
     role: "customer" | "broker" | "employee" | "provider",
-    checked: boolean
+    checked: boolean,
   ) => {
     const currentRoles = watch("roles");
     if (checked) {
@@ -233,7 +237,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
     } else {
       setValue(
         "roles",
-        currentRoles.filter((r) => r !== role)
+        currentRoles.filter((r) => r !== role),
       );
       if (role === "broker") {
         setValue("purchaseCommissionPercent", "");
@@ -420,7 +424,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
                     type="checkbox"
                     id={`role-${role}`}
                     checked={selectedRoles.includes(
-                      role as "customer" | "broker" | "employee" | "provider"
+                      role as "customer" | "broker" | "employee" | "provider",
                     )}
                     onChange={(e) =>
                       handleRoleChange(roleKey, e.target.checked)
@@ -647,9 +651,10 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
           type="button"
           onClick={() => {
             if (!embedded) setOpen(false);
+            setMode?.("add");
             reset();
-            if (embedded && onSuccess) onSuccess();
-            setMode?.("add" );
+            // if (embedded && onSuccess) onSuccess();
+            handleBack?.();
           }}
           className="px-4 py-2 border rounded-md hover:bg-gray-50"
         >
@@ -663,8 +668,8 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
           {createPerson.isPending || updatePerson.isPending
             ? "در حال ثبت..."
             : mode === "edit"
-            ? "ذخیره تغییرات"
-            : "ثبت"}
+              ? "ذخیره تغییرات"
+              : "ثبت"}
         </button>
       </div>
     </form>

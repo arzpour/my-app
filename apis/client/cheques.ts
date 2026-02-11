@@ -12,6 +12,12 @@ export const getAllCheques: getAllChequesType = async () => {
   return response.data;
 };
 
+type getChequesByIdType = (id: string) => Promise<IChequeNew>;
+export const getChequesById: getChequesByIdType = async (id) => {
+  const response = await axiosInstance.get(urls.chequesNew.byId(id));
+  return response.data;
+};
+
 type getChequesByVinType = (vin: string) => Promise<IChequeNew[]>;
 export const getChequesByVin: getChequesByVinType = async (vin) => {
   const response = await axiosInstance.get(urls.chequesNew.byVin(vin));
@@ -44,7 +50,7 @@ export const getChequesByDeal: getChequesByDealType = async (dealId) => {
 
 // Get cheques by person ID
 type getChequesByPersonType = (
-  personId: string
+  personId: string,
 ) => Promise<IChequesByPersonResponse>;
 export const getChequesByPerson: getChequesByPersonType = async (personId) => {
   const response = await axiosInstance.get(urls.chequesNew.byPerson(personId));
@@ -83,13 +89,13 @@ export const getChequesByStatus: getChequesByStatusType = async (status) => {
 
 // New function: Get unpaid cheques by deal ID
 type getUnpaidChequesByDealType = (
-  dealId: string
+  dealId: string,
 ) => Promise<IUnpaidChequesResponse>;
 export const getUnpaidChequesByDeal: getUnpaidChequesByDealType = async (
-  dealId
+  dealId,
 ) => {
   const response = await axiosInstance.get(
-    urls.chequesNew.unpaidByDeal(dealId)
+    urls.chequesNew.unpaidByDeal(dealId),
   );
   return response.data;
 };

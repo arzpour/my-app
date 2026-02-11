@@ -84,7 +84,7 @@ const OperatorsDashboard = () => {
   // Get operators from settings or people with broker role
   const operatorsNameOptions =
     getAllCategoryWithOptionSettings?.filter(
-      (item) => item.category === "operators"
+      (item) => item.category === "operators",
     ) || [];
 
   const operatorOptionsFromSettings =
@@ -107,7 +107,9 @@ const OperatorsDashboard = () => {
   React.useEffect(() => {
     if (selectedOperator) {
       const broker = brokerPeople.find(
-        (p) => normalize(p.fullName) === normalize(selectedOperator)
+        (p) =>
+          normalize(`${p.firstName} ${p.lastName}`) ===
+          normalize(selectedOperator),
       );
       setSelectedOperatorPersonId(broker?._id?.toString() || "");
     } else {
@@ -208,7 +210,7 @@ const OperatorsDashboard = () => {
 
     // Get transactions where reason is "درصد کارگزار" and related to filtered deals
     const filteredDealIds = new Set(
-      filteredDeals.map((deal) => deal._id?.toString()).filter(Boolean)
+      filteredDeals.map((deal) => deal._id?.toString()).filter(Boolean),
     );
 
     const operatorTransactions =
@@ -217,12 +219,12 @@ const OperatorsDashboard = () => {
           t.reason === "درصد کارگزار" &&
           t.personId === selectedOperatorPersonId &&
           t.dealId &&
-          filteredDealIds.has(t.dealId)
+          filteredDealIds.has(t.dealId),
       ) || [];
 
     const totalPaidToOperator = operatorTransactions.reduce(
       (sum, t) => sum + (t.amount || 0),
-      0
+      0,
     );
 
     const remainingCommission = totalCommission - totalPaidToOperator;
@@ -286,7 +288,7 @@ const OperatorsDashboard = () => {
       return [];
 
     const filteredDealIds = new Set(
-      filteredDeals.map((deal) => deal._id?.toString()).filter(Boolean)
+      filteredDeals.map((deal) => deal._id?.toString()).filter(Boolean),
     );
 
     return (
@@ -294,7 +296,7 @@ const OperatorsDashboard = () => {
         ?.filter((t) => t.dealId && filteredDealIds.has(t.dealId))
         .map((t, index) => {
           const deal = filteredDeals.find(
-            (d) => d._id?.toString() === t.dealId
+            (d) => d._id?.toString() === t.dealId,
           );
           return {
             id: (index + 1).toString(),

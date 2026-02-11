@@ -902,13 +902,13 @@ const CustomersDashboard = () => {
   const [transactions, setTransactions] = React.useState<ITransactionNew[]>([]);
   const [cheques, setCheques] = React.useState<IChequeNew[]>([]);
   const [allPersonCheques, setAllPersonCheques] = React.useState<IChequeNew[]>(
-    []
+    [],
   );
   const [selectedDealId, setSelectedDealId] = React.useState<string | null>(
-    null
+    null,
   );
   const [selectedPersonId, setSelectedPersonId] = React.useState<string | null>(
-    null
+    null,
   );
 
   const dispatch = useDispatch();
@@ -926,10 +926,10 @@ const CustomersDashboard = () => {
   //   ?.map((person) => (person.roles.includes("customer") ? person : null))
   //   .filter((person) => person !== null);
 
-  const transactionsByPersonId = async (personId: string) => {
+  const transactionsByPersonId = async () => {
     try {
       const res = await getTransactionsByPersonId.mutateAsync(
-        personId ?? selectedPersonId ?? ""
+        selectedPersonId ?? "",
       );
       setTransactions(res);
     } catch (error) {
@@ -988,19 +988,19 @@ const CustomersDashboard = () => {
     return allDeals.filter(
       (deal) =>
         deal?.buyer?.nationalId === selectedNationalId ||
-        deal?.seller?.nationalId === selectedNationalId
+        deal?.seller?.nationalId === selectedNationalId,
     );
   }, [allDeals, selectedNationalId]);
 
   const carSeller = React.useMemo(() => {
     return selectedPersonDeals.filter(
-      (deal) => deal?.seller?.nationalId === selectedNationalId
+      (deal) => deal?.seller?.nationalId === selectedNationalId,
     );
   }, [selectedPersonDeals, selectedNationalId]);
 
   const carBuyer = React.useMemo(() => {
     return selectedPersonDeals.filter(
-      (deal) => deal?.buyer?.nationalId === selectedNationalId
+      (deal) => deal?.buyer?.nationalId === selectedNationalId,
     );
   }, [selectedPersonDeals, selectedNationalId]);
 
@@ -1009,7 +1009,7 @@ const CustomersDashboard = () => {
       setSelectedDealId(dealId);
       dispatch(setSelectedDealIdRedux(dealId));
       const selectedDeal = selectedPersonDeals.find(
-        (d) => d._id.toString() === dealId
+        (d) => d._id.toString() === dealId,
       );
       if (selectedDeal) {
         const chassisNo = selectedDeal?.vehicleSnapshot?.vin || null;
@@ -1044,7 +1044,7 @@ const CustomersDashboard = () => {
       });
 
       const filteredTransactions = filtered.filter(
-        (el) => el?.personId === selectedPersonId
+        (el) => el?.personId === selectedPersonId,
       );
       setTransactions(filteredTransactions);
     } catch (error) {
@@ -1070,7 +1070,7 @@ const CustomersDashboard = () => {
 
       try {
         const chequesPromises = allDeals.map((deal) =>
-          getChequesByDealId.mutateAsync(deal._id.toString())
+          getChequesByDealId.mutateAsync(deal._id.toString()),
         );
         const chequesArrays = await Promise.all(chequesPromises);
         const allCheques = chequesArrays.flat();
@@ -1090,7 +1090,7 @@ const CustomersDashboard = () => {
 
     if (selectedDealId && cheques.length > 0) {
       const selectedDeal = selectedPersonDeals.find(
-        (d) => d._id.toString() === selectedDealId
+        (d) => d._id.toString() === selectedDealId,
       );
       if (!selectedDeal) return [];
 
@@ -1149,18 +1149,18 @@ const CustomersDashboard = () => {
     return peopleList?.filter(
       (user) =>
         user?.fullName?.toLowerCase().includes(lowerSearch) ||
-        user?.nationalId?.toString().includes(lowerSearch)
+        user?.nationalId?.toString().includes(lowerSearch),
     );
   }, [searchValue, peopleList]);
 
   const totalBuyAmount = carBuyer.reduce(
     (sum, deal) => sum + (deal?.salePrice || 0),
-    0
+    0,
   );
 
   const totalSellAmount = carSeller.reduce(
     (sum, deal) => sum + (deal?.purchasePrice || 0),
-    0
+    0,
   );
 
   const diffBuySell = (totalSellAmount || 0) - (totalBuyAmount || 0);
@@ -1177,7 +1177,7 @@ const CustomersDashboard = () => {
 
     if (selectedDealId && transactions?.length > 0) {
       const selectedDeal = selectedPersonDeals.find(
-        (d) => d?._id.toString() === selectedDealId
+        (d) => d?._id.toString() === selectedDealId,
       );
       if (!selectedDeal) return [];
 
@@ -1223,7 +1223,7 @@ const CustomersDashboard = () => {
 
       selectedPersonDeals.forEach((deal) => {
         const dealTransactions = allPersonTransactions.filter(
-          (t) => t?.dealId === deal?._id.toString()
+          (t) => t?.dealId === deal?._id.toString(),
         );
 
         const vehicleRelatedTransactions = dealTransactions.filter((t) => {
@@ -1319,7 +1319,7 @@ const CustomersDashboard = () => {
 
       try {
         const transactionsPromises = allDeals?.map((deal) =>
-          getTransactionsByDealId.mutateAsync(deal?._id.toString())
+          getTransactionsByDealId.mutateAsync(deal?._id.toString()),
         );
         const transactionsArrays = await Promise.all(transactionsPromises);
         const allTransactions = transactionsArrays.flat();
@@ -1344,7 +1344,7 @@ const CustomersDashboard = () => {
       const personDeals = allDeals.filter(
         (deal) =>
           deal?.buyer?.nationalId?.toString() === nationalId ||
-          deal?.seller?.nationalId?.toString() === nationalId
+          deal?.seller?.nationalId?.toString() === nationalId,
       );
 
       if (personDeals?.length === 0) {
@@ -1361,7 +1361,7 @@ const CustomersDashboard = () => {
 
           const sellerPersonId = deal?.seller?.personId?.toString();
           const dealTransactions = allDealsTransactions?.filter(
-            (t) => t?.dealId === deal?._id.toString()
+            (t) => t?.dealId === deal?._id.toString(),
           );
 
           const paymentsToSeller = dealTransactions
@@ -1370,7 +1370,7 @@ const CustomersDashboard = () => {
                 t?.type === "پرداخت" &&
                 (t?.reason === "خرید خودرو" ||
                   t?.reason?.includes("خريد") ||
-                  t?.reason?.includes("خرید"))
+                  t?.reason?.includes("خرید")),
             )
             .reduce((sum, t) => sum + (t?.amount || 0), 0);
 
@@ -1387,7 +1387,7 @@ const CustomersDashboard = () => {
 
           const buyerPersonId = deal?.buyer?.personId?.toString();
           const dealTransactions = allDealsTransactions?.filter(
-            (t) => t?.dealId === deal?._id.toString()
+            (t) => t?.dealId === deal?._id.toString(),
           );
 
           const receiptsFromBuyer = dealTransactions
@@ -1450,7 +1450,7 @@ const CustomersDashboard = () => {
 
       try {
         const transactionsPromises = selectedPersonDeals?.map((deal) =>
-          getTransactionsByDealId.mutateAsync(deal?._id.toString())
+          getTransactionsByDealId.mutateAsync(deal?._id.toString()),
         );
         const transactionsArrays = await Promise.all(transactionsPromises);
         const allTransactions = transactionsArrays.flat();
@@ -1533,7 +1533,7 @@ const CustomersDashboard = () => {
                         key={`${person?._id}-${index}`}
                         onClick={() => {
                           // handleAllDeals();
-                          transactionsByPersonId(person._id);
+                          transactionsByPersonId();
                           setSelectedPersonId(person._id);
                           setSelectedNationalId(person.nationalId.toString());
                           setTransactions([]);
@@ -1562,7 +1562,7 @@ const CustomersDashboard = () => {
                         <TableCell className="text-center">
                           {(() => {
                             const status = customerStatusMap.get(
-                              person.nationalId?.toString() || ""
+                              person.nationalId?.toString() || "",
                             );
 
                             if (!status) return "—";
@@ -1572,8 +1572,8 @@ const CustomersDashboard = () => {
                                   status.status === "بدهکار"
                                     ? "text-red-600"
                                     : status.status === "بستانکار"
-                                    ? "text-green-600"
-                                    : "text-blue-600"
+                                      ? "text-green-600"
+                                      : "text-blue-600"
                                 }
                               >
                                 {status.status}
@@ -1590,7 +1590,7 @@ const CustomersDashboard = () => {
                         <TableCell className="text-center">
                           {(() => {
                             const status = customerStatusMap.get(
-                              person.nationalId?.toString() || ""
+                              person.nationalId?.toString() || "",
                             );
 
                             if (!status) return "—";
@@ -1605,7 +1605,7 @@ const CustomersDashboard = () => {
                         </TableCell>
                       </TableRow>
                     );
-                  }
+                  },
                 )}
               </TableBody>
             </Table>
@@ -1885,8 +1885,8 @@ const CustomersDashboard = () => {
                         {item?.type === "issued" || item?.type === "صادره"
                           ? "صادره"
                           : item?.type === "received" || item?.type === "وارده"
-                          ? "وارده"
-                          : "-"}
+                            ? "وارده"
+                            : "-"}
                       </TableCell>
                     </TableRow>
                   ))}

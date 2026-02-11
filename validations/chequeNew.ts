@@ -4,7 +4,8 @@ export const chequeNewSchema = z.object({
   type: z.enum(["دریافتی", "پرداختی"] as const, {
     message: "نوع چک الزامی است",
   }),
-  chequeNumber: z.string().min(1, "شماره چک الزامی است"),
+  chequeNumber: z.string().min(1, "سری چک الزامی است"),
+  chequeSerial: z.string().min(1, "سریال چک الزامی است"),
   bankName: z.string().min(1, "نام بانک الزامی است"),
   amount: z.string().min(1, "مبلغ الزامی است"),
   issueDate: z.string().min(1, "تاریخ صدور الزامی است"),
@@ -12,6 +13,8 @@ export const chequeNewSchema = z.object({
   status: z.string().default("در جریان"),
   payerPersonId: z.string().optional(), // If cheque is received
   payeePersonId: z.string().optional(), // If cheque is issued
+  customerId: z.string().optional(),
+  description: z.string().optional(),
   relatedDealId: z.string().optional(),
   relatedTransactionId: z.string().optional(),
 });
