@@ -1786,286 +1786,207 @@ const CheckDashboard = () => {
       {showFilter && (
         // <div className="grid [grid-template-columns:1fr_1fr_1fr_0.5fr_0.5fr] gap-6 items-start justify-start mt-4">
         <div className="flex gap-9 items-start justify-start mt-4">
-          <div className="space-y-6 min-w-[140px] w-[340px]">
-            <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
-              <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
-                {/* اطلاعات چک */}
+          {/* <div className="space-y-6 min-w-[140px] w-[340px] overflow-auto scrollbar-hide"> */}
+          <div className="w-[300px] overflow-auto scrollbar-hide border border-gray-300 p-4 rounded-md relative h-[7rem]">
+            {/* <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
                 باکس 1
-              </p>
+              </p> */}
 
-              <div className="flex gap-4 overflow-auto min-w-[140px] scrollbar-hide">
-                <SelectForFilterCheques
-                  data={["همه", ...sayadiIDOptions.filter(Boolean)]}
-                  title="شناسه صیادی"
-                  setSelectedSubject={setSelectedSayadiId}
-                  selectedValue={selectedSayadiId}
-                />
-                <SelectForFilterCheques
-                  data={["همه", ...chequeNumberOptions.filter(Boolean)]}
-                  title="سری چک"
-                  setSelectedSubject={setSelectedChequeNumber}
-                  selectedValue={selectedChequeNumber}
-                />
-                <SelectForFilterCheques
-                  data={["همه", ...chequeSerialOptions.filter(Boolean)]}
-                  title="سریال چک"
-                  setSelectedSubject={setSelectedChequeSerial}
-                  selectedValue={selectedChequeSerial}
-                />
-                <SelectForFilterCheques
-                  data={["همه", ...bankNameOptions.filter(Boolean)]}
-                  title="بانک"
-                  setSelectedSubject={setSelectedBank}
-                  selectedValue={selectedBank}
-                />
+            <div className="flex gap-4 overflow-auto min-w-[140px]">
+              <SelectForFilterCheques
+                data={["همه", ...sayadiIDOptions.filter(Boolean)]}
+                title="شناسه صیادی"
+                setSelectedSubject={setSelectedSayadiId}
+                selectedValue={selectedSayadiId}
+              />
+              <SelectForFilterCheques
+                data={["همه", ...chequeNumberOptions.filter(Boolean)]}
+                title="سری چک"
+                setSelectedSubject={setSelectedChequeNumber}
+                selectedValue={selectedChequeNumber}
+              />
+              <SelectForFilterCheques
+                data={["همه", ...chequeSerialOptions.filter(Boolean)]}
+                title="سریال چک"
+                setSelectedSubject={setSelectedChequeSerial}
+                selectedValue={selectedChequeSerial}
+              />
+              <SelectForFilterCheques
+                data={["همه", ...bankNameOptions.filter(Boolean)]}
+                title="بانک"
+                setSelectedSubject={setSelectedBank}
+                selectedValue={selectedBank}
+              />
 
-                <SelectForFilterCheques
-                  data={["همه", ...branchNameOptions.filter(Boolean)]}
-                  title="شعبه"
-                  setSelectedSubject={setSelectedBranch}
-                  selectedValue={selectedBranch}
-                />
-              </div>
+              <SelectForFilterCheques
+                data={["همه", ...branchNameOptions.filter(Boolean)]}
+                title="شعبه"
+                setSelectedSubject={setSelectedBranch}
+                selectedValue={selectedBranch}
+              />
             </div>
-            {/* <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
-              <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
-                اطلاعات چک
-              </p>
+          </div>
 
-              <div className="flex gap-4 overflow-auto min-w-[140px] scrollbar-hide">
-                <SelectForFilterCheques
-                  // data={chequeSerialOptions.filter(Boolean)}
-                  data={["همه", ...chequeNumberOptions.filter(Boolean)]}
-                  title="سریال چک"
-                  setSelectedSubject={setSelectedChequeSerial}
-                  selectedValue={selectedChequeSerial}
-                />
-                <SelectForFilterCheques
-                  // data={sayadiIdOptions.filter(Boolean)}
-                  data={["همه", ...sayadiIDOptions.filter(Boolean)]}
-                  title="شناسه صیادی"
-                  setSelectedSubject={setSelectedSayadiId}
-                  selectedValue={selectedSayadiId}
-                />
-              </div>
-            </div> */}
-
-            <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
-              <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
+          <div className="w-[300px] overflow-auto scrollbar-hide border border-gray-300 p-4 rounded-md relative h-[7rem]">
+            {/* <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
                 باکس 2
-              </p>
-              <div className="flex gap-4 items-center overflow-auto min-w-[140px] scrollbar-hide">
-                {/* <div className="space-y-1">
+              </p> */}
+            <div className="flex gap-4 items-center overflow-auto min-w-[140px]">
+              {/* <div className="space-y-1">
                   <h3 className="text-sm font-bold mb-2 text-blue-900">
                     حداکثر مبلغ:
                   </h3>
                   <input type="text" className="border rounded w-[130px]" />
                 </div> */}
+              <SelectForFilterCheques
+                data={["وارده", "صادره", "همه"]}
+                title="نوع چک"
+                setSelectedSubject={setSelectedChequeType}
+                selectedValue={selectedChequeType}
+              />
+
+              {selectedChequeType === "وارده" ? (
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold mb-2 text-blue-900">
+                    گیرنده چک:
+                  </h3>
+                  <input
+                    type="text"
+                    value="نمایشگاه خودرو"
+                    className="border rounded w-[130px]"
+                    onChange={() => setSelectedChequePayee("نمایشگاه خودرو")}
+                  />
+                </div>
+              ) : (
                 <SelectForFilterCheques
-                  data={["وارده", "صادره", "همه"]}
-                  title="نوع چک"
-                  setSelectedSubject={setSelectedChequeType}
-                  selectedValue={selectedChequeType}
+                  data={peopleList ?? []}
+                  title="گیرنده چک"
+                  setSelectedSubject={setSelectedChequePayee}
+                  selectedValue={selectedChequePayee}
                 />
+              )}
 
-                {selectedChequeType === "وارده" ? (
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-bold mb-2 text-blue-900">
-                      گیرنده چک:
-                    </h3>
-                    <input
-                      type="text"
-                      value="نمایشگاه خودرو"
-                      className="border rounded w-[130px]"
-                      onChange={() => setSelectedChequePayee("نمایشگاه خودرو")}
-                    />
-                  </div>
-                ) : (
-                  <SelectForFilterCheques
-                    data={peopleList ?? []}
-                    title="گیرنده چک"
-                    setSelectedSubject={setSelectedChequePayee}
-                    selectedValue={selectedChequePayee}
-                  />
-                )}
-
-                {selectedChequeType === "صادره" ? (
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-bold mb-2 text-blue-900">
-                      صادرکننده چک:
-                    </h3>
-                    <input
-                      type="text"
-                      value="نمایشگاه خودرو"
-                      className="border rounded w-[130px]"
-                      onChange={() => setSelectedChequePayer("نمایشگاه خودرو")}
-                    />
-                  </div>
-                ) : (
-                  <SelectForFilterCheques
-                    data={peopleList ?? []}
-                    title="صادرکننده چک"
-                    setSelectedSubject={setSelectedChequePayer}
-                    selectedValue={selectedChequePayer}
-                  />
-                )}
-
-                {selectedChequeType === "مشتری" ? (
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-bold mb-2 text-blue-900">
-                      مشتری:
-                    </h3>
-                    <input
-                      type="text"
-                      value="نمایشگاه خودرو"
-                      className="border rounded w-[130px]"
-                      onChange={() => setSelectedCustomer("نمایشگاه خودرو")}
-                    />
-                  </div>
-                ) : (
-                  <SelectForFilterCheques
-                    data={peopleList ?? []}
-                    title="مشتری"
-                    setSelectedSubject={setSelectedCustomer}
-                    selectedValue={selectedCustomer}
-                  />
-                )}
-
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold mb-2 text-purple-700">
-                    تاریخ سررسید چک:
-                  </h3>
-                  <RangeDatePicker dates={dueDates} setDates={setDueDates} />
-                </div>
+              {selectedChequeType === "صادره" ? (
                 <div className="space-y-1">
                   <h3 className="text-sm font-bold mb-2 text-blue-900">
-                    حداقل مبلغ چک:
+                    صادرکننده چک:
                   </h3>
                   <input
                     type="text"
-                    value={minPrice?.toString()}
+                    value="نمایشگاه خودرو"
                     className="border rounded w-[130px]"
-                    onChange={(e) => setMinPrice(Number(e.target.value))}
+                    onChange={() => setSelectedChequePayer("نمایشگاه خودرو")}
                   />
                 </div>
+              ) : (
+                <SelectForFilterCheques
+                  data={peopleList ?? []}
+                  title="صادرکننده چک"
+                  setSelectedSubject={setSelectedChequePayer}
+                  selectedValue={selectedChequePayer}
+                />
+              )}
+
+              {selectedChequeType === "مشتری" ? (
                 <div className="space-y-1">
                   <h3 className="text-sm font-bold mb-2 text-blue-900">
-                    حداکثر مبلغ چک:
+                    مشتری:
                   </h3>
                   <input
                     type="text"
-                    value={maxPrice?.toString()}
+                    value="نمایشگاه خودرو"
                     className="border rounded w-[130px]"
-                    onChange={(e) => setMaxPrice(Number(e.target.value))}
+                    onChange={() => setSelectedCustomer("نمایشگاه خودرو")}
                   />
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold mb-2 text-purple-700">
-                    تاریخ صدور چک:
-                  </h3>
-                  <RangeDatePicker
-                    dates={issueDates}
-                    setDates={setIssueDates}
-                  />
-                </div>
+              ) : (
+                <SelectForFilterCheques
+                  data={peopleList ?? []}
+                  title="مشتری"
+                  setSelectedSubject={setSelectedCustomer}
+                  selectedValue={selectedCustomer}
+                />
+              )}
+
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold mb-2 text-purple-700">
+                  تاریخ سررسید چک:
+                </h3>
+                <RangeDatePicker dates={dueDates} setDates={setDueDates} />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold mb-2 text-blue-900">
+                  حداقل مبلغ چک:
+                </h3>
+                <input
+                  type="text"
+                  value={minPrice?.toString()}
+                  className="border rounded w-[130px]"
+                  onChange={(e) => setMinPrice(Number(e.target.value))}
+                />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold mb-2 text-blue-900">
+                  حداکثر مبلغ چک:
+                </h3>
+                <input
+                  type="text"
+                  value={maxPrice?.toString()}
+                  className="border rounded w-[130px]"
+                  onChange={(e) => setMaxPrice(Number(e.target.value))}
+                />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold mb-2 text-purple-700">
+                  تاریخ صدور چک:
+                </h3>
+                <RangeDatePicker dates={issueDates} setDates={setIssueDates} />
               </div>
             </div>
-
-            {/* <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
-              <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
-                نوع تاریخ / مبلغ
-              </p>
-              <div className="flex gap-4 items-center overflow-auto min-w-[140px] scrollbar-hide">
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold mb-2 text-blue-900">
-                    حداکثر مبلغ:
-                  </h3>
-                  <input type="text" className="border rounded w-[130px]" />
-                </div>
-                <SelectForFilterCheques
-                  data={["غیرفعال", "فعال"]}
-                  title="نوع عملیات تاریخ"
-                  selectedValue="غیرفعال"
-                />
-              </div>
-            </div> */}
           </div>
-          <div className="space-y-6 min-w-[140px] w-[340px]">
-            {/* <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
-              <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
-                اطلاعات مشتری/صاحب چک
-              </p>
-
-              <div className="flex gap-4 overflow-auto min-w-[140px]">
-                <SelectForFilterCheques
-                  data={customerTypeOptions.filter(Boolean)}
-                  title="نوع کاربر"
-                  setSelectedSubject={setSelectedCustomerType}
-                  selectedValue={selectedCustomerType}
-                />
-                <SelectForFilterCheques
-                  data={customerNameOptions.filter(Boolean)}
-                  title="نام و نام خانوادگی"
-                  setSelectedSubject={setSelectedCustomerName}
-                  selectedValue={selectedCustomerName}
-                />
-                <SelectForFilterCheques
-                  data={nationalIDOptions.filter(Boolean)}
-                  title="کدملی"
-                  setSelectedSubject={setSelectedNationalID}
-                  selectedValue={selectedNationalID}
-                />
-              </div>
-            </div>{" "} */}
-
-            {/* RangeDatePicker */}
-            <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
-              <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
-                {/* بازه زمانی */}
+          <div className="w-[300px] overflow-auto scrollbar-hide border border-gray-300 p-4 rounded-md relative h-[7rem]">
+            {/* <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4 z-20">
                 باکس 3
-              </p>
-              <div className="flex gap-4 overflow-auto min-w-[140px]">
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold mb-2 text-purple-700">
-                    تاریخ اقدام:
-                  </h3>
+              </p> */}
+            <div className="flex gap-4 overflow-auto min-w-[140px]">
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold mb-2 text-purple-700">
+                  تاریخ اقدام:
+                </h3>
 
-                  <RangeDatePicker
-                    dates={actionDate}
-                    setDates={setActionDate}
-                  />
-                </div>
+                <RangeDatePicker dates={actionDate} setDates={setActionDate} />
+              </div>
 
-                <SelectForFilterCheques
-                  data={["همه", ...CHEQUE_ACTIONS.map((el) => el.label)]}
-                  title="نوع اقدام"
-                  setSelectedSubject={setActionType}
-                  selectedValue={actionType}
+              <SelectForFilterCheques
+                data={["همه", ...CHEQUE_ACTIONS.map((el) => el.label)]}
+                title="نوع اقدام"
+                setSelectedSubject={setActionType}
+                selectedValue={actionType}
+              />
+
+              <SelectForFilterCheques
+                data={["همه", ...CHEQUE_LAST_STATUS.map((el) => el.label)]}
+                title="آخرین وضعیت چک"
+                setSelectedSubject={setChequeLastStatus}
+                selectedValue={chequeLastStatus}
+              />
+
+              <div className="space-y-2 w-full">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium"
+                >
+                  توضیحات
+                </label>
+                <input
+                  id="description"
+                  placeholder="توضیحات"
+                  value={chequeDescription}
+                  className="w-[200px] px-3 py-1 border rounded-md"
+                  onChange={(e) => setChequeDescription(e.target.value)}
                 />
-
-                <SelectForFilterCheques
-                  data={["همه", ...CHEQUE_LAST_STATUS.map((el) => el.label)]}
-                  title="آخرین وضعیت چک"
-                  setSelectedSubject={setChequeLastStatus}
-                  selectedValue={chequeLastStatus}
-                />
-
-                <div className="space-y-2 md:col-span-2">
-                  <label
-                    htmlFor="description"
-                    className="block text-sm font-medium"
-                  >
-                    توضیحات
-                  </label>
-                  <input
-                    id="description"
-                    placeholder="توضیحات"
-                    value={chequeDescription}
-                    className="w-full px-3 py-2 border rounded-md"
-                    onChange={(e) => setChequeDescription(e.target.value)}
-                  />
-                </div>
-                {/* <div className="space-y-1">
+              </div>
+              {/* <div className="space-y-1">
                   <h3 className="text-sm font-bold mb-2 text-purple-700">
                     تا تاریخ:
                   </h3>
@@ -2075,102 +1996,36 @@ const CheckDashboard = () => {
                     placeholder="تا تاریخ"
                   />
                 </div> */}
-              </div>
             </div>
-            {/* <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
-              <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
-                بازه زمانی
-              </p>
-              <div className="flex gap-4 overflow-auto min-w-[140px]">
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold mb-2 text-purple-700">
-                    از تاریخ:
-                  </h3>
-                  <PersianDatePicker
-                    value={fromDate}
-                    onChange={(date) => setFromDate(date)}
-                    placeholder="از تاریخ"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold mb-2 text-purple-700">
-                    تا تاریخ:
-                  </h3>
-                  <PersianDatePicker
-                    value={toDate}
-                    onChange={(date) => setToDate(date)}
-                    placeholder="تا تاریخ"
-                  />
-                </div>
-              </div>
-            </div> */}
           </div>
-          <div className="space-y-6 min-w-[140px] w-[340px]">
-            {/* <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
-              <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
-                اطلاعات بانک
-              </p>
-              <div className="flex overflow-auto min-w-[140px] gap-4">
-                <SelectForFilterCheques
-                  // data={bankOptions.filter(Boolean)}
-                  data={["همه", ...bankNameOptions.filter(Boolean)]}
-                  title="بانک"
-                  setSelectedSubject={setSelectedBank}
-                  selectedValue={selectedBank}
-                />
 
-                <SelectForFilterCheques
-                  // data={branchOptions.filter(Boolean)}
-                  data={["همه", ...branchNameOptions.filter(Boolean)]}
-                  title="شعبه"
-                  setSelectedSubject={setSelectedBranch}
-                  selectedValue={selectedBranch}
-                />
-              </div>
-            </div> */}
-            {/* <div className="border border-gray-300 p-4 rounded-md relative h-[7rem]">
-              <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
-                وضعیت و عملیات انجام شده
-              </p>
-              <div className="flex overflow-auto min-w-[140px] gap-4">
-                <SelectForFilterCheques
-                  data={chequeStatusOptions.filter(Boolean)}
-                  title="وضعیت چک"
-                  setSelectedSubject={setSelectedChequeStatus}
-                  selectedValue={selectedChequeStatus}
-                />
-                <SelectForFilterCheques
-                  data={operationTypeOptions.filter(Boolean)}
-                  title="نوع عملیات"
-                  setSelectedSubject={setSelectedOperationType}
-                  selectedValue={selectedOperationType}
-                />
-              </div>
-            </div> */}
-          </div>
-          <div className="space-y-3 flex flex-col w-32">
+          {/* </div> */}
+
+          <div className="space-y-3 flex flex-col w-48">
             <button
               onClick={handleResetFilters}
-              className="border rounded-lg shadow-lg px-4 py-2 w-36 whitespace-nowrap cursor-pointer"
+              className="border rounded-lg shadow-lg px-4 py-2 w-36 whitespace-nowrap cursor-pointer text-sm truncate"
             >
               حدف تمام فیلترها
             </button>
             <button
               disabled
-              className="border rounded-lg shadow-lg px-4 py-2 w-36 whitespace-nowrap cursor-not-allowed"
+              title="ارسال پیامک برای چک های این هفته"
+              className="border rounded-lg shadow-lg px-4 py-2 w-52 whitespace-nowrap cursor-not-allowed text-sm truncate"
             >
               ارسال پیامک برای چک های این هفته
             </button>
             <button
               disabled
-              className="border rounded-lg shadow-lg px-4 py-2 w-36 whitespace-nowrap cursor-not-allowed"
+              title="ارسال پیامک برای چک های این ماه"
+              className="border rounded-lg shadow-lg px-4 py-2 w-52 whitespace-nowrap cursor-not-allowed text-sm truncate"
             >
               ارسال پیامک برای چک های این ماه
             </button>
             <button
               disabled
-              className="border rounded-lg shadow-lg px-4 py-2 w-36 whitespace-nowrap cursor-not-allowed"
+              title="ارسال مشخصات چک های برگشتی برای مدیریت"
+              className="border rounded-lg shadow-lg px-4 py-2 w-52 whitespace-nowrap cursor-not-allowed text-sm truncate"
             >
               ارسال مشخصات چک های برگشتی برای مدیریت
             </button>
@@ -2178,13 +2033,13 @@ const CheckDashboard = () => {
           <div className="space-y-3 border p-4 w-72 rounded">
             <button
               onClick={() => setChequeLastStatus("وصول نشده")}
-              className="border rounded-lg shadow-lg px-4 py-2 w-36 whitespace-nowrap cursor-pointer"
+              className="border rounded-lg shadow-lg px-4 py-2 whitespace-nowrap cursor-pointer text-sm"
             >
               تعداد چک های وصول نشده
             </button>
             <button
               onClick={() => setChequeLastStatus("برگشتی")}
-              className="border rounded-lg shadow-lg px-4 py-2 w-36 whitespace-nowrap cursor-pointer"
+              className="border rounded-lg shadow-lg px-4 py-2 whitespace-nowrap cursor-pointer text-sm"
             >
               تعداد چک های برگشتی
             </button>
@@ -2198,7 +2053,7 @@ const CheckDashboard = () => {
                 setDueDates([oneMonthAgo, today]);
                 setSelectedChequeType("وارده");
               }}
-              className="border rounded-lg shadow-lg px-4 py-2 w-36 whitespace-nowrap cursor-pointer"
+              className="border rounded-lg shadow-lg px-4 py-2 whitespace-nowrap cursor-pointer text-sm"
             >
               تعداد چک های وارده ماه جاری
             </button>
@@ -2212,7 +2067,7 @@ const CheckDashboard = () => {
                 setDueDates([oneMonthAgo, today]);
                 setSelectedChequeType("صادره");
               }}
-              className="border rounded-lg shadow-lg px-4 py-2 w-36 whitespace-nowrap cursor-pointer"
+              className="border rounded-lg shadow-lg px-4 py-2 whitespace-nowrap cursor-pointer text-sm"
             >
               تعداد چک های صادره ماه جاری
             </button>
