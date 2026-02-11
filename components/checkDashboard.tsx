@@ -1827,7 +1827,7 @@ const CheckDashboard = () => {
             </div>
           </div>
 
-          <div className="w-[300px] overflow-auto scrollbar-hide border border-gray-300 p-4 rounded-md relative h-[7rem]">
+          <div className="w-[300px] overflow-auto scrollbar-hide border border-gray-300 p-4 rounded-md h-[7rem]">
             {/* <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
                 باکس 2
               </p> */}
@@ -1944,7 +1944,7 @@ const CheckDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="w-[300px] overflow-auto scrollbar-hide border border-gray-300 p-4 rounded-md relative h-[7rem]">
+          <div className="w-[300px] overflow-auto scrollbar-hide border border-gray-300 p-4 rounded-md h-[7rem]">
             {/* <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4 z-20">
                 باکس 3
               </p> */}
