@@ -20,10 +20,6 @@ const BusinessAccountList: React.FC<IBusinessAccountList> = ({
   setAccountId,
 }) => {
   const { data: allBusinessAccount, isLoading } = useGetAllBusinessAccount();
-  console.log(
-    "🚀 ~ BusinessAccountList ~ allBusinessAccount:",
-    allBusinessAccount,
-  );
 
   return (
     <>

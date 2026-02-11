@@ -40,7 +40,7 @@ const SelectForFilterCheques: React.FC<ISelectForFilterCheques> = ({
       data
         ?.filter(Boolean)
         ?.filter((item) =>
-          item.toLowerCase().includes(searchTerm.toLowerCase())
+          item.toLowerCase().includes(searchTerm.toLowerCase()),
         ) || []
     );
   }, [data, searchTerm]);
