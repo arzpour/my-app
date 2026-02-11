@@ -12,6 +12,7 @@ import useGetAllPeople from "@/hooks/useGetAllPeople";
 import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
 import type { IPeople, IDeal } from "@/types/new-backend-types";
+import useUpdateWalletHandler from "@/hooks/useUpdateWalletHandler";
 import { useUpdateVehicle } from "@/apis/mutations/vehicle";
 
 interface SaleDealFormProps {
@@ -26,10 +27,10 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
   const updateDeal = useUpdateDeal();
   const { data: allPeople } = useGetAllPeople();
   const [selectedBuyer, setSelectedBuyer] = React.useState<IPeople | null>(
-    null
+    null,
   );
   const [selectedBroker, setSelectedBroker] = React.useState<IPeople | null>(
-    null
+    null,
   );
   const [selectedDeal, setSelectedDeal] = React.useState<IDeal | null>(null);
 
@@ -43,10 +44,11 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
     queryKey: ["get-all-deals"],
     queryFn: getAllDeals,
   });
+
+  const { updateWalletHandler } = useUpdateWalletHandler();
   const updateVehicle = useUpdateVehicle();
 
   const customers = allPeople?.filter((el) => el.roles.includes("customer"));
-  const carsForSale = allDeals?.filter((el) => el.status === "in_stock");
 
   const {
     control,
@@ -78,7 +80,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
       }
 
       const buyer = allPeople?.find(
-        (p) => p._id?.toString() === data.buyerPersonId
+        (p) => p._id?.toString() === data.buyerPersonId,
       );
 
       const updateData: Partial<IDeal> = {
@@ -98,7 +100,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
                 personId: data.saleBrokerPersonId,
                 fullName: `${selectedBroker.firstName} ${selectedBroker.lastName}`,
                 commissionPercent: parseFloat(
-                  data.saleBrokerCommissionPercent || "0"
+                  data.saleBrokerCommissionPercent || "0",
                 ),
                 commissionAmount:
                   parseFloat(data.salePrice) *
@@ -120,6 +122,24 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
         data: { status: "sold" },
       });
       onSuccess?.();
+
+      const price = Number(data.salePrice);
+      const walletDataForBuyer = {
+        amount: -price,
+        type: "خرید ماشین",
+        description: "خرید ماشین",
+      };
+      updateWalletHandler(data.buyerPersonId ?? "", walletDataForBuyer);
+
+      const walletDataForSaleBroker = {
+        amount: price,
+        type: "فروش ماشین",
+        description: "فروش ماشین",
+      };
+      updateWalletHandler(
+        data.saleBrokerPersonId ?? "",
+        walletDataForSaleBroker,
+      );
     } catch (error: any) {
       console.error("Error updating sale deal:", error);
       toast.error(error?.response?.data?.message || "خطا در ثبت فروش خودرو");
@@ -140,7 +160,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
             {...register("dealId")}
             onChange={(e) => {
               const deal = allDeals?.find(
-                (d) => d._id?.toString() === e.target.value
+                (d) => d._id?.toString() === e.target.value,
               );
               setSelectedDeal(deal || null);
               setValue("dealId", e.target.value);
@@ -148,12 +168,14 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
             className="w-full px-3 py-2 border rounded-md"
           >
             <option value="">انتخاب خودرو</option>
-            {(carsForSale ?? [])?.map((deal) => (
-              <option key={deal._id?.toString()} value={deal._id?.toString()}>
-                {deal.vehicleSnapshot.plateNumber || "بدون پلاک"} -{" "}
-                {deal.vehicleSnapshot.model} ({deal.vehicleSnapshot.vin})
-              </option>
-            ))}
+            {allDeals
+              ?.filter((d) => d.status === "in_stock")
+              ?.map((deal) => (
+                <option key={deal._id?.toString()} value={deal._id?.toString()}>
+                  {deal.vehicleSnapshot.plateNumber || "بدون پلاک"} -{" "}
+                  {deal.vehicleSnapshot.model} ({deal.vehicleSnapshot.vin})
+                </option>
+              ))}
           </select>
           {errors.dealId && (
             <p className="text-red-500 text-xs">{errors.dealId.message}</p>
@@ -280,7 +302,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
                     if (person?.brokerDetails?.currentRates) {
                       setValue(
                         "saleBrokerCommissionPercent",
-                        person.brokerDetails.currentRates.saleCommissionPercent
+                        person.brokerDetails.currentRates.saleCommissionPercent,
                       );
                     }
                   }}
@@ -338,11 +360,11 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
                 (selectedDeal.purchasePrice || 0) -
                 (selectedDeal.directCosts?.options?.reduce(
                   (sum, opt) => sum + opt.cost,
-                  0
+                  0,
                 ) || 0) -
                 (selectedDeal.directCosts?.otherCost?.reduce(
                   (sum, cost) => sum + cost.cost,
-                  0
+                  0,
                 ) || 0) -
                 (selectedDeal.purchaseBroker?.commissionAmount || 0) -
                 (brokerCommissionPercent

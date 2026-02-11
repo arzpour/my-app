@@ -10,8 +10,8 @@ import useGetAllPeople from "@/hooks/useGetAllPeople";
 import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
 import { LOAN_STATUSES } from "@/utils/systemConstants";
-import type {  ILoan } from "@/types/new-backend-types";
-import { useUpdateWallet } from "@/apis/mutations/people";
+import type { ILoan } from "@/types/new-backend-types";
+import useUpdateWalletHandler from "@/hooks/useUpdateWalletHandler";
 
 interface LoansFormProps {
   onSuccess?: () => void;
@@ -48,16 +48,7 @@ const LoansForm: React.FC<LoansFormProps> = ({
   const totalAmount = watch("totalAmount");
   const numberOfInstallments = watch("numberOfInstallments");
 
-  const updateWallet = useUpdateWallet();
-
-  const addToWalletHandler = async (id: string, data: IUpdateWalletReq) => {
-    try {
-      const res = await updateWallet.mutateAsync({ id, data });
-      console.log("🚀 ~ addToWalletHandler ~ res:", res);
-    } catch (error) {
-      console.log("🚀 ~ addToWalletHandler ~ error:", error);
-    }
-  };
+  const { updateWalletHandler } = useUpdateWalletHandler();
 
   // Calculate installment amount
   React.useEffect(() => {
@@ -74,7 +65,7 @@ const LoansForm: React.FC<LoansFormProps> = ({
   const onSubmit: SubmitHandler<loansSchemaType> = async (data) => {
     try {
       const borrower = allPeople?.find(
-        (p) => p._id?.toString() === data.borrowerPersonId
+        (p) => p._id?.toString() === data.borrowerPersonId,
       );
 
       if (!borrower) {
@@ -95,7 +86,7 @@ const LoansForm: React.FC<LoansFormProps> = ({
 
         // Convert back to YYYY/MM/DD format
         const dueDateStr = `${dueDate.getFullYear()}/${String(
-          dueDate.getMonth() + 1
+          dueDate.getMonth() + 1,
         ).padStart(2, "0")}/${String(dueDate.getDate()).padStart(2, "0")}`;
 
         installments.push({
@@ -142,11 +133,11 @@ const LoansForm: React.FC<LoansFormProps> = ({
       onSuccess?.();
 
       const walletData = {
-        amount: data.totalAmount,
+        amount: Number(data.totalAmount),
         type: data.status,
         description: data.description,
       };
-      addToWalletHandler(data.borrowerPersonId, walletData);
+      updateWalletHandler(data.borrowerPersonId, walletData);
     } catch (error: any) {
       console.error("Error creating loan:", error);
       // Error is already handled by mutation hook
