@@ -71,6 +71,15 @@ export const getTransactionsByDeal: getTransactionsByDealType = async (
   return response.data;
 };
 
+// Get transaction by ID
+type getTransactionByIdType = (id: string) => Promise<ITransactionNew>;
+export const getTransactionById: getTransactionByIdType = async (
+  id
+) => {
+  const response = await axiosInstance.get(urls.transactionsNew.byId(id));
+  return response.data;
+};
+
 // Get transactions by person ID
 type getTransactionsByPersonType = (
   personId: string

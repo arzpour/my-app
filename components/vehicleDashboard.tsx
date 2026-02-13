@@ -17,15 +17,20 @@ import { IChequeNew, IDeal, ITransactionNew } from "@/types/new-backend-types";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useQuery } from "@tanstack/react-query";
+import { Pencil, Trash } from "lucide-react";
+import TransactionForm from "./forms/transactionForm";
 
 const VehicleDashboard = () => {
   const { chassisNo, selectedDealId } = useSelector(
-    (state: RootState) => state.cars
+    (state: RootState) => state.cars,
   );
   const [deal, setDeal] = React.useState<IDeal>();
   const [transactions, setTransactions] = React.useState<ITransactionNew[]>([]);
   const [cheques, setCheques] = React.useState<IChequeNew[] | null>(null);
+  const [isOpenEditModal, setIsOpenEditModal] = React.useState<boolean>(false);
+  const [transactionId, setTransactionId] = React.useState<boolean>(false);
 
+  
   const dispatch = useDispatch();
 
   const getDealByVin = useGetDealsByVin(chassisNo);
@@ -59,7 +64,7 @@ const VehicleDashboard = () => {
     if (!deal?._id) return;
     try {
       const transactions = await getTransactionsByDealId.mutateAsync(
-        deal?._id.toString() ?? selectedDealId ?? ""
+        deal?._id.toString() ?? selectedDealId ?? "",
       );
       setTransactions(transactions);
     } catch (error) {
@@ -71,7 +76,7 @@ const VehicleDashboard = () => {
     if (!deal?._id) return;
     try {
       const cheques = await getChequesByDealId.mutateAsync(
-        deal?._id.toString() ?? selectedDealId ?? ""
+        deal?._id.toString() ?? selectedDealId ?? "",
       );
       setCheques(cheques);
     } catch (error) {
@@ -82,7 +87,7 @@ const VehicleDashboard = () => {
   const isChequePaid = (cheque: IChequeNew): boolean => {
     const paidStatuses = ["paid", "پاس شده", "وصول شده", "پاس شده است"];
     return paidStatuses.some((status) =>
-      cheque.status?.toLowerCase().includes(status.toLowerCase())
+      cheque.status?.toLowerCase().includes(status.toLowerCase()),
     );
   };
 
@@ -105,7 +110,7 @@ const VehicleDashboard = () => {
   };
 
   const isTransactionFromUnpaidCheque = (
-    transaction: ITransactionNew
+    transaction: ITransactionNew,
   ): boolean => {
     if (!cheques || !deal?._id || transaction.paymentMethod !== "چک") {
       return false;
@@ -128,7 +133,7 @@ const VehicleDashboard = () => {
   };
 
   const isVehicleRelatedTransaction = (
-    transaction: ITransactionNew
+    transaction: ITransactionNew,
   ): boolean => {
     if (
       transaction.reason?.includes("حقوق") ||
@@ -168,7 +173,7 @@ const VehicleDashboard = () => {
   const filteredTransactions = React.useMemo(() => {
     if (!transactions || transactions.length === 0) return [];
     return transactions.filter(
-      (t) => isVehicleRelatedTransaction(t) && !isTransactionFromUnpaidCheque(t)
+      (t) => isVehicleRelatedTransaction(t) && !isTransactionFromUnpaidCheque(t),
     );
   }, [transactions, cheques, deal]);
 
@@ -198,10 +203,10 @@ const VehicleDashboard = () => {
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
   const paidTransactions = filteredTransactions?.filter(
-    (t) => t.type === "پرداخت"
+    (t) => t.type === "پرداخت",
   );
   const receivedTransactions = filteredTransactions?.filter(
-    (t) => t.type === "دریافت"
+    (t) => t.type === "دریافت",
   );
 
   const totalPaidToSeller =
@@ -210,7 +215,7 @@ const VehicleDashboard = () => {
         (t) =>
           t.reason === "خرید خودرو" ||
           t.reason?.includes("خريد") ||
-          t.reason?.includes("خرید")
+          t.reason?.includes("خرید"),
       )
       ?.reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
 
@@ -235,7 +240,7 @@ const VehicleDashboard = () => {
       ?.filter(
         (t) =>
           t.reason?.replace(/\s/g, "").includes("هزینهوسیله") ||
-          t.reason?.replace(/\s/g, "").includes("هزينهوسیله")
+          t.reason?.replace(/\s/g, "").includes("هزينهوسیله"),
       )
       .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
 
@@ -249,7 +254,7 @@ const VehicleDashboard = () => {
       t.reason === "افزایش سرمایه" ||
       t.reason === "کاهش سرمایه" ||
       t.type === "افزایش سرمایه" ||
-      t.type === "برداشت سرمایه"
+      t.type === "برداشت سرمایه",
   );
 
   const totalPaidForInvestment =
@@ -272,7 +277,7 @@ const VehicleDashboard = () => {
       setDeal(dealsData[0]);
     } else if (dealsData?.length && dealsData?.length > 1) {
       const selectedDeal = dealsData?.find(
-        (deal) => deal._id.toString() === selectedDealId
+        (deal) => deal._id.toString() === selectedDealId,
       );
       setDeal(selectedDeal ?? undefined);
     }
@@ -302,6 +307,7 @@ const VehicleDashboard = () => {
                     <TableHead className="w-12 text-center">
                       حساب مبدا
                     </TableHead>
+                    <TableHead className="w-12 text-center">عملیات</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -317,39 +323,51 @@ const VehicleDashboard = () => {
                               .includes("هزینهوسیله") ||
                             item?.reason
                               ?.replace(/\s/g, "")
-                              .includes("هزينهوسیله")
+                              .includes("هزينهوسیله"),
                         )
                         ?.reduce((sum, item) => sum + (item.amount || 0), 0);
 
                       dispatch(setTotalVehicleCost(totalVehicleCost));
 
                       return (
-                        <TableRow
-                          key={`${item?._id}-${index}`}
-                          className="hover:bg-gray-50"
-                        >
-                          <TableCell className="text-center">
-                            {index + 1}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.transactionDate ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.amount?.toLocaleString("en-US") ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.reason ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.paymentMethod ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.bussinessAccountId
-                              ? accountNameMap.get(item.bussinessAccountId) ||
-                                item.bussinessAccountId
-                              : ""}
-                          </TableCell>
-                        </TableRow>
+                          <TableRow
+                            key={`${item?._id}-${index}`}
+                            className="hover:bg-gray-50"
+                          >
+                            <TableCell className="text-center">
+                              {index + 1}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {item?.transactionDate ?? ""}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {item?.amount?.toLocaleString("en-US") ?? ""}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {item?.reason ?? ""}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {item?.paymentMethod ?? ""}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {item?.bussinessAccountId
+                                ? accountNameMap.get(item.bussinessAccountId) ||
+                                  item.bussinessAccountId
+                                : ""}
+                            </TableCell>
+                            <TableCell className="text-center flex gap-3 justify-center items-center">
+                              <Pencil
+                                className="w-4 h-4 cursor-pointer hover:text-indigo-500"
+                                onClick={() => {
+                                  setIsOpenEditModal(true);
+                                  setTransactionId(item._id);
+
+                                }}
+                              />
+
+                              <Trash className="w-4 h-4 cursor-pointer text-red-500" />
+                            </TableCell>
+                          </TableRow>
                       );
                     })}
                 </TableBody>
@@ -391,7 +409,7 @@ const VehicleDashboard = () => {
                 <p dir="ltr" className="font-bold text-xs">
                   {typeof remainingToSeller === "number"
                     ? remainingToSeller.toLocaleString("en-US")
-                    : remainingToSeller ?? 0}
+                    : (remainingToSeller ?? 0)}
                 </p>
               </div>
 
@@ -553,7 +571,7 @@ const VehicleDashboard = () => {
                           (t) =>
                             t.type === "پرداخت" &&
                             t.personId?.toString() ===
-                              partnership.partner.personId
+                              partnership.partner.personId,
                         );
 
                         return (
@@ -572,7 +590,7 @@ const VehicleDashboard = () => {
                             <TableCell className="text-center">
                               {partnership.investmentAmount
                                 ? partnership.investmentAmount.toLocaleString(
-                                    "en-US"
+                                    "en-US",
                                   )
                                 : ""}
                             </TableCell>
@@ -597,7 +615,7 @@ const VehicleDashboard = () => {
                             <TableCell className="text-center">
                               {relatedTransaction?.bussinessAccountId
                                 ? accountNameMap.get(
-                                    relatedTransaction.bussinessAccountId
+                                    relatedTransaction.bussinessAccountId,
                                   ) || relatedTransaction.bussinessAccountId
                                 : "-"}
                             </TableCell>
@@ -752,6 +770,9 @@ const VehicleDashboard = () => {
           </div>
         </div>
       </div>
+      {isOpenEditModal && (
+        <TransactionForm mode="edit" transactionId={transactionId} />
+      )}
     </>
   );
 };

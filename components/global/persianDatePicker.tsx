@@ -61,15 +61,16 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
   };
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center w-full">
       <DatePicker
         calendar={persian}
         locale={persian_fa}
         value={internalDate}
         onChange={handleChange}
-        inputClass="border rounded w-[130px] px-4 py-1 text-center outline-none focus:ring-2 focus:ring-blue-400"
+        inputClass="border rounded w-full px-4 py-1 text-right outline-none focus:ring-2 focus:ring-blue-400"
         placeholder={placeholder}
-        calendarPosition="bottom-center"
+        calendarPosition="bottom-left"
+        className="w-full"
       />
     </div>
   );

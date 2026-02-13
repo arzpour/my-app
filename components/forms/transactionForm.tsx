@@ -8,7 +8,10 @@ import {
   transactionChequeSchemaType,
 } from "@/validations/transactionCheque";
 import { toast } from "sonner";
-import { createTransaction } from "@/apis/client/transaction";
+import {
+  createTransaction,
+  getTransactionById,
+} from "@/apis/client/transaction";
 import { createCheque } from "@/apis/client/chequesNew";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import { getAllBusinessAccounts } from "@/apis/client/businessAccounts";
@@ -30,11 +33,15 @@ import useUpdateWalletHandler from "@/hooks/useUpdateWalletHandler";
 interface TransactionFormProps {
   onSuccess?: () => void;
   embedded?: boolean;
+  mode?: "add" | "edit";
+  transactionId?: string;
 }
 
 const TransactionForm: React.FC<TransactionFormProps> = ({
   onSuccess,
   embedded = false,
+  mode = "add",
+  transactionId,
 }) => {
   const { data: allPeople } = useGetAllPeople();
   const { data: allAccounts } = useQuery({
@@ -45,11 +52,61 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     queryKey: ["get-all-deals"],
     queryFn: getAllDeals,
   });
+  const { data: transactionDataById } = useQuery({
+    queryKey: ["get-transaction-by-id"],
+    queryFn: () => getTransactionById(transactionId ?? ""),
+  });
   const [selectedPerson, setSelectedPerson] = React.useState<IPeople | null>(
     null,
   );
   const [selectedDeal, setSelectedDeal] = React.useState<IDeal | null>(null);
 
+  const defaultValuesOfForm =
+    mode === "add"
+      ? {
+          type: "پرداخت",
+          reason: "",
+          transactionDate: "",
+          amount: "",
+          personId: "",
+          bussinessAccountId: "",
+          paymentMethod: "نقد",
+          dealId: "",
+          description: "",
+          chequeDescription: "",
+          chequeNumber: "",
+          chequeBankName: "",
+          chequeBranchName: "",
+          chequeIssueDate: "",
+          chequeDueDate: "",
+          chequeType: "دریافتی",
+          chequeStatus: "در جریان",
+          chequePayerPersonId: "",
+          chequePayeePersonId: "",
+          chequeRelatedDealId: "",
+        }
+      : {
+          type: transactionDataById?.type ?? "",
+          reason: transactionDataById?.reason ?? "",
+          transactionDate: transactionDataById?.transactionDate ?? "",
+          amount: transactionDataById?.amount ?? "",
+          personId: transactionDataById?.personId ?? "",
+          bussinessAccountId: transactionDataById?.bussinessAccountId ?? "",
+          paymentMethod: transactionDataById?.paymentMethod ?? "",
+          dealId: transactionDataById?.dealId ?? "",
+          description: transactionDataById?.description ?? "",
+          chequeDescription: "",
+          chequeNumber: "",
+          chequeBankName: "",
+          chequeBranchName: "",
+          chequeIssueDate: "",
+          chequeDueDate: "",
+          chequeType: "",
+          chequeStatus: "",
+          chequePayerPersonId: "",
+          chequePayeePersonId: "",
+          chequeRelatedDealId: "",
+        };
   const {
     control,
     register,
@@ -58,30 +115,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     setValue,
     getValues,
     formState: { errors },
+    reset,
   } = useForm<transactionChequeSchemaType>({
     resolver: zodResolver(transactionChequeSchema),
-    defaultValues: {
-      type: "پرداخت",
-      reason: "",
-      transactionDate: "",
-      amount: "",
-      personId: "",
-      bussinessAccountId: "",
-      paymentMethod: "نقد",
-      dealId: "",
-      description: "",
-      chequeDescription: "",
-      chequeNumber: "",
-      chequeBankName: "",
-      chequeBranchName: "",
-      chequeIssueDate: "",
-      chequeDueDate: "",
-      chequeType: "دریافتی",
-      chequeStatus: "در جریان",
-      chequePayerPersonId: "",
-      chequePayeePersonId: "",
-      chequeRelatedDealId: "",
-    },
+    defaultValues: defaultValuesOfForm,
   });
 
   const paymentMethod = watch("paymentMethod");
@@ -215,6 +252,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       }
 
       toast.success("تراکنش با موفقیت ثبت شد");
+      reset({
+        amount: "",
+        transactionDate: "",
+      });
 
       const price = Number(data.amount);
       const walletData = {
