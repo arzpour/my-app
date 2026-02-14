@@ -144,6 +144,25 @@ export const createTransaction: createTransactionType = async (data) => {
   return response.data;
 };
 
+// Update transaction
+type updateTransactionType = (id: string, data: Partial<ITransactionNew>) => Promise<ITransactionNew>;
+export const updateTransaction: updateTransactionType = async (id, data) => {
+  const response = await axiosInstance.put(
+    urls.transactionsNew.update(id),
+    data
+  );
+  return response.data;
+};
+
+// Delete transaction
+type deleteTransactionType = (id: string) => Promise<void>;
+export const deleteTransaction: deleteTransactionType = async (id) => {
+  const response = await axiosInstance.delete(
+    urls.transactionsNew.delete(id)
+  );
+  return response.data;
+};
+
 // // Helper function to check if data is in old format
 // function isOldTransactionFormat(data: any): boolean {
 //   return (

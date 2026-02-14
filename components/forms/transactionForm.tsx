@@ -12,6 +12,7 @@ import {
   createTransaction,
   getTransactionById,
 } from "@/apis/client/transaction";
+import { useUpdateTransaction } from "@/apis/mutations/transaction";
 import { createCheque } from "@/apis/client/chequesNew";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import { getAllBusinessAccounts } from "@/apis/client/businessAccounts";
@@ -53,8 +54,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     queryFn: getAllDeals,
   });
   const { data: transactionDataById } = useQuery({
-    queryKey: ["get-transaction-by-id"],
+    queryKey: ["get-transaction-by-id", transactionId],
     queryFn: () => getTransactionById(transactionId ?? ""),
+    enabled: mode === "edit" && !!transactionId,
   });
   const [selectedPerson, setSelectedPerson] = React.useState<IPeople | null>(
     null,
@@ -64,49 +66,49 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const defaultValuesOfForm =
     mode === "add"
       ? {
-          type: "پرداخت",
-          reason: "",
-          transactionDate: "",
-          amount: "",
-          personId: "",
-          bussinessAccountId: "",
-          paymentMethod: "نقد",
-          dealId: "",
-          description: "",
-          chequeDescription: "",
-          chequeNumber: "",
-          chequeBankName: "",
-          chequeBranchName: "",
-          chequeIssueDate: "",
-          chequeDueDate: "",
-          chequeType: "دریافتی",
-          chequeStatus: "در جریان",
-          chequePayerPersonId: "",
-          chequePayeePersonId: "",
-          chequeRelatedDealId: "",
-        }
+        type: "پرداخت" as const,
+        reason: "",
+        transactionDate: "",
+        amount: "",
+        personId: "",
+        bussinessAccountId: "",
+        paymentMethod: "نقد" as const,
+        dealId: "",
+        description: "",
+        chequeDescription: "",
+        chequeNumber: "",
+        chequeBankName: "",
+        chequeBranchName: "",
+        chequeIssueDate: "",
+        chequeDueDate: "",
+        chequeType: "دریافتی" as const,
+        chequeStatus: "در جریان",
+        chequePayerPersonId: "",
+        chequePayeePersonId: "",
+        chequeRelatedDealId: "",
+      }
       : {
-          type: transactionDataById?.type ?? "",
-          reason: transactionDataById?.reason ?? "",
-          transactionDate: transactionDataById?.transactionDate ?? "",
-          amount: transactionDataById?.amount ?? "",
-          personId: transactionDataById?.personId ?? "",
-          bussinessAccountId: transactionDataById?.bussinessAccountId ?? "",
-          paymentMethod: transactionDataById?.paymentMethod ?? "",
-          dealId: transactionDataById?.dealId ?? "",
-          description: transactionDataById?.description ?? "",
-          chequeDescription: "",
-          chequeNumber: "",
-          chequeBankName: "",
-          chequeBranchName: "",
-          chequeIssueDate: "",
-          chequeDueDate: "",
-          chequeType: "",
-          chequeStatus: "",
-          chequePayerPersonId: "",
-          chequePayeePersonId: "",
-          chequeRelatedDealId: "",
-        };
+        type: (transactionDataById?.type as "پرداخت" | "دریافت") ?? ("پرداخت" as const),
+        reason: transactionDataById?.reason ?? "",
+        transactionDate: transactionDataById?.transactionDate ?? "",
+        amount: transactionDataById?.amount?.toString() ?? "",
+        personId: transactionDataById?.personId ?? "",
+        bussinessAccountId: transactionDataById?.bussinessAccountId ?? "",
+        paymentMethod: (transactionDataById?.paymentMethod as "نقد" | "کارت به کارت" | "چک" | "شبا" | "مشتری به مشتری") ?? ("نقد" as const),
+        dealId: transactionDataById?.dealId ?? "",
+        description: transactionDataById?.description ?? "",
+        chequeDescription: "",
+        chequeNumber: "",
+        chequeBankName: "",
+        chequeBranchName: "",
+        chequeIssueDate: "",
+        chequeDueDate: "",
+        chequeType: undefined as "دریافتی" | "پرداختی" | undefined,
+        chequeStatus: "",
+        chequePayerPersonId: "",
+        chequePayeePersonId: "",
+        chequeRelatedDealId: "",
+      };
   const {
     control,
     register,
@@ -146,10 +148,38 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   );
 
   const { updateWalletHandler } = useUpdateWalletHandler();
+  const updateTransaction = useUpdateTransaction();
+
+  // Reset form when transaction data is loaded in edit mode
+  React.useEffect(() => {
+    if (mode === "edit" && transactionDataById) {
+      reset({
+        type: (transactionDataById?.type as "پرداخت" | "دریافت") ?? "پرداخت",
+        reason: transactionDataById?.reason ?? "",
+        transactionDate: transactionDataById?.transactionDate ?? "",
+        amount: transactionDataById?.amount?.toString() ?? "",
+        personId: transactionDataById?.personId ?? "",
+        bussinessAccountId: transactionDataById?.bussinessAccountId ?? "",
+        paymentMethod: (transactionDataById?.paymentMethod as "نقد" | "کارت به کارت" | "چک" | "شبا" | "مشتری به مشتری") ?? "نقد",
+        dealId: transactionDataById?.dealId ?? "",
+        description: transactionDataById?.description ?? "",
+        chequeDescription: "",
+        chequeNumber: "",
+        chequeBankName: "",
+        chequeBranchName: "",
+        chequeIssueDate: "",
+        chequeDueDate: "",
+        chequeType: undefined,
+        chequeStatus: "",
+        chequePayerPersonId: "",
+        chequePayeePersonId: "",
+        chequeRelatedDealId: "",
+      });
+    }
+  }, [transactionDataById, mode, reset]);
 
   const onSubmit: SubmitHandler<transactionChequeSchemaType> = async (data) => {
     try {
-      // First, create transaction
       const transactionData = {
         type: data.type,
         reason: data.reason,
@@ -162,29 +192,39 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         description: data.description || "",
       };
 
-      const transaction = await createTransaction(transactionData);
+      let transaction;
+      if (mode === "edit" && transactionId) {
+        // Update existing transaction
+        transaction = await updateTransaction.mutateAsync({
+          id: transactionId,
+          data: transactionData,
+        });
+      } else {
+        // Create new transaction
+        transaction = await createTransaction(transactionData);
+      }
 
       // If payment method is cheque, create cheque record
       if (data.paymentMethod === "چک" && showChequeFields) {
         const payer =
           showPayer && data.chequePayerPersonId
             ? allPeople?.find(
-                (p) => p._id?.toString() === data.chequePayerPersonId,
-              )
+              (p) => p._id?.toString() === data.chequePayerPersonId,
+            )
             : null;
 
         const payee =
           showPayee && data.chequePayeePersonId
             ? allPeople?.find(
-                (p) => p._id?.toString() === data.chequePayeePersonId,
-              )
+              (p) => p._id?.toString() === data.chequePayeePersonId,
+            )
             : null;
 
         const customer =
           showPayer && data.chequeCustomerPersonId
             ? allPeople?.find(
-                (p) => p._id?.toString() === data.chequeCustomerPersonId,
-              )
+              (p) => p._id?.toString() === data.chequeCustomerPersonId,
+            )
             : null;
 
         const chequeData = {
@@ -201,37 +241,37 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           description: data.chequeDescription,
           customer: customer
             ? {
-                personId: customer._id?.toString() || "",
-                fullName: `${customer} ${customer.lastName}`,
-                nationalId: customer.nationalId?.toString() || "",
-              }
+              personId: customer._id?.toString() || "",
+              fullName: `${customer} ${customer.lastName}`,
+              nationalId: customer.nationalId?.toString() || "",
+            }
             : {
-                personId: "",
-                fullName: "",
-                nationalId: "",
-              },
+              personId: "",
+              fullName: "",
+              nationalId: "",
+            },
           payer: payer
             ? {
-                personId: payer._id?.toString() || "",
-                fullName: `${payer.firstName} ${payer.lastName}`,
-                nationalId: payer.nationalId?.toString() || "",
-              }
+              personId: payer._id?.toString() || "",
+              fullName: `${payer.firstName} ${payer.lastName}`,
+              nationalId: payer.nationalId?.toString() || "",
+            }
             : {
-                personId: "",
-                fullName: "",
-                nationalId: "",
-              },
+              personId: "",
+              fullName: "",
+              nationalId: "",
+            },
           payee: payee
             ? {
-                personId: payee._id?.toString() || "",
-                fullName: `${payee.firstName} ${payee.lastName}`,
-                nationalId: payee.nationalId?.toString() || "",
-              }
+              personId: payee._id?.toString() || "",
+              fullName: `${payee.firstName} ${payee.lastName}`,
+              nationalId: payee.nationalId?.toString() || "",
+            }
             : {
-                personId: "",
-                fullName: "",
-                nationalId: "",
-              },
+              personId: "",
+              fullName: "",
+              nationalId: "",
+            },
           relatedDealId: data.chequeRelatedDealId
             ? parseInt(data.chequeRelatedDealId)
             : 0,
@@ -251,19 +291,23 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         await createCheque(chequeData);
       }
 
-      toast.success("تراکنش با موفقیت ثبت شد");
-      reset({
-        amount: "",
-        transactionDate: "",
-      });
+      if (mode === "edit") {
+        toast.success("تراکنش با موفقیت به‌روزرسانی شد");
+      } else {
+        toast.success("تراکنش با موفقیت ثبت شد");
+        reset({
+          amount: "",
+          transactionDate: "",
+        });
 
-      const price = Number(data.amount);
-      const walletData = {
-        amount: data.type === "دریافت" ? price : -price,
-        type: data.type,
-        description: data.description,
-      };
-      updateWalletHandler(data.personId, walletData);
+        const price = Number(data.amount);
+        const walletData = {
+          amount: data.type === "دریافت" ? price : -price,
+          type: data.type,
+          description: data.description,
+        };
+        updateWalletHandler(data.personId, walletData);
+      }
 
       onSuccess?.();
     } catch (error: any) {
@@ -425,8 +469,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                     "آپشن",
                     "جابجایی(وسیله نقلیه)",
                   ].includes(transactionReason)) ||
-                (transactionType === "دریافت" &&
-                  ["فروش خودرو"].includes(transactionReason))
+                  (transactionType === "دریافت" &&
+                    ["فروش خودرو"].includes(transactionReason))
                   ? "(اجباری)"
                   : "(اختیاری)"}
               </span>
@@ -455,8 +499,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                       "آپشن",
                       "جابجایی(وسیله نقلیه)",
                     ].includes(transactionReason)) ||
-                  (transactionType === "دریافت" &&
-                    ["فروش خودرو"].includes(transactionReason))
+                    (transactionType === "دریافت" &&
+                      ["فروش خودرو"].includes(transactionReason))
                     ? "(اجباری)"
                     : "(اختیاری)"}
                 </span>
@@ -827,9 +871,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       <div className="flex justify-end gap-2 pt-4 border-t">
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          disabled={mode === "edit" && updateTransaction.isPending}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
         >
-          ثبت تراکنش
+          {mode === "edit"
+            ? (updateTransaction.isPending ? "در حال به‌روزرسانی..." : "به‌روزرسانی تراکنش")
+            : "ثبت تراکنش"}
         </button>
       </div>
     </form>
