@@ -296,13 +296,14 @@ export interface ITransactionNew {
   _id: Types.ObjectId;
   amount: number;
   transactionDate: string;
-  type: string; // Maps to TransactionType ("پرداخت" | "دریافت" | "افزایش سرمایه" | "برداشت سرمایه")
+  type: string;
   reason: string;
   paymentMethod: string;
   personId: string;
   dealId: string;
   bussinessAccountId: string;
   description: string;
+  // chequeDescription?: string
   createdAt: string;
   updatedAt: string;
 }

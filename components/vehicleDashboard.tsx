@@ -1,6 +1,6 @@
 "use client";
 import { useGetChequesByDealId } from "@/apis/mutations/cheques";
-import { useGetTransactionsByDealId } from "@/apis/mutations/transaction";
+import { useGetTransactionsByDealId, useDeleteTransaction } from "@/apis/mutations/transaction";
 import { getAllBusinessAccounts } from "@/apis/client/businessAccounts";
 import {
   Table,
@@ -10,6 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 import useGetDealsByVin from "@/hooks/useGetDealsByVin";
 import { setTotalVehicleCost } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
@@ -17,14 +24,21 @@ import { IChequeNew, IDeal, ITransactionNew } from "@/types/new-backend-types";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useQuery } from "@tanstack/react-query";
+import { Pencil, Trash } from "lucide-react";
+import TransactionForm from "./forms/transactionForm";
 
 const VehicleDashboard = () => {
   const { chassisNo, selectedDealId } = useSelector(
-    (state: RootState) => state.cars
+    (state: RootState) => state.cars,
   );
   const [deal, setDeal] = React.useState<IDeal>();
   const [transactions, setTransactions] = React.useState<ITransactionNew[]>([]);
   const [cheques, setCheques] = React.useState<IChequeNew[] | null>(null);
+  const [isOpenEditModal, setIsOpenEditModal] = React.useState<boolean>(false);
+  const [transactionId, setTransactionId] = React.useState<string | undefined>(undefined);
+  const [isOpenDeleteModal, setIsOpenDeleteModal] = React.useState<boolean>(false);
+  const [transactionToDelete, setTransactionToDelete] = React.useState<string | undefined>(undefined);
+
 
   const dispatch = useDispatch();
 
@@ -33,6 +47,7 @@ const VehicleDashboard = () => {
 
   const getTransactionsByDealId = useGetTransactionsByDealId();
   const getChequesByDealId = useGetChequesByDealId();
+  const deleteTransaction = useDeleteTransaction();
 
   const { data: businessAccounts } = useQuery({
     queryKey: ["get-all-business-accounts"],
@@ -59,7 +74,7 @@ const VehicleDashboard = () => {
     if (!deal?._id) return;
     try {
       const transactions = await getTransactionsByDealId.mutateAsync(
-        deal?._id.toString() ?? selectedDealId ?? ""
+        deal?._id.toString() ?? selectedDealId ?? "",
       );
       setTransactions(transactions);
     } catch (error) {
@@ -71,7 +86,7 @@ const VehicleDashboard = () => {
     if (!deal?._id) return;
     try {
       const cheques = await getChequesByDealId.mutateAsync(
-        deal?._id.toString() ?? selectedDealId ?? ""
+        deal?._id.toString() ?? selectedDealId ?? "",
       );
       setCheques(cheques);
     } catch (error) {
@@ -82,7 +97,7 @@ const VehicleDashboard = () => {
   const isChequePaid = (cheque: IChequeNew): boolean => {
     const paidStatuses = ["paid", "پاس شده", "وصول شده", "پاس شده است"];
     return paidStatuses.some((status) =>
-      cheque.status?.toLowerCase().includes(status.toLowerCase())
+      cheque.status?.toLowerCase().includes(status.toLowerCase()),
     );
   };
 
@@ -105,7 +120,7 @@ const VehicleDashboard = () => {
   };
 
   const isTransactionFromUnpaidCheque = (
-    transaction: ITransactionNew
+    transaction: ITransactionNew,
   ): boolean => {
     if (!cheques || !deal?._id || transaction.paymentMethod !== "چک") {
       return false;
@@ -128,7 +143,7 @@ const VehicleDashboard = () => {
   };
 
   const isVehicleRelatedTransaction = (
-    transaction: ITransactionNew
+    transaction: ITransactionNew,
   ): boolean => {
     if (
       transaction.reason?.includes("حقوق") ||
@@ -168,7 +183,7 @@ const VehicleDashboard = () => {
   const filteredTransactions = React.useMemo(() => {
     if (!transactions || transactions.length === 0) return [];
     return transactions.filter(
-      (t) => isVehicleRelatedTransaction(t) && !isTransactionFromUnpaidCheque(t)
+      (t) => isVehicleRelatedTransaction(t) && !isTransactionFromUnpaidCheque(t),
     );
   }, [transactions, cheques, deal]);
 
@@ -198,10 +213,10 @@ const VehicleDashboard = () => {
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
   const paidTransactions = filteredTransactions?.filter(
-    (t) => t.type === "پرداخت"
+    (t) => t.type === "پرداخت",
   );
   const receivedTransactions = filteredTransactions?.filter(
-    (t) => t.type === "دریافت"
+    (t) => t.type === "دریافت",
   );
 
   const totalPaidToSeller =
@@ -210,7 +225,7 @@ const VehicleDashboard = () => {
         (t) =>
           t.reason === "خرید خودرو" ||
           t.reason?.includes("خريد") ||
-          t.reason?.includes("خرید")
+          t.reason?.includes("خرید"),
       )
       ?.reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
 
@@ -235,7 +250,7 @@ const VehicleDashboard = () => {
       ?.filter(
         (t) =>
           t.reason?.replace(/\s/g, "").includes("هزینهوسیله") ||
-          t.reason?.replace(/\s/g, "").includes("هزينهوسیله")
+          t.reason?.replace(/\s/g, "").includes("هزينهوسیله"),
       )
       .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
 
@@ -249,7 +264,7 @@ const VehicleDashboard = () => {
       t.reason === "افزایش سرمایه" ||
       t.reason === "کاهش سرمایه" ||
       t.type === "افزایش سرمایه" ||
-      t.type === "برداشت سرمایه"
+      t.type === "برداشت سرمایه",
   );
 
   const totalPaidForInvestment =
@@ -272,11 +287,36 @@ const VehicleDashboard = () => {
       setDeal(dealsData[0]);
     } else if (dealsData?.length && dealsData?.length > 1) {
       const selectedDeal = dealsData?.find(
-        (deal) => deal._id.toString() === selectedDealId
+        (deal) => deal._id.toString() === selectedDealId,
       );
       setDeal(selectedDeal ?? undefined);
     }
   }, [dealsData, selectedDealId]);
+
+  const handleDeleteClick = (transactionId: string) => {
+    setTransactionToDelete(transactionId);
+    setIsOpenDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (transactionToDelete) {
+      try {
+        await deleteTransaction.mutateAsync(transactionToDelete);
+        setIsOpenDeleteModal(false);
+        setTransactionToDelete(undefined);
+        // Refresh transactions after delete
+        await getTransactionsByDealIdHandler();
+      } catch (error) {
+        console.error("Error deleting transaction:", error);
+      }
+    }
+  };
+
+  const handleEditSuccess = () => {
+    setIsOpenEditModal(false);
+    setTransactionId(undefined);
+    getTransactionsByDealIdHandler();
+  };
 
   return (
     <>
@@ -302,6 +342,7 @@ const VehicleDashboard = () => {
                     <TableHead className="w-12 text-center">
                       حساب مبدا
                     </TableHead>
+                    <TableHead className="w-12 text-center">عملیات</TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -317,7 +358,7 @@ const VehicleDashboard = () => {
                               .includes("هزینهوسیله") ||
                             item?.reason
                               ?.replace(/\s/g, "")
-                              .includes("هزينهوسیله")
+                              .includes("هزينهوسیله"),
                         )
                         ?.reduce((sum, item) => sum + (item.amount || 0), 0);
 
@@ -346,8 +387,22 @@ const VehicleDashboard = () => {
                           <TableCell className="text-center">
                             {item?.bussinessAccountId
                               ? accountNameMap.get(item.bussinessAccountId) ||
-                                item.bussinessAccountId
+                              item.bussinessAccountId
                               : ""}
+                          </TableCell>
+                          <TableCell className="text-center flex gap-3 justify-center items-center">
+                            <Pencil
+                              className="w-4 h-4 cursor-pointer hover:text-indigo-500"
+                              onClick={() => {
+                                setIsOpenEditModal(true);
+                                setTransactionId(item._id?.toString());
+                              }}
+                            />
+
+                            <Trash
+                              className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
+                              onClick={() => handleDeleteClick(item._id?.toString() || "")}
+                            />
                           </TableCell>
                         </TableRow>
                       );
@@ -391,7 +446,7 @@ const VehicleDashboard = () => {
                 <p dir="ltr" className="font-bold text-xs">
                   {typeof remainingToSeller === "number"
                     ? remainingToSeller.toLocaleString("en-US")
-                    : remainingToSeller ?? 0}
+                    : (remainingToSeller ?? 0)}
                 </p>
               </div>
 
@@ -485,7 +540,7 @@ const VehicleDashboard = () => {
                         <TableCell className="text-center">
                           {item?.bussinessAccountId
                             ? accountNameMap.get(item.bussinessAccountId) ||
-                              item.bussinessAccountId
+                            item.bussinessAccountId
                             : ""}
                         </TableCell>
                       </TableRow>
@@ -549,61 +604,61 @@ const VehicleDashboard = () => {
                 <TableBody>
                   {deal?.partnerships && deal.partnerships.length > 0
                     ? deal.partnerships.map((partnership, index) => {
-                        const relatedTransaction = transactions?.find(
-                          (t) =>
-                            t.type === "پرداخت" &&
-                            t.personId?.toString() ===
-                              partnership.partner.personId
-                        );
+                      const relatedTransaction = transactions?.find(
+                        (t) =>
+                          t.type === "پرداخت" &&
+                          t.personId?.toString() ===
+                          partnership.partner.personId,
+                      );
 
-                        return (
-                          <TableRow
-                            key={`${partnership.partner.personId}-${index}`}
-                            className="hover:bg-gray-50"
-                          >
-                            <TableCell className="text-center">
-                              {index + 1}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {relatedTransaction?.transactionDate ||
-                                deal.createdAt?.split("T")[0] ||
-                                ""}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {partnership.investmentAmount
-                                ? partnership.investmentAmount.toLocaleString(
-                                    "en-US"
-                                  )
-                                : ""}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {partnership.partner.name || ""}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {partnership.profitSharePercentage
-                                ? `${(
-                                    partnership.profitSharePercentage * 100
-                                  ).toFixed(2)}%`
-                                : "-"}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {partnership.investmentAmount > 0
-                                ? "اصل شرکت"
-                                : "سود شراکت"}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {relatedTransaction?.paymentMethod || "-"}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {relatedTransaction?.bussinessAccountId
-                                ? accountNameMap.get(
-                                    relatedTransaction.bussinessAccountId
-                                  ) || relatedTransaction.bussinessAccountId
-                                : "-"}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
+                      return (
+                        <TableRow
+                          key={`${partnership.partner.personId}-${index}`}
+                          className="hover:bg-gray-50"
+                        >
+                          <TableCell className="text-center">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {relatedTransaction?.transactionDate ||
+                              deal.createdAt?.split("T")[0] ||
+                              ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {partnership.investmentAmount
+                              ? partnership.investmentAmount.toLocaleString(
+                                "en-US",
+                              )
+                              : ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {partnership.partner.name || ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {partnership.profitSharePercentage
+                              ? `${(
+                                partnership.profitSharePercentage * 100
+                              ).toFixed(2)}%`
+                              : "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {partnership.investmentAmount > 0
+                              ? "اصل شرکت"
+                              : "سود شراکت"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {relatedTransaction?.paymentMethod || "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {relatedTransaction?.bussinessAccountId
+                              ? accountNameMap.get(
+                                relatedTransaction.bussinessAccountId,
+                              ) || relatedTransaction.bussinessAccountId
+                              : "-"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                     : null}
                 </TableBody>
               </Table>
@@ -659,58 +714,58 @@ const VehicleDashboard = () => {
                 <TableBody>
                   {allChequesForDisplay && allChequesForDisplay.length > 0
                     ? allChequesForDisplay?.map((item, index) => (
-                        <TableRow
-                          key={`${item?._id}-${index}`}
-                          className="has-data-[state=checked]:bg-muted/50"
-                        >
-                          <TableCell className="text-center">
-                            {index + 1}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.type}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.payer?.fullName}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.amount?.toLocaleString("en-US") ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.dueDate}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.status}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.sayadiID ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item?.chequeNumber}
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      <TableRow
+                        key={`${item?._id}-${index}`}
+                        className="has-data-[state=checked]:bg-muted/50"
+                      >
+                        <TableCell className="text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.type}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.payer?.fullName}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.amount?.toLocaleString("en-US") ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.dueDate}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.status}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.sayadiID ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.chequeNumber}
+                        </TableCell>
+                      </TableRow>
+                    ))
                     : null}
 
                   {[].length > 0
                     ? []?.map((item, index) => (
-                        <TableRow
-                          key={`${item}-${index}`}
-                          className="has-data-[state=checked]:bg-muted/50"
-                        >
-                          <TableCell className="text-center">
-                            {index + 1}
-                          </TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">
-                            {item ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                        </TableRow>
-                      ))
+                      <TableRow
+                        key={`${item}-${index}`}
+                        className="has-data-[state=checked]:bg-muted/50"
+                      >
+                        <TableCell className="text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">
+                          {item ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                      </TableRow>
+                    ))
                     : null}
                 </TableBody>
               </Table>
@@ -752,6 +807,61 @@ const VehicleDashboard = () => {
           </div>
         </div>
       </div>
+      {isOpenEditModal && (
+        <Dialog open={isOpenEditModal} onOpenChange={setIsOpenEditModal}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>ویرایش تراکنش</DialogTitle>
+              <DialogClose onClose={() => {
+                setIsOpenEditModal(false);
+                setTransactionId(undefined);
+              }} />
+            </DialogHeader>
+            <TransactionForm
+              mode="edit"
+              transactionId={transactionId}
+              onSuccess={handleEditSuccess}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {isOpenDeleteModal && (
+        <Dialog open={isOpenDeleteModal} onOpenChange={setIsOpenDeleteModal}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="!text-base text-gray-800">تأیید حذف</DialogTitle>
+              <DialogClose onClose={() => {
+                setIsOpenDeleteModal(false);
+                setTransactionToDelete(undefined);
+              }} />
+            </DialogHeader>
+            <div className="space-y-4 pb-4 pt-2">
+              <p className="text-gray-700">
+                آیا از حذف این تراکنش اطمینان دارید؟
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setIsOpenDeleteModal(false);
+                    setTransactionToDelete(undefined);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  انصراف
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  disabled={deleteTransaction.isPending}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                >
+                  {deleteTransaction.isPending ? "در حال حذف..." : "حذف"}
+                </button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 };

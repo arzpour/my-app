@@ -71,6 +71,15 @@ export const getTransactionsByDeal: getTransactionsByDealType = async (
   return response.data;
 };
 
+// Get transaction by ID
+type getTransactionByIdType = (id: string) => Promise<ITransactionNew>;
+export const getTransactionById: getTransactionByIdType = async (
+  id
+) => {
+  const response = await axiosInstance.get(urls.transactionsNew.byId(id));
+  return response.data;
+};
+
 // Get transactions by person ID
 type getTransactionsByPersonType = (
   personId: string
@@ -131,6 +140,25 @@ export const createTransaction: createTransactionType = async (data) => {
   const response = await axiosInstance.post(
     urls.transactionsNew.create,
     data
+  );
+  return response.data;
+};
+
+// Update transaction
+type updateTransactionType = (id: string, data: Partial<ITransactionNew>) => Promise<ITransactionNew>;
+export const updateTransaction: updateTransactionType = async (id, data) => {
+  const response = await axiosInstance.put(
+    urls.transactionsNew.update(id),
+    data
+  );
+  return response.data;
+};
+
+// Delete transaction
+type deleteTransactionType = (id: string) => Promise<void>;
+export const deleteTransaction: deleteTransactionType = async (id) => {
+  const response = await axiosInstance.delete(
+    urls.transactionsNew.delete(id)
   );
   return response.data;
 };
