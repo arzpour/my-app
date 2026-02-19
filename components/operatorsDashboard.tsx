@@ -96,7 +96,7 @@ const OperatorsDashboard = () => {
 
   // Combine both sources, prefer people if available
   const operatorOptions = React.useMemo(() => {
-    const fromPeople = brokerPeople.map((p) => p.fullName);
+    const fromPeople = brokerPeople.map((p) => `${p.firstName} ${p.lastName}`);
     const combined = [
       ...new Set([...fromPeople, ...operatorOptionsFromSettings]),
     ];
@@ -477,7 +477,7 @@ const OperatorsDashboard = () => {
       <div className="border p-4">
         <div className="grid grid-cols-[1fr_1fr_1.5fr_1fr_1fr] gap-6 items-start">
           <div className="space-y-1">
-            <h3 className="text-var(--title) text-sm font-bold mb-2 text-blue-900">
+            <h3 className="text-var(--title) text-sm font-semibold mb-2 text-blue-900">
               انتخاب کارگزار:
             </h3>
             <Select
@@ -500,13 +500,13 @@ const OperatorsDashboard = () => {
           </div>
           <div>
             <div className="space-y-1 flex items-center gap-4">
-              <h3 className="text-sm text-blue-900 font-bold">مجموع خرید:</h3>
+              <h3 className="text-sm text-blue-900 font-semibold">مجموع خرید:</h3>
               <p className="text-sm font-medium">
                 {stats.totalPurchase.toLocaleString("en-US")}
               </p>
             </div>
             <div className="space-y-1 flex items-center gap-4">
-              <h3 className="text-sm text-blue-900 font-bold">مجموع فروش:</h3>
+              <h3 className="text-sm text-blue-900 font-semibold">مجموع فروش:</h3>
               <p className="text-sm font-medium">
                 {stats.totalSale.toLocaleString("en-US")}
               </p>
@@ -515,7 +515,7 @@ const OperatorsDashboard = () => {
           <div className="flex justify-between items-start">
             <div>
               <div className="space-y-1 flex items-center gap-4">
-                <h3 className="text-sm text-blue-900 font-bold">
+                <h3 className="text-sm text-blue-900 font-semibold">
                   مجموع سود خرید:
                 </h3>
                 <p className="text-sm font-medium">
@@ -524,7 +524,7 @@ const OperatorsDashboard = () => {
               </div>
               <div>
                 <div className="space-y-1 flex items-center gap-4">
-                  <h3 className="text-sm text-blue-900 font-bold">
+                  <h3 className="text-sm text-blue-900 font-semibold">
                     مجموع سود فروش:
                   </h3>
                   <p className="text-sm font-medium">
@@ -545,7 +545,7 @@ const OperatorsDashboard = () => {
           <div className="flex justify-between items-start">
             <div>
               <div className="space-y-1 flex items-center gap-4">
-                <h3 className="text-sm text-blue-900 font-bold">
+                <h3 className="text-sm text-blue-900 font-semibold">
                   مجموع کارمزد خرید:
                 </h3>
                 <p className="text-sm font-medium">
@@ -554,7 +554,7 @@ const OperatorsDashboard = () => {
               </div>
               <div>
                 <div className="space-y-1 flex items-center gap-4">
-                  <h3 className="text-sm text-blue-900 font-bold">
+                  <h3 className="text-sm text-blue-900 font-semibold">
                     مجموع کارمزد فروش:
                   </h3>
                   <p className="text-sm font-medium">
@@ -574,7 +574,7 @@ const OperatorsDashboard = () => {
           </div>
           <div>
             <div className="space-y-1 flex items-center gap-4">
-              <h3 className="text-sm text-blue-900 font-bold">
+              <h3 className="text-sm text-blue-900 font-semibold">
                 مجموع کل کارمزد:
               </h3>
               <p className="text-sm font-medium text-purple-600">
@@ -583,7 +583,7 @@ const OperatorsDashboard = () => {
             </div>
             <div>
               <div className="space-y-1 flex items-center gap-4">
-                <h3 className="text-sm text-blue-900 font-bold">
+                <h3 className="text-sm text-blue-900 font-semibold">
                   مانده کارمزد:
                 </h3>
                 <p className="text-sm font-medium text-red-500">
@@ -595,7 +595,7 @@ const OperatorsDashboard = () => {
         </div>
         <div className="grid grid-cols-[2fr_1fr] gap-6 items-start mt-7">
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4 font-bold">
+            <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4 font-semibold">
               گزارش انفرادی کارگزاران
             </p>
             <div className="grid grid-cols-2 gap-4 items-start mt-5">
@@ -622,7 +622,7 @@ const OperatorsDashboard = () => {
                   </div>
                 </RadioGroup>
                 <div className="border border-gray-300 p-4 rounded-md relative w-full">
-                  <p className="absolute left-2 -top-5 bg-white py-2 px-4 font-bold">
+                  <p className="absolute left-2 -top-5 bg-white py-2 px-4 font-semibold">
                     گزارش خلاصه عملکرد
                   </p>
                   <div className="max-h-[28rem] overflow-y-auto rounded-md w-full grid grid-cols-2 gap-6 items-start p-4">
@@ -716,10 +716,10 @@ const OperatorsDashboard = () => {
                   ))}
                 </Tabs>
                 <div className="flex justify-between items-center mt-4">
-                  <p className="text-blue-700 font-bold">
+                  <p className="text-blue-700 font-semibold">
                     مجموع مبالغ پرداخت شده به کارگزار
                   </p>
-                  <p className="text-green-700 font-bold text-sm">
+                  <p className="text-green-700 font-semibold text-sm">
                     {stats.totalPaidToOperator.toLocaleString("en-US")}
                   </p>
                 </div>
