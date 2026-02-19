@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createDeal, updateDeal } from "../client/deals";
+import { createDeal, updateDeal, getAllDeals } from "../client/deals";
 import { toast } from "sonner";
-
-import { getAllDeals } from "../client/deals";
 
 export const useGetAllDeals = () => {
   return useMutation({

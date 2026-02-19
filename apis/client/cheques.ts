@@ -49,10 +49,10 @@ export const getChequesByDeal: getChequesByDealType = async (dealId) => {
 };
 
 // Get cheques by person ID
-type getChequesByPersonType = (
+type getChequesByPersonIdType = (
   personId: string,
 ) => Promise<IChequesByPersonResponse>;
-export const getChequesByPerson: getChequesByPersonType = async (personId) => {
+export const getChequesByPersonId: getChequesByPersonIdType = async (personId) => {
   const response = await axiosInstance.get(urls.chequesNew.byPerson(personId));
   return response.data;
 };

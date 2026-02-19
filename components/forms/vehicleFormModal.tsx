@@ -13,7 +13,7 @@ import { createVehicle, updateVehicle } from "@/apis/client/vehicles";
 import { useQueryClient } from "@tanstack/react-query";
 import PersianDatePicker from "../global/persianDatePicker";
 import { IVehicle } from "@/types/new-backend-types";
-import { useGetAllDeals } from "@/apis/mutations/deals";
+import { useGetAllDeals, useUpdateDeal } from "@/apis/mutations/deals";
 import PersonSelect from "../ui/person-select";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import useGetAllUsers from "@/hooks/useGetAllUsers";
@@ -39,11 +39,79 @@ interface VehicleFormData {
   SellerMobile: string | number;
   BuyerMobile: string | number;
   PurchaseBroker: string;
+  PurchaseBrokerName: string;
   SaleBroker: string;
+  SaleBrokerName: string;
   Secretary: string;
   DocumentsCopy: string[];
   SellerNationalID: string | number;
   BuyerNationalID: string | number;
+  vehicleSnapshot: {
+    vin: string;
+    model: string;
+    productionYear: number;
+    plateNumber: string;
+  };
+  status: string;
+  purchaseDate: string;
+  purchasePrice: number;
+  saleDate: string;
+  salePrice: number;
+  seller: {
+    personId: string;
+    fullName: string;
+    nationalId: string;
+    mobile: string;
+  };
+  buyer: {
+    personId: string;
+    fullName: string;
+    nationalId: string;
+    mobile: string;
+  };
+  purchaseBroker: {
+    personId: string;
+    fullName: string;
+    commissionPercent: number;
+    commissionAmount: number;
+  };
+  saleBroker: {
+    personId: string;
+    fullName: string;
+    commissionPercent: number;
+    commissionAmount: number;
+  };
+  commissionPercent: number;
+  commissionAmount: number;
+  directCosts: {
+    options: {
+      id: string;
+      provider: {
+        personId: string;
+        name: string;
+      };
+      date: string;
+      description: string;
+      cost: number;
+    }[];
+    otherCost: {
+      id: string;
+      category: string;
+      description: string;
+      cost: number;
+    }[];
+  };
+  partnerships: {
+    partner: {
+      personId: string;
+      name: string;
+      nationalID: string;
+      mobile: string;
+    };
+    investmentAmount: number;
+    profitSharePercentage: number;
+    payoutAmount: number;
+  }[];
 }
 
 const documents = [
@@ -59,11 +127,12 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
   vehicleData,
   mode,
 }) => {
-  const [selectedDocuments, setSelectedDocuments] = React.useState("");
+  // const [selectedDocuments, setSelectedDocuments] = React.useState("");
   const queryClient = useQueryClient();
   const getAllDeals = useGetAllDeals();
   const { data: allPeople } = useGetAllPeople();
   const { data: allUsers } = useGetAllUsers();
+  const updateDeal = useUpdateDeal();
 
   const customers = allPeople?.filter((el) => el.roles.includes("customer"));
   const brokers = allPeople?.filter((el) => el.roles.includes("broker"));
@@ -148,7 +217,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, dirtyFields },
     control,
     reset,
     getValues,
@@ -274,33 +343,214 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
     }
   }, [convertVehicleToCarRes, mode, reset, vehicleData]);
 
+  // function getUpdatedFields<T>(original: T, updated: Partial<T>): Partial<T> {
+  //   const result: Partial<T> = {};
+  //   for (const key in updated) {
+  //     if (updated[key] !== undefined && updated[key] !== original[key]) {
+  //       result[key] = updated[key];
+  //     }
+  //   }
+  //   return result;
+  // }
+
   const onSubmit: SubmitHandler<VehicleFormData> = async (data) => {
     try {
-      const vehiclePayload: Partial<IVehicle> = {
-        vin: data.ChassisNo || "",
-        model: data.CarModel || "",
-        plateNumber: data.LicensePlate || "",
-        ...(mode === "edit" && isIVehicle(vehicleData)
-          ? {
-              productionYear: vehicleData.productionYear,
-              color: vehicleData.color || "",
-            }
-          : {
-              color: "",
-            }),
-      };
+      //   const vehiclePayload: Partial<IVehicle> = {
+      //     vin: data?.ChassisNo,
+      //     model: data?.CarModel,
+      //     plateNumber: data?.LicensePlate,
+      //     ...(mode === "edit" && isIVehicle(vehicleData)
+      //       ? {
+      //           productionYear: vehicleData.productionYear,
+      //           color: vehicleData.color,
+      //         }
+      //       : {
+      //           color: "",
+      //         }),
+      //   };
+
+      const vehiclePayload: Partial<IVehicle> = {};
+
+      if (dirtyFields.ChassisNo) vehiclePayload.vin = data.ChassisNo;
+
+      if (dirtyFields.CarModel) vehiclePayload.model = data.CarModel;
+
+      if (dirtyFields.LicensePlate)
+        vehiclePayload.plateNumber = data.LicensePlate;
+
+      const buyer = customers?.find((p) => p._id === data.BuyerName);
+      const seller = customers?.find((p) => p._id === data.SellerName);
+      const purchaseBroke = customers?.find(
+        (p) => p._id === data.PurchaseBroker,
+      );
+      const saleBroke = customers?.find((p) => p._id === data.SaleBroker);
+
+      // const vehiclePayload: Partial<IVehicle> = getUpdatedFields(
+      //   vehicleData ?? {},
+      //   {
+      //     vin: data?.ChassisNo,
+      //     model: data?.CarModel,
+      //     plateNumber: data?.LicensePlate,
+      //     ...(mode === "edit" && isIVehicle(vehicleData)
+      //       ? {
+      //           productionYear: vehicleData.productionYear,
+      //           color: vehicleData.color,
+      //         }
+      //       : {
+      //           color: "",
+      //         }),
+      //   },
+      // );
+
+      const dealPayload: any = {};
+
+      if (dirtyFields.SaleAmount)
+        dealPayload.salePrice = Number(data.SaleAmount);
+
+      if (dirtyFields.PurchaseAmount)
+        dealPayload.purchasePrice = Number(data.PurchaseAmount);
+
+      if (dirtyFields.SaleDate) dealPayload.saleDate = data.SaleDate;
+
+      if (dirtyFields.PurchaseDate)
+        dealPayload.purchaseDate = data.PurchaseDate;
+
+      if (dirtyFields.PurchaseDate)
+        dealPayload.purchaseDate = data.PurchaseDate;
+
+      if (dirtyFields.PurchaseBroker) {
+        dealPayload.purchaseBroker = {
+          fullName: purchaseBroke
+            ? `${purchaseBroke.firstName} ${purchaseBroke.lastName}`
+            : data?.PurchaseBrokerName,
+        };
+      }
+
+      if (dirtyFields.SaleBroker) {
+        dealPayload.saleBroker = {
+          fullName: saleBroke
+            ? `${saleBroke.firstName} ${saleBroke.lastName}`
+            : data?.SaleBrokerName,
+        };
+      }
+
+      if (
+        dirtyFields.SellerName ||
+        dirtyFields.SellerMobile ||
+        dirtyFields.SellerNationalID
+      ) {
+        dealPayload.seller = {
+          personId: data.SellerName,
+          fullName: seller ? `${seller.firstName} ${seller.lastName}` : "",
+          mobile: data.SellerMobile?.toString(),
+          nationalId: data.SellerNationalID?.toString(),
+        };
+      }
+
+      if (
+        dirtyFields.BuyerName ||
+        dirtyFields.BuyerMobile ||
+        dirtyFields.BuyerNationalID
+      ) {
+        dealPayload.buyer = {
+          personId: data.BuyerName,
+          fullName: buyer ? `${buyer.firstName} ${buyer.lastName}` : "",
+          mobile: data.BuyerMobile?.toString(),
+          nationalId: data.BuyerNationalID?.toString(),
+        };
+      }
+
+      if (
+        dirtyFields.ChassisNo ||
+        dirtyFields.CarModel ||
+        dirtyFields.LicensePlate
+      ) {
+        dealPayload.vehicleSnapshot = {
+          vin: data.ChassisNo,
+          model: data?.CarModel,
+          productionYear: vehicleData?.productionYear,
+          plateNumber: data?.LicensePlate,
+        };
+      }
+
+      // const existingDealData = getAllDeals.data?.find(
+      //   (d) => d.vehicleSnapshot.vin === vehicleData?.vin,
+      // );
+
+      // const dealPayload = getUpdatedFields(existingDealData ?? {}, {
+      //   seller: {
+      //     personId: data.SellerName,
+      //     fullName: seller && `${seller.firstName} ${seller.lastName}`,
+      //     mobile: data?.SellerMobile?.toString(),
+      //     nationalId: data?.SellerNationalID?.toString(),
+      //   },
+      //   buyer: {
+      //     personId: data.BuyerName,
+      //     fullName: buyer && `${buyer.firstName} ${buyer.lastName}`,
+      //     mobile: data?.BuyerMobile?.toString(),
+      //     nationalId: data?.BuyerNationalID?.toString(),
+      //   },
+      //   purchaseBroker: { fullName: data?.PurchaseBroker },
+      //   saleBroker: { fullName: data?.SaleBroker },
+      //   purchasePrice: Number(data?.PurchaseAmount),
+      //   salePrice: Number(data?.SaleAmount),
+      //   purchaseDate: data?.PurchaseDate,
+      //   saleDate: data?.SaleDate,
+      // });
+
+      // const dealPayload = {
+      //   vehicleSnapshot: {
+      //     vin: data?.ChassisNo,
+      //     model: data?.CarModel,
+      //     productionYear: vehicleData?.productionYear,
+      //     plateNumber: data?.LicensePlate,
+      //   },
+      //   seller: {
+      //     personId: data.SellerName,
+      //     fullName: seller && `${seller.firstName} ${seller.lastName}`,
+      //     mobile: data?.SellerMobile?.toString(),
+      //     nationalId: data?.SellerNationalID?.toString(),
+      //   },
+      //   buyer: {
+      //     personId: data.BuyerName,
+      //     fullName: buyer && `${buyer.firstName} ${buyer.lastName}`,
+      //     mobile: data?.BuyerMobile?.toString(),
+      //     nationalId: data?.BuyerNationalID?.toString(),
+      //   },
+      //   purchaseBroker: {
+      //     fullName: data?.PurchaseBroker,
+      //   },
+      //   saleBroker: {
+      //     fullName: data?.SaleBroker,
+      //   },
+      //   purchasePrice: Number(data?.PurchaseAmount),
+      //   salePrice: Number(data?.SaleAmount),
+      //   purchaseDate: data?.PurchaseDate,
+      //   saleDate: data?.SaleDate,
+      // };
 
       if (mode === "edit" && vehicleData?._id) {
         const vehicleId = isIVehicle(vehicleData)
           ? vehicleData._id.toString()
           : vehicleData._id;
-        await updateVehicle({ id: vehicleId, data: vehiclePayload });
+        const res = await updateVehicle({
+          id: vehicleId,
+          data: vehiclePayload,
+        });
+        const dealId = getAllDeals.data?.filter(
+          (d) => d.vehicleSnapshot.vin === res.vin,
+        )[0]._id;
+        await updateDeal.mutateAsync({ id: dealId, data: dealPayload });
+        await getAllDeals.mutateAsync(); // دیتای deal ها را بروزرسانی می‌کند
+        queryClient.invalidateQueries({ queryKey: ["get-all-vehicles"] });
         toast("اطلاعات با موفقیت به‌روزرسانی شد", {
           icon: "✅",
           className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
         });
       } else {
         await createVehicle(vehiclePayload);
+        // await getAllDeals.mutateAsync(); // دیتای deal ها را بروزرسانی می‌کند
+        // queryClient.invalidateQueries({ queryKey: ["get-all-vehicles"] });
         toast("اطلاعات با موفقیت ثبت شد", {
           icon: "✅",
           className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
@@ -308,8 +558,10 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
       }
 
       queryClient.invalidateQueries({ queryKey: ["get-all-vehicles"] });
-      queryClient.invalidateQueries({ queryKey: ["get-vehicles"] });
-      queryClient.invalidateQueries({ queryKey: ["get-deals"] });
+      // queryClient.invalidateQueries({ queryKey: ["get-vehicles"] });
+      // queryClient.invalidateQueries({ queryKey: ["get-deals"] });
+      queryClient.invalidateQueries({ queryKey: ["get-all-deals"] });
+
       onOpenChange(false);
     } catch (error) {
       console.error("Error saving vehicle:", error);
@@ -421,9 +673,12 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                 render={({ field }) => {
                   return (
                     <PersonSelect
-                      value={relatedDeal?.seller?.fullName ?? field.value}
+                      value={field.value}
                       onValueChange={(personId, person) => {
                         field.onChange(personId);
+
+                        setValue("SellerMobile", person.phoneNumbers[0]);
+                        setValue("SellerNationalID", person.nationalId);
                       }}
                       people={customers || []}
                       placeholder={
@@ -486,9 +741,11 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                 render={({ field }) => {
                   return (
                     <PersonSelect
-                      value={relatedDeal?.buyer?.fullName ?? field.value}
+                      value={field.value}
                       onValueChange={(personId, person) => {
                         field.onChange(personId);
+                        setValue("BuyerMobile", person.phoneNumbers[0]);
+                        setValue("BuyerNationalID", person.nationalId);
                       }}
                       people={customers || []}
                       placeholder={
@@ -571,11 +828,10 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                 render={({ field }) => {
                   return (
                     <PersonSelect
-                      value={
-                        relatedDeal?.purchaseBroker?.fullName ?? field.value
-                      }
+                      value={field.value}
                       onValueChange={(personId) => {
                         field.onChange(personId);
+                        setValue("PurchaseBrokerName", field.value);
                       }}
                       people={brokers || []}
                       placeholder={
@@ -609,9 +865,10 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                 render={({ field }) => {
                   return (
                     <PersonSelect
-                      value={relatedDeal?.saleBroker?.fullName ?? field.value}
+                      value={field.value}
                       onValueChange={(personId) => {
                         field.onChange(personId);
+                        setValue("SaleBrokerName", field.value);
                       }}
                       people={brokers || []}
                       placeholder={
@@ -713,7 +970,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                   const toggleItem = (item: string) => {
                     if (field.value?.includes(item)) {
                       field.onChange(
-                        field.value.filter((i: string) => i !== item)
+                        field.value.filter((i: string) => i !== item),
                       );
                     } else {
                       field.onChange([...(field.value || []), item]);

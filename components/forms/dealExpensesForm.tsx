@@ -10,12 +10,13 @@ import {
 import { toast } from "sonner";
 import { useUpdateDeal } from "@/apis/mutations/deals";
 import { getAllDeals } from "@/apis/client/deals";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
 import type { IDeal } from "@/types/new-backend-types";
 import useUpdateWalletHandler from "@/hooks/useUpdateWalletHandler";
+import { createTransaction } from "@/apis/client/transaction";
 
 interface DealExpensesFormProps {
   onSuccess?: () => void;
@@ -43,6 +44,7 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<dealExpensesSchemaType>({
     resolver: zodResolver(dealExpensesSchema),
@@ -56,7 +58,8 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
     },
   });
 
-  // const expenseType = watch("expenseType");
+  const expenseType = watch("expenseType");
+  const queryClient = useQueryClient();
 
   const onSubmit: SubmitHandler<dealExpensesSchemaType> = async (data) => {
     try {
@@ -107,6 +110,23 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
       await updateDeal.mutateAsync({
         id: data.dealId,
         data: updateData,
+      });
+
+      const transactionData = {
+        type: "هزینه وسیله",
+        reason: "هزینه وسیله",
+        transactionDate: data.date ?? "",
+        amount: parseFloat(data.cost) ?? "",
+        personId: data.providerPersonId?.toString() || "",
+        bussinessAccountId: "",
+        paymentMethod: "-",
+        dealId: selectedDeal._id || "",
+        description: data.description ?? "",
+      };
+
+      await createTransaction(transactionData);
+      queryClient.invalidateQueries({
+        queryKey: ["get-transactions-by-deal-id"],
       });
 
       toast.success("هزینه با موفقیت ثبت شد");
@@ -192,7 +212,11 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="block text-sm font-medium">تامین کننده *</label>
+              <label className="block text-sm font-medium">
+                {expenseType === "otherCost"
+                  ? "تامین کننده (اختیاری)"
+                  : "تامین کننده *"}
+              </label>
               <Controller
                 name="providerPersonId"
                 control={control}

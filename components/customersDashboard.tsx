@@ -861,7 +861,10 @@
 // export default CustomersDashboard;
 
 "use client";
-import { useGetChequesByDealId } from "@/apis/mutations/cheques";
+import {
+  useGetChequesByDealId,
+  useGetChequesByPersonId,
+} from "@/apis/mutations/cheques";
 import { useGetAllDeals } from "@/apis/mutations/deals";
 import {
   useGetTransactionsByDealId,
@@ -883,6 +886,7 @@ import {
   setChassisNo,
   setSelectedDealId as setSelectedDealIdRedux,
 } from "@/redux/slices/carSlice";
+import { formatPrice } from "@/utils/systemConstants";
 
 const CustomersDashboard = () => {
   const [selectedNationalId, setSelectedNationalId] = React.useState<
@@ -914,6 +918,7 @@ const CustomersDashboard = () => {
   const dispatch = useDispatch();
   const getTransactionsByDealId = useGetTransactionsByDealId();
   const getChequesByDealId = useGetChequesByDealId();
+  const getChequesByPersonId = useGetChequesByPersonId();
   const { data: allPeople } = useGetAllPeople();
   const getAllDeals = useGetAllDeals();
   const getTransactionsByPersonId = useGetTransactionsByPersonId();
@@ -926,11 +931,9 @@ const CustomersDashboard = () => {
   //   ?.map((person) => (person.roles.includes("customer") ? person : null))
   //   .filter((person) => person !== null);
 
-  const transactionsByPersonId = async () => {
+  const transactionsByPersonId = async (personId: string) => {
     try {
-      const res = await getTransactionsByPersonId.mutateAsync(
-        selectedPersonId ?? "",
-      );
+      const res = await getTransactionsByPersonId.mutateAsync(personId ?? "");
       setTransactions(res);
     } catch (error) {
       console.log("🚀 ~ CustomersDashboard ~ error:", error);
@@ -1056,6 +1059,15 @@ const CustomersDashboard = () => {
     try {
       const res = await getChequesByDealId.mutateAsync(dealId);
       setCheques(res);
+    } catch (error) {
+      console.log("🚀 ~ handleChequeDataByDealId ~ error:", error);
+    }
+  };
+
+  const handleChequeDataByPersonlId = async (personId: string) => {
+    try {
+      const res = await getChequesByPersonId.mutateAsync(personId);
+      setCheques(res.cheques);
     } catch (error) {
       console.log("🚀 ~ handleChequeDataByDealId ~ error:", error);
     }
@@ -1297,16 +1309,18 @@ const CustomersDashboard = () => {
     let received = 0;
     let payment = 0;
 
-    displayedTransactions.forEach((t) => {
-      if (t?.type === "دریافت") {
+    // displayedTransactions.forEach((t) => {
+    (transactions ?? [])?.forEach((t) => {
+      if (t?.type === "دریافت" || t?.type === "received") {
         payment += t?.amount || 0;
-      } else if (t?.type === "پرداخت") {
+      } else if (t?.type === "پرداخت" || t?.type === "issued") {
         received += t?.amount || 0;
       }
     });
-
     return { totalReceived: received, totalPayment: payment };
-  }, [selectedNationalId, displayedTransactions]);
+  }, [selectedNationalId, cheques]);
+
+  // }, [selectedNationalId, displayedTransactions]);
 
   const diffPaymentReceived = (totalPayment || 0) - (totalReceived || 0);
 
@@ -1491,7 +1505,7 @@ const CustomersDashboard = () => {
         <div className="flex justify-between items-center">
           <p className="text-sm">تفاضل مبالغ خرید و فروش مشتری(فروش - خرید):</p>
           <p dir="ltr" className="text-yellow-900">
-            {diffBuySell?.toLocaleString("en-US")}
+            {formatPrice(diffBuySell?.toLocaleString("en-US"))}
           </p>
         </div>
         <div className="flex justify-between items-center">
@@ -1499,7 +1513,7 @@ const CustomersDashboard = () => {
             تفاضل مبالغ دریافتی و پرداختی(پرداخت - دریافت):
           </p>
           <p dir="ltr" className="text-yellow-900">
-            {diffPaymentReceived?.toLocaleString("en-US")}
+            {formatPrice(diffPaymentReceived?.toLocaleString("en-US"))}
           </p>
         </div>
       </div>
@@ -1532,10 +1546,12 @@ const CustomersDashboard = () => {
                       <TableRow
                         key={`${person?._id}-${index}`}
                         onClick={() => {
-                          // handleAllDeals();
-                          transactionsByPersonId();
                           setSelectedPersonId(person._id);
                           setSelectedNationalId(person.nationalId.toString());
+
+                          transactionsByPersonId(person._id);
+                          handleChequeDataByPersonlId(person._id);
+
                           setTransactions([]);
                           setSelectedDealId(null);
                           setSelectedChassisNo(null);
@@ -1596,7 +1612,9 @@ const CustomersDashboard = () => {
                             if (!status) return "—";
                             return status.amount > 0 ? (
                               <span className="text-xs mr-1">
-                                {status.amount.toLocaleString("en-US")}
+                                {formatPrice(
+                                  status.amount.toLocaleString("en-US"),
+                                )}
                               </span>
                             ) : (
                               0
@@ -1681,7 +1699,9 @@ const CustomersDashboard = () => {
                           {deal.purchaseDate}
                         </TableCell>
                         <TableCell className="text-center">
-                          {deal.purchasePrice?.toLocaleString("en-US")}
+                          {formatPrice(
+                            deal.purchasePrice?.toLocaleString("en-US"),
+                          )}
                         </TableCell>
                       </TableRow>
                     ))
@@ -1690,7 +1710,7 @@ const CustomersDashboard = () => {
             </div>
             {totalSellAmount && Number(totalSellAmount) > 0 ? (
               <p dir="ltr" className="text-green-400 mt-3 flex justify-end">
-                {totalSellAmount?.toLocaleString("en-US")}
+                {formatPrice(totalSellAmount?.toLocaleString("en-US"))}
               </p>
             ) : null}
           </div>
@@ -1739,7 +1759,7 @@ const CustomersDashboard = () => {
                           {deal.saleDate}
                         </TableCell>
                         <TableCell className="text-center">
-                          {deal.salePrice?.toLocaleString("en-US")}
+                          {formatPrice(deal.salePrice?.toLocaleString("en-US"))}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -1749,7 +1769,7 @@ const CustomersDashboard = () => {
             </div>
             {totalBuyAmount && Number(totalBuyAmount) > 0 ? (
               <p dir="ltr" className="text-yellow-600 mt-3 flex justify-end">
-                {totalBuyAmount?.toLocaleString("en-US")}
+                {formatPrice(totalBuyAmount?.toLocaleString("en-US"))}
               </p>
             ) : null}
           </div>
@@ -1785,12 +1805,16 @@ const CustomersDashboard = () => {
                           customerReason = "فروش خودرو";
                         } else if (item.reason === "فروش") {
                           customerReason = "خرید خودرو";
+                        } else {
+                          customerReason = item.reason;
                         }
 
                         if (item.type === "دریافت") {
                           customerType = "پرداخت";
                         } else if (item.type === "پرداخت") {
                           customerType = "دریافت";
+                        } else {
+                          customerType = item.type;
                         }
 
                         return (
@@ -1805,7 +1829,9 @@ const CustomersDashboard = () => {
                               {item.transactionDate}
                             </TableCell>
                             <TableCell className="text-center">
-                              {item?.amount?.toLocaleString("en-US") ?? ""}
+                              {formatPrice(
+                                item?.amount?.toLocaleString("en-US"),
+                              ) ?? ""}
                             </TableCell>
                             <TableCell className="text-center">
                               {customerType} - {customerReason}
@@ -1820,18 +1846,19 @@ const CustomersDashboard = () => {
                 </TableBody>
               </Table>
             </div>
-            {displayedTransactions && displayedTransactions.length > 0 && (
+            {/* {displayedTransactions && displayedTransactions.length > 0 && ( */}
+            {transactions && transactions.length > 0 && (
               <div className="flex justify-between items-center gap-2">
                 <div className="flex gap-3 items-baseline">
                   <p className="text-sm">پرداخت</p>
                   <p dir="ltr" className="text-red-500 mt-3 flex justify-end">
-                    {totalPayment?.toLocaleString("en-US")}
+                    {formatPrice(totalPayment?.toLocaleString("en-US"))}
                   </p>
                 </div>
                 <div className="flex gap-3 items-baseline">
                   <p className="text-sm">دریافت</p>
                   <p dir="ltr" className="text-blue-500 mt-3 flex justify-end">
-                    {totalReceived?.toLocaleString("en-US")}
+                    {formatPrice(totalReceived?.toLocaleString("en-US"))}
                   </p>
                 </div>
               </div>
@@ -1863,7 +1890,11 @@ const CustomersDashboard = () => {
                 </TableHeader>
 
                 <TableBody>
-                  {displayedCheques?.map((item, index) => (
+                  {// (displayedCheques.length > 0
+                  //   ? displayedCheques
+                  //   : cheques
+                  // )
+                  cheques?.map((item, index) => (
                     <TableRow
                       key={`${item?._id}-${index}`}
                       className="hover:bg-gray-50 cursor-pointer"
@@ -1876,7 +1907,8 @@ const CustomersDashboard = () => {
                         {item?.sayadiID ?? ""}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item?.amount?.toLocaleString("en-US") ?? ""}
+                        {formatPrice(item?.amount?.toLocaleString("en-US")) ??
+                          ""}
                       </TableCell>
                       <TableCell className="text-center">
                         {item?.dueDate ?? "-"}

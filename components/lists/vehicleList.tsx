@@ -12,8 +12,8 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getAllVehicles } from "@/apis/client/vehicles";
 import { IVehicle, IDeal } from "@/types/new-backend-types";
-import { useGetAllDeals } from "@/apis/mutations/deals";
 import VehicleFormModal from "@/components/forms/vehicleFormModal";
+import useGetAllDeals from "@/hooks/useGetAllDeals";
 
 const VehicleList = () => {
   const { data: vehicles, isLoading: vehiclesLoading } = useQuery({
@@ -21,46 +21,49 @@ const VehicleList = () => {
     queryFn: getAllVehicles,
   });
 
-  const getAllDeals = useGetAllDeals();
+  const {data:allDeals} = useGetAllDeals()
+  // const getAllDeals = useGetAllDeals();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  
   const [selectedVehicle, setSelectedVehicle] = React.useState<IVehicle | null>(
     null,
   );
   const [modalMode, setModalMode] = React.useState<"add" | "edit">("add");
 
-  React.useEffect(() => {
-    const fetchDeals = async () => {
-      try {
-        await getAllDeals.mutateAsync();
-      } catch (error) {
-        console.error("Error fetching deals:", error);
-      }
-    };
-    fetchDeals();
-  }, []);
+//   React.useEffect(() => {
+//     const fetchDeals = async () => {
+//       try {
+//        const res = await getAllDeals.mutateAsync();
+// setAllDeals(res)
+//       } catch (error) {
+//         console.error("Error fetching deals:", error);
+//       }
+//     };
+//     fetchDeals();
+//   }, []);
 
-  const deals = getAllDeals.data || [];
+  // const deals = getAllDeals.data || [];
 
-  const vinToDealMap = React.useMemo(() => {
-    const map = new Map<string, IDeal>();
-    deals.forEach((deal) => {
-      const vin = deal.vehicleSnapshot?.vin;
-      if (vin) {
-        const existingDeal = map.get(vin);
-        if (!existingDeal) {
-          map.set(vin, deal);
-        } else {
-          const existingDate =
-            existingDeal.saleDate || existingDeal.purchaseDate;
-          const currentDate = deal.saleDate || deal.purchaseDate;
-          if (currentDate > existingDate) {
-            map.set(vin, deal);
-          }
-        }
-      }
-    });
-    return map;
-  }, [deals]);
+  // const vinToDealMap = React.useMemo(() => {
+  //   const map = new Map<string, IDeal>();
+  //   deals.forEach((deal) => {
+  //     const vin = deal.vehicleSnapshot?.vin;
+  //     if (vin) {
+  //       const existingDeal = map.get(vin);
+  //       if (!existingDeal) {
+  //         map.set(vin, deal);
+  //       } else {
+  //         const existingDate =
+  //           existingDeal.saleDate || existingDeal.purchaseDate;
+  //         const currentDate = deal.saleDate || deal.purchaseDate;
+  //         if (currentDate > existingDate) {
+  //           map.set(vin, deal);
+  //         }
+  //       }
+  //     }
+  //   });
+  //   return map;
+  // }, [deals]);
 
   const handleEdit = (vehicle: IVehicle) => {
     setSelectedVehicle(vehicle);
@@ -112,7 +115,10 @@ const VehicleList = () => {
               </TableHeader>
               <TableBody>
                 {vehiclesList.map((vehicle, index) => {
-                  const relatedDeal = vinToDealMap.get(vehicle.vin);
+                  // const relatedDeal = vinToDealMap.get(vehicle.vin);
+                  const relatedDeal = (allDeals ?? []).filter(
+                    (el) => el.vehicleSnapshot.vin === vehicle.vin,
+                  )[0];
 
                   return (
                     <TableRow

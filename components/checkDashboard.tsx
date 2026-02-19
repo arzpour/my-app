@@ -1281,7 +1281,11 @@ import { IChequeNew } from "@/types/new-backend-types";
 import useGetAllCheques from "@/hooks/useGetAllCheques";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import RangeDatePicker from "@/components/global/rangeDatePicker";
-import { CHEQUE_ACTIONS, CHEQUE_LAST_STATUS } from "@/utils/systemConstants";
+import {
+  CHEQUE_ACTIONS,
+  CHEQUE_LAST_STATUS,
+  formatPrice,
+} from "@/utils/systemConstants";
 import { DateObject } from "react-multi-date-picker";
 import ChequeFormModal from "./modals/chequeFormModal";
 
@@ -1372,7 +1376,11 @@ const CheckDashboard = () => {
   };
 
   const isImportedCheque = (cheque: IChequeNew) => {
-    return cheque.type === "وارده" || cheque.type === "incoming";
+    return (
+      cheque.type === "وارده" ||
+      cheque.type === "incoming" ||
+      cheque.type === "received"
+    );
   };
 
   const issuedCheques = cheques?.filter((cheque) => isIssuedCheque(cheque));
@@ -1523,6 +1531,13 @@ const CheckDashboard = () => {
     selectedBank,
     selectedBranch,
   ]);
+
+  const filteredIssuedCheques = filteredData?.filter((cheque) =>
+    isIssuedCheque(cheque),
+  );
+  const filteredImportedCheques = filteredData?.filter((cheque) =>
+    isImportedCheque(cheque),
+  );
 
   // const filteredData = useMemo(() => {
   //   return cheques?.filter((item) => {
@@ -1725,12 +1740,12 @@ const CheckDashboard = () => {
       ?.filter((i) => {
         const status = i.status || "";
         return (
-          isIssuedCheque(i) && (status === "وصول نشده" || status === "خرج شده")
+          isIssuedCheque(i) && (status === "وصول نشده" || status === "خرج شده" || !["وصول شده", "پاس شده"].includes(i.status))
         );
       })
       ?.reduce((sum, t) => sum + t.amount, 0);
     const totalIssuedPaidAmount = filteredData
-      ?.filter((i) => isIssuedCheque(i) && i.status === "وصول شده")
+      ?.filter((i) => isIssuedCheque(i) && i.status === "وصول شده" || i.status === "پاس شده")
       ?.reduce((sum, t) => sum + t.amount, 0);
 
     const totalImportedAmount = filteredData?.reduce(
@@ -1738,12 +1753,12 @@ const CheckDashboard = () => {
       0,
     );
     const totalImportedPendingAmount = filteredData
-      ?.filter((i) => isImportedCheque(i) && i.status === "وصول نشده")
-      ?.reduce((sum, t) => sum + t.amount, 0);
+    ?.filter((i) => isImportedCheque(i) && i.status === "وصول نشده" || !["وصول شده", "پاس شده"].includes(i.status))
+    ?.reduce((sum, t) => sum + t.amount, 0);
     const totalImportedPaidAmount = filteredData
-      ?.filter((i) => isImportedCheque(i) && i.status === "وصول شده")
-      ?.reduce((sum, t) => sum + t.amount, 0);
-
+    ?.filter((i) => isImportedCheque(i) && i.status === "وصول شده" || i.status === "پاس شده")
+    ?.reduce((sum, t) => sum + t.amount, 0);
+    
     const totalIssuedReturnedAmount = filteredData
       ?.filter((i) => isIssuedCheque(i) && i.status === "برگشتی")
       ?.reduce((sum, t) => sum + t.amount, 0);
@@ -1785,166 +1800,173 @@ const CheckDashboard = () => {
       </button>
       {showFilter && (
         // <div className="grid [grid-template-columns:1fr_1fr_1fr_0.5fr_0.5fr] gap-6 items-start justify-start mt-4">
-        <div className="flex gap-9 items-start justify-start mt-4">
+        <div className="flex gap-2 items-start justify-start mt-4 w-">
           {/* <div className="space-y-6 min-w-[140px] w-[340px] overflow-auto scrollbar-hide"> */}
-          <div className="w-[300px] overflow-auto scrollbar-hide border border-gray-300 p-4 rounded-md relative h-[7rem]">
-            {/* <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
+           <div className="flex flex-col gap-9 items-start justify-start mt-4 w-[66%]">
+          {/* <div className="space-y-6 min-w-[140px] w-[340px] overflow-auto scrollbar-hide"> */}
+          <div className="flex gap-9 items-start justify-start mt-4 w-full">
+            <div className="w-[2 overflow-auto scrollbar-hide border border-gray-300 p-4 rounded-md relative h-[7rem]">
+              {/* <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
                 باکس 1
               </p> */}
 
-            <div className="flex gap-4 overflow-auto min-w-[140px]">
-              <SelectForFilterCheques
-                data={["همه", ...sayadiIDOptions.filter(Boolean)]}
-                title="شناسه صیادی"
-                setSelectedSubject={setSelectedSayadiId}
-                selectedValue={selectedSayadiId}
-              />
-              <SelectForFilterCheques
-                data={["همه", ...chequeNumberOptions.filter(Boolean)]}
-                title="سری چک"
-                setSelectedSubject={setSelectedChequeNumber}
-                selectedValue={selectedChequeNumber}
-              />
-              <SelectForFilterCheques
-                data={["همه", ...chequeSerialOptions.filter(Boolean)]}
-                title="سریال چک"
-                setSelectedSubject={setSelectedChequeSerial}
-                selectedValue={selectedChequeSerial}
-              />
-              <SelectForFilterCheques
-                data={["همه", ...bankNameOptions.filter(Boolean)]}
-                title="بانک"
-                setSelectedSubject={setSelectedBank}
-                selectedValue={selectedBank}
-              />
+              <div className="flex gap-4 overflow-auto min-w-[140px]">
+                <SelectForFilterCheques
+                  data={["همه", ...sayadiIDOptions.filter(Boolean)]}
+                  title="شناسه صیادی"
+                  setSelectedSubject={setSelectedSayadiId}
+                  selectedValue={selectedSayadiId}
+                />
+                <SelectForFilterCheques
+                  data={["همه", ...chequeNumberOptions.filter(Boolean)]}
+                  title="سری چک"
+                  setSelectedSubject={setSelectedChequeNumber}
+                  selectedValue={selectedChequeNumber}
+                />
+                <SelectForFilterCheques
+                  data={["همه", ...chequeSerialOptions.filter(Boolean)]}
+                  title="سریال چک"
+                  setSelectedSubject={setSelectedChequeSerial}
+                  selectedValue={selectedChequeSerial}
+                />
+                <SelectForFilterCheques
+                  data={["همه", ...bankNameOptions.filter(Boolean)]}
+                  title="بانک"
+                  setSelectedSubject={setSelectedBank}
+                  selectedValue={selectedBank}
+                />
 
-              <SelectForFilterCheques
-                data={["همه", ...branchNameOptions.filter(Boolean)]}
-                title="شعبه"
-                setSelectedSubject={setSelectedBranch}
-                selectedValue={selectedBranch}
-              />
+                <SelectForFilterCheques
+                  data={["همه", ...branchNameOptions.filter(Boolean)]}
+                  title="شعبه"
+                  setSelectedSubject={setSelectedBranch}
+                  selectedValue={selectedBranch}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="w-[300px] overflow-auto scrollbar-hide border border-gray-300 p-4 rounded-md h-[7rem]">
-            {/* <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
+            <div className="w-[2 overflow-auto scrollbar-hide border border-gray-300 p-4 rounded-md h-[7rem]">
+              {/* <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
                 باکس 2
               </p> */}
-            <div className="flex gap-4 items-center overflow-auto min-w-[140px]">
-              {/* <div className="space-y-1">
+              <div className="flex gap-4 items-center overflow-auto min-w-[140px]">
+                {/* <div className="space-y-1">
                   <h3 className="text-sm font-bold mb-2 text-blue-900">
                     حداکثر مبلغ:
                   </h3>
                   <input type="text" className="border rounded w-[130px]" />
                 </div> */}
-              <SelectForFilterCheques
-                data={["وارده", "صادره", "همه"]}
-                title="نوع چک"
-                setSelectedSubject={setSelectedChequeType}
-                selectedValue={selectedChequeType}
-              />
+                <SelectForFilterCheques
+                  data={["وارده", "صادره", "همه"]}
+                  title="نوع چک"
+                  setSelectedSubject={setSelectedChequeType}
+                  selectedValue={selectedChequeType}
+                />
 
-              {selectedChequeType === "وارده" ? (
+                {selectedChequeType === "وارده" ? (
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-bold mb-2 text-blue-900">
+                      گیرنده چک:
+                    </h3>
+                    <input
+                      type="text"
+                      value="نمایشگاه خودرو"
+                      className="border rounded w-[130px]"
+                      onChange={() => setSelectedChequePayee("نمایشگاه خودرو")}
+                    />
+                  </div>
+                ) : (
+                  <SelectForFilterCheques
+                    data={peopleList ?? []}
+                    title="گیرنده چک"
+                    setSelectedSubject={setSelectedChequePayee}
+                    selectedValue={selectedChequePayee}
+                  />
+                )}
+
+                {selectedChequeType === "صادره" ? (
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-bold mb-2 text-blue-900">
+                      صادرکننده چک:
+                    </h3>
+                    <input
+                      type="text"
+                      value="نمایشگاه خودرو"
+                      className="border rounded w-[130px]"
+                      onChange={() => setSelectedChequePayer("نمایشگاه خودرو")}
+                    />
+                  </div>
+                ) : (
+                  <SelectForFilterCheques
+                    data={peopleList ?? []}
+                    title="صادرکننده چک"
+                    setSelectedSubject={setSelectedChequePayer}
+                    selectedValue={selectedChequePayer}
+                  />
+                )}
+
+                {selectedChequeType === "مشتری" ? (
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-bold mb-2 text-blue-900">
+                      مشتری:
+                    </h3>
+                    <input
+                      type="text"
+                      value="نمایشگاه خودرو"
+                      className="border rounded w-[130px]"
+                      onChange={() => setSelectedCustomer("نمایشگاه خودرو")}
+                    />
+                  </div>
+                ) : (
+                  <SelectForFilterCheques
+                    data={peopleList ?? []}
+                    title="مشتری"
+                    setSelectedSubject={setSelectedCustomer}
+                    selectedValue={selectedCustomer}
+                  />
+                )}
+
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold mb-2 text-purple-700">
+                    تاریخ سررسید چک:
+                  </h3>
+                  <RangeDatePicker dates={dueDates} setDates={setDueDates} />
+                </div>
                 <div className="space-y-1">
                   <h3 className="text-sm font-bold mb-2 text-blue-900">
-                    گیرنده چک:
+                    حداقل مبلغ چک:
                   </h3>
                   <input
                     type="text"
-                    value="نمایشگاه خودرو"
+                    value={minPrice?.toString()}
                     className="border rounded w-[130px]"
-                    onChange={() => setSelectedChequePayee("نمایشگاه خودرو")}
+                    onChange={(e) => setMinPrice(Number(e.target.value))}
                   />
                 </div>
-              ) : (
-                <SelectForFilterCheques
-                  data={peopleList ?? []}
-                  title="گیرنده چک"
-                  setSelectedSubject={setSelectedChequePayee}
-                  selectedValue={selectedChequePayee}
-                />
-              )}
-
-              {selectedChequeType === "صادره" ? (
                 <div className="space-y-1">
                   <h3 className="text-sm font-bold mb-2 text-blue-900">
-                    صادرکننده چک:
+                    حداکثر مبلغ چک:
                   </h3>
                   <input
                     type="text"
-                    value="نمایشگاه خودرو"
+                    value={maxPrice?.toString()}
                     className="border rounded w-[130px]"
-                    onChange={() => setSelectedChequePayer("نمایشگاه خودرو")}
+                    onChange={(e) => setMaxPrice(Number(e.target.value))}
                   />
                 </div>
-              ) : (
-                <SelectForFilterCheques
-                  data={peopleList ?? []}
-                  title="صادرکننده چک"
-                  setSelectedSubject={setSelectedChequePayer}
-                  selectedValue={selectedChequePayer}
-                />
-              )}
-
-              {selectedChequeType === "مشتری" ? (
                 <div className="space-y-1">
-                  <h3 className="text-sm font-bold mb-2 text-blue-900">
-                    مشتری:
+                  <h3 className="text-sm font-bold mb-2 text-purple-700">
+                    تاریخ صدور چک:
                   </h3>
-                  <input
-                    type="text"
-                    value="نمایشگاه خودرو"
-                    className="border rounded w-[130px]"
-                    onChange={() => setSelectedCustomer("نمایشگاه خودرو")}
+                  <RangeDatePicker
+                    dates={issueDates}
+                    setDates={setIssueDates}
                   />
                 </div>
-              ) : (
-                <SelectForFilterCheques
-                  data={peopleList ?? []}
-                  title="مشتری"
-                  setSelectedSubject={setSelectedCustomer}
-                  selectedValue={selectedCustomer}
-                />
-              )}
-
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-purple-700">
-                  تاریخ سررسید چک:
-                </h3>
-                <RangeDatePicker dates={dueDates} setDates={setDueDates} />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">
-                  حداقل مبلغ چک:
-                </h3>
-                <input
-                  type="text"
-                  value={minPrice?.toString()}
-                  className="border rounded w-[130px]"
-                  onChange={(e) => setMinPrice(Number(e.target.value))}
-                />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-blue-900">
-                  حداکثر مبلغ چک:
-                </h3>
-                <input
-                  type="text"
-                  value={maxPrice?.toString()}
-                  className="border rounded w-[130px]"
-                  onChange={(e) => setMaxPrice(Number(e.target.value))}
-                />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-bold mb-2 text-purple-700">
-                  تاریخ صدور چک:
-                </h3>
-                <RangeDatePicker dates={issueDates} setDates={setIssueDates} />
               </div>
             </div>
           </div>
-          <div className="w-[300px] overflow-auto scrollbar-hide border border-gray-300 p-4 rounded-md h-[7rem]">
+          <div className="w-full overflow-auto scrollbar-hide border border-gray-300 p-4 rounded-md h-[7rem]">
             {/* <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4 z-20">
                 باکس 3
               </p> */}
@@ -1999,9 +2021,12 @@ const CheckDashboard = () => {
             </div>
           </div>
 
+          </div>
+
           {/* </div> */}
 
-          <div className="space-y-3 flex flex-col w-48">
+          <div className="flex gap-4 w-[50%] justify-end">
+            <div className="space-y-3 flex flex-col w-[20">
             <button
               onClick={handleResetFilters}
               className="border rounded-lg shadow-lg px-4 py-2 w-36 whitespace-nowrap cursor-pointer text-sm truncate"
@@ -2030,47 +2055,64 @@ const CheckDashboard = () => {
               ارسال مشخصات چک های برگشتی برای مدیریت
             </button>
           </div>
-          <div className="space-y-3 border p-4 w-72 rounded">
-            <button
-              onClick={() => setChequeLastStatus("وصول نشده")}
-              className="border rounded-lg shadow-lg px-4 py-2 whitespace-nowrap cursor-pointer text-sm"
-            >
-              تعداد چک های وصول نشده
-            </button>
-            <button
-              onClick={() => setChequeLastStatus("برگشتی")}
-              className="border rounded-lg shadow-lg px-4 py-2 whitespace-nowrap cursor-pointer text-sm"
-            >
-              تعداد چک های برگشتی
-            </button>
-            <button
-              onClick={() => {
-                const today = new DateObject();
-                const oneMonthAgo = new DateObject({
-                  date: today.toDate(),
-                }).subtract(1, "month");
+          <div className="space-y-3 border p-4 w-[20 rounded">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setChequeLastStatus("وصول نشده")}
+                className="border rounded-lg shadow-lg px-4 py-2 whitespace-nowrap cursor-pointer text-sm"
+              >
+                تعداد چک های وصول نشده
+              </button>
+              <span className="text-sm">{formatPrice(stats.pending)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setChequeLastStatus("برگشتی")}
+                className="border rounded-lg shadow-lg px-4 py-2 whitespace-nowrap cursor-pointer text-sm"
+              >
+                تعداد چک های برگشتی
+              </button>
+              <span className="text-sm">{formatPrice(stats.returned)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => {
+                  const today = new DateObject();
+                  const oneMonthAgo = new DateObject({
+                    date: today.toDate(),
+                  }).subtract(1, "month");
 
-                setDueDates([oneMonthAgo, today]);
-                setSelectedChequeType("وارده");
-              }}
-              className="border rounded-lg shadow-lg px-4 py-2 whitespace-nowrap cursor-pointer text-sm"
-            >
-              تعداد چک های وارده ماه جاری
-            </button>
-            <button
-              onClick={() => {
-                const today = new DateObject();
-                const oneMonthAgo = new DateObject({
-                  date: today.toDate(),
-                }).subtract(1, "month");
+                  setDueDates([oneMonthAgo, today]);
+                  setSelectedChequeType("وارده");
+                }}
+                className="border rounded-lg shadow-lg px-4 py-2 whitespace-nowrap cursor-pointer text-sm"
+              >
+                تعداد چک های وارده ماه جاری
+              </button>{" "}
+              <span className="text-sm">
+                {formatPrice(stats.importedThisMonth)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => {
+                  const today = new DateObject();
+                  const oneMonthAgo = new DateObject({
+                    date: today.toDate(),
+                  }).subtract(1, "month");
 
-                setDueDates([oneMonthAgo, today]);
-                setSelectedChequeType("صادره");
-              }}
-              className="border rounded-lg shadow-lg px-4 py-2 whitespace-nowrap cursor-pointer text-sm"
-            >
-              تعداد چک های صادره ماه جاری
-            </button>
+                  setDueDates([oneMonthAgo, today]);
+                  setSelectedChequeType("صادره");
+                }}
+                className="border rounded-lg shadow-lg px-4 py-2 whitespace-nowrap cursor-pointer text-sm"
+              >
+                تعداد چک های صادره ماه جاری
+              </button>
+              <span className="text-sm">
+                {formatPrice(stats.issuedThisMonth)}
+              </span>
+            </div>
+
             {/* <div className="flex items-center justify-between">
               <p>تعداد چک های وصول نشده:</p>
               <span className="text-sm">{stats.pending}</span>
@@ -2087,7 +2129,7 @@ const CheckDashboard = () => {
               <p>تعداد چک های صادره ماه جاری:</p>
               <span className="text-sm">{stats.issuedThisMonth}</span>
             </div> */}
-          </div>
+          </div></div>
         </div>
       )}
 
@@ -2121,7 +2163,7 @@ const CheckDashboard = () => {
                 </TableHeader>
 
                 <TableBody>
-                  {(issuedCheques ?? [])?.map((item, index) => (
+                  {(filteredIssuedCheques ?? [])?.map((item, index) => (
                     <TableRow
                       key={`${item?.chequeNumber}-${index}`}
                       className="hover:bg-gray-50"
@@ -2131,7 +2173,7 @@ const CheckDashboard = () => {
                         {item.payee?.fullName ?? item.payer?.fullName}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.amount?.toLocaleString("en-US")}
+                        {formatPrice(item.amount?.toLocaleString("en-US"))}
                       </TableCell>
                       <TableCell className="text-center">
                         {item.dueDate}
@@ -2166,19 +2208,25 @@ const CheckDashboard = () => {
             <div className="flex items-center gap-2">
               <p className="text-sm">صادره وصول نشده:</p>
               <span className="text-sm">
-                {stats.totalIssuedPendingAmount?.toLocaleString("en-US")}
+                {formatPrice(
+                  stats.totalIssuedPendingAmount?.toLocaleString("en-US"),
+                )}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <p className="text-sm">صادره وصول شده:</p>
               <span className="text-sm">
-                {stats.totalIssuedPaidAmount?.toLocaleString("en-US")}
+                {formatPrice(
+                  stats.totalIssuedPaidAmount?.toLocaleString("en-US"),
+                )}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <p className="text-sm">صادره برگشتی:</p>
               <span className="text-sm">
-                {stats.totalIssuedReturnedAmount?.toLocaleString("en-US")}
+                {formatPrice(
+                  stats.totalIssuedReturnedAmount?.toLocaleString("en-US"),
+                )}
               </span>
             </div>
           </div>
@@ -2214,7 +2262,7 @@ const CheckDashboard = () => {
                 </TableHeader>
 
                 <TableBody>
-                  {(importedCheques ?? [])?.map((item, index) => (
+                  {(filteredImportedCheques ?? [])?.map((item, index) => (
                     <TableRow
                       key={`${item?.chequeNumber}-${index}`}
                       className="hover:bg-gray-50"
@@ -2225,7 +2273,7 @@ const CheckDashboard = () => {
                         {item.payee?.fullName ?? item.payer?.fullName}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.amount?.toLocaleString("en-US")}
+                        {formatPrice(item.amount?.toLocaleString("en-US"))}
                       </TableCell>
                       <TableCell className="text-center">
                         {item.dueDate}
@@ -2270,19 +2318,25 @@ const CheckDashboard = () => {
             <div className="flex items-center gap-2">
               <p className="text-sm">وارده وصول نشده:</p>
               <span className="text-sm">
-                {stats.totalImportedPendingAmount?.toLocaleString("en-US")}
+                {formatPrice(
+                  stats.totalImportedPendingAmount?.toLocaleString("en-US"),
+                )}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <p className="text-sm">وارده وصول شده:</p>
               <span className="text-sm">
-                {stats.totalImportedPaidAmount?.toLocaleString("en-US")}
+                {formatPrice(
+                  stats.totalImportedPaidAmount?.toLocaleString("en-US"),
+                )}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <p className="text-sm">وارده برگشتی:</p>
               <span className="text-sm">
-                {stats.totalImportedReturnedAmount?.toLocaleString("en-US")}
+                {formatPrice(
+                  stats.totalImportedReturnedAmount?.toLocaleString("en-US"),
+                )}
               </span>
             </div>
           </div>

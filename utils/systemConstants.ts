@@ -50,7 +50,7 @@ export const PAYMENT_METHODS = [
 export const TRANSACTION_REASONS_FOR_PAYMENT = [
   // "وام",
   // "حقوق",
-  "آپشن",
+  // "آپشن",
   "اجاره",
   "تنخواه",
   "تبلیغات",
@@ -58,13 +58,13 @@ export const TRANSACTION_REASONS_FOR_PAYMENT = [
   "اصل سرمایه",
   "سود سرمایه",
   "درصد کارگزار",
-  "سایر هزینه‌ها",
+  // "سایر هزینه‌ها",
   "جابجایی(وسیله نقلیه)",
 ];
 
 export const TRANSACTION_REASONS_FOR_RECEIPT = [
   "فروش خودرو",
-  // "سرمایه گذاری",
+  "سرمایه گذاری",
   "اقساط وام",
 ];
 
@@ -163,4 +163,82 @@ export const persianToEnglish = (
     String("۰۱۲۳۴۵۶۷۸۹".indexOf(char));
 
   return value.toString().replace(/[۰-۹]/g, persianToEnglishDigit);
+};
+
+// export const formatNumberWithTrailingMinus = (num?: number) => {
+//   if (num == null) return "—";
+//   if (num < 0) return `${Math.abs(num).toLocaleString("en-US")}-`;
+//   return num.toLocaleString("en-US");
+// };
+
+// export const formatPrice = (price?: string | number) => {
+//   console.log("🚀 ~ formatPrice ~ price:", price)
+//   if (price == null) return "—";
+
+//   const value = Number(price);
+//   console.log("🚀 ~ formatPrice ~ value:", value)
+//   if (isNaN(value)) return "—";
+
+//   return value < 0
+//     ? `${Math.abs(value).toLocaleString("en-US")}-`
+//     : value.toLocaleString("en-US");
+// };
+
+
+// export const formatPrice = (price?: string | number) => {
+//   if (price == null) return "—";
+
+//   // اگر عدد بود مستقیم هندل کن
+//   if (typeof price === "number") {
+//     return price < 0
+//       ? `${Math.abs(price).toLocaleString("en-US")}-`
+//       : price.toLocaleString("en-US");
+//   }
+
+//   let normalized = price.replace(/,/g, "").trim();
+
+//   // اگر منفی آخر عدد بود (مثلا 3000-)
+//   let isNegative = false;
+
+//   if (normalized.endsWith("-")) {
+//     isNegative = true;
+//     normalized = normalized.slice(0, -1);
+//   }
+
+//   const value = Number(normalized);
+
+//   if (isNaN(value)) return "—";
+
+//   const finalValue = isNegative ? -value : value;
+
+//   return finalValue < 0
+//     ? `${Math.abs(finalValue).toLocaleString("en-US")}-`
+//     : finalValue.toLocaleString("en-US");
+// };
+
+
+export const formatPrice = (price?: string | number) => {
+  if (price == null) return "—";
+
+  let normalized = String(price)
+    .replace(/,/g, "")
+    .replace(/\s/g, "")
+    .replace(/[۰-۹]/g, (d) =>
+      "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString()
+    );
+
+  const isNegative =
+    normalized.startsWith("-") || normalized.endsWith("-");
+
+  normalized = normalized.replace(/-/g, "");
+
+  const value = Number(normalized);
+
+  if (isNaN(value)) return "—";
+
+  const formatted = value.toLocaleString("en-US");
+
+  return isNegative
+    ? `\u200E-${formatted}`
+    : `\u200E${formatted}`;
 };
