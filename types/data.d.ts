@@ -7,6 +7,8 @@ interface ICarRes {
   RowNo: number;
   CarModel: string;
   SaleAmount: number;
+  productionYear?: string;
+  vin?: string;
   PurchaseAmount: number;
   LicensePlate: string;
   ChassisNo: string;

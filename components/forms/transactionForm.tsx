@@ -66,49 +66,57 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const defaultValuesOfForm =
     mode === "add"
       ? {
-        type: "پرداخت" as const,
-        reason: "",
-        transactionDate: "",
-        amount: "",
-        personId: "",
-        bussinessAccountId: "",
-        paymentMethod: "نقد" as const,
-        dealId: "",
-        description: "",
-        chequeDescription: "",
-        chequeNumber: "",
-        chequeBankName: "",
-        chequeBranchName: "",
-        chequeIssueDate: "",
-        chequeDueDate: "",
-        chequeType: "دریافتی" as const,
-        chequeStatus: "در جریان",
-        chequePayerPersonId: "",
-        chequePayeePersonId: "",
-        chequeRelatedDealId: "",
-      }
+          type: "پرداخت" as const,
+          reason: "",
+          transactionDate: "",
+          amount: "",
+          personId: "",
+          bussinessAccountId: "",
+          paymentMethod: "نقد" as const,
+          dealId: "",
+          description: "",
+          chequeDescription: "",
+          chequeNumber: "",
+          chequeBankName: "",
+          chequeBranchName: "",
+          chequeIssueDate: "",
+          chequeDueDate: "",
+          chequeType: "دریافتی" as const,
+          chequeStatus: "در جریان",
+          chequePayerPersonId: "",
+          chequePayeePersonId: "",
+          chequeRelatedDealId: "",
+        }
       : {
-        type: (transactionDataById?.type as "پرداخت" | "دریافت") ?? ("پرداخت" as const),
-        reason: transactionDataById?.reason ?? "",
-        transactionDate: transactionDataById?.transactionDate ?? "",
-        amount: transactionDataById?.amount?.toString() ?? "",
-        personId: transactionDataById?.personId ?? "",
-        bussinessAccountId: transactionDataById?.bussinessAccountId ?? "",
-        paymentMethod: (transactionDataById?.paymentMethod as "نقد" | "کارت به کارت" | "چک" | "شبا" | "مشتری به مشتری") ?? ("نقد" as const),
-        dealId: transactionDataById?.dealId ?? "",
-        description: transactionDataById?.description ?? "",
-        chequeDescription: "",
-        chequeNumber: "",
-        chequeBankName: "",
-        chequeBranchName: "",
-        chequeIssueDate: "",
-        chequeDueDate: "",
-        chequeType: undefined as "دریافتی" | "پرداختی" | undefined,
-        chequeStatus: "",
-        chequePayerPersonId: "",
-        chequePayeePersonId: "",
-        chequeRelatedDealId: "",
-      };
+          type:
+            (transactionDataById?.type as "پرداخت" | "دریافت") ??
+            ("پرداخت" as const),
+          reason: transactionDataById?.reason ?? "",
+          transactionDate: transactionDataById?.transactionDate ?? "",
+          amount: transactionDataById?.amount?.toString() ?? "",
+          personId: transactionDataById?.personId ?? "",
+          bussinessAccountId: transactionDataById?.bussinessAccountId ?? "",
+          paymentMethod:
+            (transactionDataById?.paymentMethod as
+              | "نقد"
+              | "کارت به کارت"
+              | "چک"
+              | "شبا"
+              | "مشتری به مشتری") ?? ("نقد" as const),
+          dealId: transactionDataById?.dealId ?? "",
+          description: transactionDataById?.description ?? "",
+          chequeDescription: "",
+          chequeNumber: "",
+          chequeBankName: "",
+          chequeBranchName: "",
+          chequeIssueDate: "",
+          chequeDueDate: "",
+          chequeType: undefined as "دریافتی" | "پرداختی" | undefined,
+          chequeStatus: "",
+          chequePayerPersonId: "",
+          chequePayeePersonId: "",
+          chequeRelatedDealId: "",
+        };
   const {
     control,
     register,
@@ -160,7 +168,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         amount: transactionDataById?.amount?.toString() ?? "",
         personId: transactionDataById?.personId ?? "",
         bussinessAccountId: transactionDataById?.bussinessAccountId ?? "",
-        paymentMethod: (transactionDataById?.paymentMethod as "نقد" | "کارت به کارت" | "چک" | "شبا" | "مشتری به مشتری") ?? "نقد",
+        paymentMethod:
+          (transactionDataById?.paymentMethod as
+            | "نقد"
+            | "کارت به کارت"
+            | "چک"
+            | "شبا"
+            | "مشتری به مشتری") ?? "نقد",
         dealId: transactionDataById?.dealId ?? "",
         description: transactionDataById?.description ?? "",
         chequeDescription: "",
@@ -209,26 +223,27 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         const payer =
           showPayer && data.chequePayerPersonId
             ? allPeople?.find(
-              (p) => p._id?.toString() === data.chequePayerPersonId,
-            )
+                (p) => p._id?.toString() === data.chequePayerPersonId,
+              )
             : null;
 
         const payee =
           showPayee && data.chequePayeePersonId
             ? allPeople?.find(
-              (p) => p._id?.toString() === data.chequePayeePersonId,
-            )
+                (p) => p._id?.toString() === data.chequePayeePersonId,
+              )
             : null;
 
         const customer =
           showPayer && data.chequeCustomerPersonId
             ? allPeople?.find(
-              (p) => p._id?.toString() === data.chequeCustomerPersonId,
-            )
+                (p) => p._id?.toString() === data.chequeCustomerPersonId,
+              )
             : null;
 
         const chequeData = {
-          chequeNumber: parseInt(data.chequeNumber || "0"),
+          chequeNumber: data.chequeNumber?.trim() || "",
+          chequeSerial: data.chequeNumber?.trim() || "",
           bankName: data.chequeBankName || "",
           branchName: data.chequeBranchName || "",
           vin: selectedDeal?.vehicleSnapshot?.vin || "",
@@ -241,43 +256,39 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           description: data.chequeDescription,
           customer: customer
             ? {
-              personId: customer._id?.toString() || "",
-              fullName: `${customer} ${customer.lastName}`,
-              nationalId: customer.nationalId?.toString() || "",
-            }
+                personId: customer._id?.toString() || "",
+                fullName: `${customer} ${customer.lastName}`,
+                nationalId: customer.nationalId?.toString() || "",
+              }
             : {
-              personId: "",
-              fullName: "",
-              nationalId: "",
-            },
+                personId: "",
+                fullName: "",
+                nationalId: "",
+              },
           payer: payer
             ? {
-              personId: payer._id?.toString() || "",
-              fullName: `${payer.firstName} ${payer.lastName}`,
-              nationalId: payer.nationalId?.toString() || "",
-            }
+                personId: payer._id?.toString() || "",
+                fullName: `${payer.firstName} ${payer.lastName}`,
+                nationalId: payer.nationalId?.toString() || "",
+              }
             : {
-              personId: "",
-              fullName: "",
-              nationalId: "",
-            },
+                personId: "",
+                fullName: "",
+                nationalId: "",
+              },
           payee: payee
             ? {
-              personId: payee._id?.toString() || "",
-              fullName: `${payee.firstName} ${payee.lastName}`,
-              nationalId: payee.nationalId?.toString() || "",
-            }
+                personId: payee._id?.toString() || "",
+                fullName: `${payee.firstName} ${payee.lastName}`,
+                nationalId: payee.nationalId?.toString() || "",
+              }
             : {
-              personId: "",
-              fullName: "",
-              nationalId: "",
-            },
-          relatedDealId: data.chequeRelatedDealId
-            ? parseInt(data.chequeRelatedDealId)
-            : 0,
-          relatedTransactionId: transaction._id
-            ? parseInt(transaction._id.toString().slice(-8), 16)
-            : 0,
+                personId: "",
+                fullName: "",
+                nationalId: "",
+              },
+          relatedDealId: transaction.dealId || data.chequeRelatedDealId || "",
+          relatedTransactionId: transaction._id || "",
           actions: [
             {
               actionType: "ثبت",
@@ -320,6 +331,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     transactionType === "دریافت"
       ? TRANSACTION_REASONS_FOR_RECEIPT
       : TRANSACTION_REASONS_FOR_PAYMENT;
+
+  const partnerFieldIsExist =
+    (transactionType === "دریافت" && transactionReason === "سرمایه گذاری") ||
+    (transactionType === "پرداخت" &&
+      (transactionReason === "اصل سرمایه" ||
+        transactionReason === "سود سرمایه"));
 
   const formContent = (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -469,8 +486,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                     "آپشن",
                     "جابجایی(وسیله نقلیه)",
                   ].includes(transactionReason)) ||
-                  (transactionType === "دریافت" &&
-                    ["فروش خودرو"].includes(transactionReason))
+                (transactionType === "دریافت" &&
+                  ["فروش خودرو"].includes(transactionReason))
                   ? "(اجباری)"
                   : "(اختیاری)"}
               </span>
@@ -499,8 +516,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                       "آپشن",
                       "جابجایی(وسیله نقلیه)",
                     ].includes(transactionReason)) ||
-                    (transactionType === "دریافت" &&
-                      ["فروش خودرو"].includes(transactionReason))
+                  (transactionType === "دریافت" &&
+                    ["فروش خودرو"].includes(transactionReason))
                     ? "(اجباری)"
                     : "(اختیاری)"}
                 </span>
@@ -574,31 +591,102 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             </div>
           )}
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">طرف حساب *</label>
-            <Controller
-              name="personId"
-              control={control}
-              render={({ field }) => (
-                <PersonSelect
-                  value={field.value}
-                  onValueChange={(personId, person) => {
-                    field.onChange(personId);
-                    setSelectedPerson(person || null);
-                  }}
-                  people={
-                    transactionReason === "حقوق"
-                      ? employees
-                      : (peopleForDeal ?? allPeople) || []
-                  }
-                  placeholder="انتخاب طرف حساب"
+          {partnerFieldIsExist ? (
+            <>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">نام شریک</label>
+                {/* <PersonSelect
+                value={partnership.partnerPersonId}
+                onValueChange={(personId) =>
+                  updatePartnership(index, "partnerPersonId", personId)
+                }
+                people={allPeople || []}
+                placeholder="انتخاب شریک"
+              /> */}
+
+                <Controller
+                  name="partnerPersonId"
+                  control={control}
+                  render={({ field }) => (
+                    <PersonSelect
+                      value={field.value}
+                      onValueChange={(personId, person) => {
+                        field.onChange(personId);
+                      }}
+                      people={allPeople || []}
+                      placeholder="انتخاب شریک"
+                    />
+                  )}
                 />
+                {errors.personId && (
+                  <p className="text-red-500 text-xs">
+                    {errors.personId.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  مبلغ سرمایه (ریال)
+                </label>
+                <input
+                  type="number"
+                  {...register("partnershipInvestmentAmount")}
+                  // value={partnership.investmentAmount.toLocaleString()}
+                  // onChange={(e) =>
+                  //   updatePartnership(index, "investmentAmount", e.target.value)
+                  // }
+                  
+                  placeholder="مبلغ سرمایه"
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">درصد سود</label>
+                <input
+                  type="number"
+                  // value={partnership.profitSharePercentage}
+                  // onChange={(e) =>
+                  //   updatePartnership(
+                  //     index,
+                  //     "profitSharePercentage",
+                  //     e.target.value,
+                  //   )
+                  // }
+                  {...register("partnershipProfitSharePercentage")}
+                  placeholder="درصد"
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">طرف حساب *</label>
+              <Controller
+                name="personId"
+                control={control}
+                render={({ field }) => (
+                  <PersonSelect
+                    value={field.value}
+                    onValueChange={(personId, person) => {
+                      field.onChange(personId);
+                      setSelectedPerson(person || null);
+                    }}
+                    people={
+                      transactionReason === "حقوق"
+                        ? employees
+                        : (peopleForDeal ?? allPeople) || []
+                    }
+                    placeholder="انتخاب طرف حساب"
+                  />
+                )}
+              />
+              {errors.personId && (
+                <p className="text-red-500 text-xs">
+                  {errors.personId.message}
+                </p>
               )}
-            />
-            {errors.personId && (
-              <p className="text-red-500 text-xs">{errors.personId.message}</p>
-            )}
-          </div>
+            </div>
+          )}
 
           <div className="space-y-2 md:col-span-2">
             <label htmlFor="description" className="block text-sm font-medium">
@@ -653,6 +741,26 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
             <div className="space-y-2">
               <label
+                htmlFor="chequeStatus"
+                className="block text-sm font-medium"
+              >
+                وضعیت فعلی
+              </label>
+              <select
+                id="chequeStatus"
+                {...register("chequeStatus")}
+                className="w-full px-3 py-2 border rounded-md"
+              >
+                {CHEQUE_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label
                 htmlFor="chequeNumber"
                 className="block text-sm font-medium"
               >
@@ -661,13 +769,36 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <input
                 id="chequeNumber"
                 {...register("chequeNumber")}
-                type="number"
+                type="text"
+                inputMode="numeric"
                 placeholder="شماره چک"
                 className="w-full px-3 py-2 border rounded-md"
               />
               {errors.chequeNumber && (
                 <p className="text-red-500 text-xs">
                   {errors.chequeNumber.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="chequeSerial"
+                className="block text-sm font-medium"
+              >
+                سریال چک *
+              </label>
+              <input
+                id="chequeSerial"
+                {...register("chequeSerial")}
+                type="text"
+                inputMode="numeric"
+                placeholder="سریال چک"
+                className="w-full px-3 py-2 border rounded-md"
+              />
+              {errors.chequeSerial && (
+                <p className="text-red-500 text-xs">
+                  {errors.chequeSerial.message}
                 </p>
               )}
             </div>
@@ -753,26 +884,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                   {errors.chequeDueDate.message}
                 </p>
               )}
-            </div>
-
-            <div className="space-y-2">
-              <label
-                htmlFor="chequeStatus"
-                className="block text-sm font-medium"
-              >
-                وضعیت فعلی
-              </label>
-              <select
-                id="chequeStatus"
-                {...register("chequeStatus")}
-                className="w-full px-3 py-2 border rounded-md"
-              >
-                {CHEQUE_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
             </div>
 
             {showPayer && (
@@ -875,7 +986,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
         >
           {mode === "edit"
-            ? (updateTransaction.isPending ? "در حال به‌روزرسانی..." : "به‌روزرسانی تراکنش")
+            ? updateTransaction.isPending
+              ? "در حال به‌روزرسانی..."
+              : "به‌روزرسانی تراکنش"
             : "ثبت تراکنش"}
         </button>
       </div>

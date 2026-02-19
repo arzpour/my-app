@@ -33,7 +33,7 @@ export interface IBusinessAccounts {
 export type ChequeType = "دریافتی" | "پرداختی" | string;
 export interface IChequeNew {
   _id: Types.ObjectId;
-  chequeNumber: number;
+  chequeNumber: string;
   chequeSerial: string;
   bankName: string;
   branchName: string;
@@ -60,8 +60,8 @@ export interface IChequeNew {
     fullName: string;
     nationalId: string;
   };
-  relatedDealId: number;
-  relatedTransactionId: number;
+  relatedDealId: string;
+  relatedTransactionId: string;
   actions: {
     actionType: string;
     actionDate: string;
@@ -130,6 +130,11 @@ export interface IDeal {
       id: string;
       category: string;
       description: string;
+      provider: {
+        personId: string;
+        name: string;
+      };
+      date: string;
       cost: number;
     }[];
   };
@@ -303,6 +308,7 @@ export interface ITransactionNew {
   dealId: string;
   bussinessAccountId: string;
   description: string;
+  vin: string;
   // chequeDescription?: string
   createdAt: string;
   updatedAt: string;
@@ -315,10 +321,15 @@ export interface IVehicle {
   _id: Types.ObjectId;
   vin: string; // This is the ChassisNo
   model: string;
-  productionYear: number;
+  // productionYear: number;
+  productionYear: string;
   plateNumber: string;
   color: string;
   dealHistoryIds: string[];
+  CarModel;
+  SellerMobile;
+  SellerName;
+  SellerNationalID;
   createdAt: string;
   updatedAt: string;
   status: "in_stock" | "sold";
