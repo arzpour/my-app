@@ -25,6 +25,7 @@ export const transactionChequeSchema = z
 
     // Cheque fields (required if paymentMethod is "چک")
     chequeNumber: z.string().optional(),
+    chequeSerial: z.string().optional(),
     chequeBankName: z.string().optional(),
     chequeBranchName: z.string().optional(),
     chequeIssueDate: z.string().optional(),
@@ -36,27 +37,90 @@ export const transactionChequeSchema = z
     chequeCustomerPersonId: z.string().optional(),
     chequeRelatedDealId: z.string().optional(),
     chequeImage: z.any().optional(), // File upload
+    partnerPersonId: z.string().optional(),
+    partnershipInvestmentAmount: z.string().optional(),
+    partnershipProfitSharePercentage: z.string().optional(),
   })
-  .refine(
-    (data) => {
-      // If payment method is cheque, cheque fields are required
-      if (data.paymentMethod === "چک") {
-        return (
-          data.chequeNumber &&
-          data.chequeBankName &&
-          data.chequeIssueDate &&
-          data.chequeDueDate &&
-          data.chequeType &&
-          data.chequeStatus
-        );
+  // .refine(
+  //   (data) => {
+  //     // If payment method is cheque, cheque fields are required
+  //     if (data.paymentMethod === "چک") {
+  //       return (
+  //         data.chequeNumber &&
+  //         data.chequeSerial &&
+  //         data.chequeBankName &&
+  //         data.chequeIssueDate &&
+  //         data.chequeDueDate &&
+  //         data.chequeType &&
+  //         data.chequeStatus
+  //       );
+  //     }
+  //     return true;
+  //   },
+  //   {
+  //     message: "اطلاعات چک الزامی است",
+  //     path: ["chequeNumber"],
+  //   },
+  // )
+  .superRefine((data, ctx) => {
+    if (data.paymentMethod === "چک") {
+      if (!data.chequeNumber) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "شماره چک الزامی است",
+          path: ["chequeNumber"],
+        });
       }
-      return true;
-    },
-    {
-      message: "اطلاعات چک الزامی است",
-      path: ["chequeNumber"],
-    },
-  )
+
+      if (!data.chequeSerial) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "سریال چک الزامی است",
+          path: ["chequeSerial"],
+        });
+      }
+
+      if (!data.chequeBankName) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "نام بانک الزامی است",
+          path: ["chequeBankName"],
+        });
+      }
+
+      if (!data.chequeIssueDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "تاریخ صدور الزامی است",
+          path: ["chequeIssueDate"],
+        });
+      }
+
+      if (!data.chequeDueDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "تاریخ سررسید الزامی است",
+          path: ["chequeDueDate"],
+        });
+      }
+
+      if (!data.chequeType) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "نوع چک الزامی است",
+          path: ["chequeType"],
+        });
+      }
+
+      if (!data.chequeStatus) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "وضعیت چک الزامی است",
+          path: ["chequeStatus"],
+        });
+      }
+    }
+  })
   .refine(
     (data) => {
       // If cheque type is received, payer is required

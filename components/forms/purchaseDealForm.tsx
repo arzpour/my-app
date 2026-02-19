@@ -125,7 +125,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
       const vehicleData: Partial<IVehicle> = {
         vin: data.vin,
         model: data.model,
-        productionYear: parseInt(data.productionYear),
+        productionYear: data.productionYear,
         plateNumber: plateData || data.plateNumber || "",
         color: data.color || "",
         dealHistoryIds: [],
@@ -496,7 +496,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
       </div>
 
       {/* Partnerships */}
-      <div className="space-y-4">
+      {/* <div className="space-y-4">
         <div className="flex justify-between items-center border-b pb-2">
           <h3 className="text-base text-gray-800 font-semibold">
             شرکا (Partners)
@@ -566,7 +566,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* Form Actions */}
       <div className="flex justify-end gap-2 pt-4 border-t">
