@@ -41,7 +41,7 @@ export const useUpdateCheque = () => {
       toast.success("معامله با موفقیت به‌روزرسانی شد");
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "خطا در به‌روزرسانی ");
+      toast.error(error?.response?.data?.message || "خطا در به‌روزرسانی چک");
     },
   });
 };
