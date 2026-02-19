@@ -90,7 +90,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
           : null;
 
       const chequeData: Partial<IChequeNew> = {
-        chequeNumber: parseInt(data.chequeNumber),
+        chequeNumber: (data.chequeNumber),
         chequeSerial: data.chequeSerial,
         bankName: data.bankName,
         branchName: "",
@@ -135,10 +135,10 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
               fullName: "",
               nationalId: "",
             },
-        relatedDealId: data.relatedDealId ? parseInt(data.relatedDealId) : 0,
+        relatedDealId: data.relatedDealId ? (data.relatedDealId) : "0",
         relatedTransactionId: data.relatedTransactionId
-          ? parseInt(data.relatedTransactionId)
-          : 0,
+          ? (data.relatedTransactionId)
+          : "0",
         actions: [
           {
             actionType: "ویرایش",

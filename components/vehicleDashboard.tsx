@@ -140,7 +140,7 @@ const VehicleDashboard = () => {
       const chequeDealIdMatch =
         c.relatedDealId?.toString() === dealIdStr ||
         (typeof c.relatedDealId === "number" &&
-          dealIdStr.includes(c.relatedDealId.toString()));
+          dealIdStr.includes(c.relatedDealId));
 
       const amountMatch = Math.abs(c.amount - transaction.amount) < 0.01;
 
