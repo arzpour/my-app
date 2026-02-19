@@ -22,10 +22,13 @@ import { useLogout } from "@/apis/mutations/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useGetPersonById } from "@/apis/mutations/people";
+import {
+  formatPrice,
+} from "@/utils/systemConstants";
 
 const Header = () => {
   const { chassisNo: chassisNoSaved } = useSelector(
-    (state: RootState) => state.cars
+    (state: RootState) => state.cars,
   );
   const router = useRouter();
   const logout = useLogout();
@@ -137,14 +140,14 @@ const Header = () => {
   const otherCostsFromDirectCosts =
     deals?.directCosts?.otherCost?.reduce(
       (sum, cost) => sum + (cost.cost || 0),
-      0
+      0,
     ) || 0;
   const otherCostsFromTransactions =
     transactions
       ?.filter(
         (t) =>
           t.type === "پرداخت" &&
-          otherCostCategories.some((category) => t.reason === category)
+          otherCostCategories.some((category) => t.reason === category),
       )
       .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
   const totalOtherCosts =
@@ -185,7 +188,7 @@ const Header = () => {
   const isChequePaid = (cheque: IChequeNew): boolean => {
     const paidStatuses = ["paid", "پاس شده", "وصول شده", "پاس شده است"];
     return paidStatuses.some((status) =>
-      cheque.status?.toLowerCase().includes(status.toLowerCase())
+      cheque.status?.toLowerCase().includes(status.toLowerCase()),
     );
   };
 
@@ -212,18 +215,26 @@ const Header = () => {
       ?.filter(
         (t) =>
           t.type === "پرداخت" &&
-          (t.reason === "خرید خودرو" ||
-            t.reason?.includes("خريد") ||
-            t.reason?.includes("خرید"))
+          (t.reason === "خرید خودرو" || t.reason?.includes("خرید")),
       )
       .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+
+  // transactions
+  //   ?.filter(
+  //     (t) =>
+  //       t.type === "پرداخت" &&
+  //       (t.reason === "خرید خودرو" ||
+  //         t.reason?.includes("خريد") ||
+  //         t.reason?.includes("خرید")),
+  //   )
+  //   .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
   const issuedPaidCheques =
     cheques
       ?.filter(
         (c) =>
           isIssuedCheque(c) &&
           isChequePaid(c) &&
-          c.payee?.personId?.toString() === deals?.seller?.personId?.toString()
+          c.payee?.personId?.toString() === deals?.seller?.personId?.toString(),
       )
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
   const totalPaidToSeller = paymentsToSeller + issuedPaidCheques;
@@ -237,15 +248,20 @@ const Header = () => {
 
   const receiptsFromBuyer =
     transactions
-      ?.filter((t) => t.type === "دریافت" && t.reason === "فروش")
+      ?.filter(
+        (t) =>
+          t.type === "دریافت" &&
+          (t.reason === "فروش خودرو" || t.reason?.includes("فروش")),
+      )
       .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+
   const receivedPaidCheques =
     cheques
       ?.filter(
         (c) =>
           isReceivedCheque(c) &&
           isChequePaid(c) &&
-          c.payer?.personId?.toString() === deals?.buyer?.personId?.toString()
+          c.payer?.personId?.toString() === deals?.buyer?.personId?.toString(),
       )
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
   const totalReceivedFromBuyer = receiptsFromBuyer + receivedPaidCheques;
@@ -300,7 +316,7 @@ const Header = () => {
         <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">مبلغ خرید</h3>
           <h4 className="text-sm">
-            {deals?.purchasePrice?.toLocaleString("en-US") ?? "—"}
+            {formatPrice(deals?.purchasePrice?.toLocaleString("en-US")) ?? "—"}
           </h4>
           <span className="text-sm text-blue-500">
             {deals?.purchaseDate ?? "—"}
@@ -309,7 +325,7 @@ const Header = () => {
         <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">مبلغ فروش</h3>
           <h4 className="text-sm">
-            {deals?.salePrice?.toLocaleString("en-US") ?? "—"}
+            {formatPrice(deals?.salePrice?.toLocaleString("en-US")) ?? "—"}
           </h4>
           <span className="text-sm text-blue-500">
             {deals?.saleDate ?? "—"}
@@ -318,7 +334,7 @@ const Header = () => {
         <div className="flex flex-col gap-2 items-right items-center text-sm">
           <p className="text-sm text-blue-800">مجموع هزینه ها:</p>
           <p className="text-sm text-orange-800">
-            {totalOtherCosts.toLocaleString("en-US")}
+            {formatPrice(totalOtherCosts.toLocaleString("en-US")) ?? "—"}
           </p>
         </div>
         {/* <div className="flex flex-col justify-between h-full space-y-1">
@@ -349,7 +365,7 @@ const Header = () => {
           </h3>
           <p className="text-sm">{deals?.purchaseBroker?.fullName ?? "-"}</p>
           <p dir="ltr" className="text-sm text-green-700 font-bold text-right">
-            {buyAmountWithPercent?.toLocaleString("en-US") ?? "—"}
+            {formatPrice(buyAmountWithPercent?.toLocaleString("en-US")) ?? "—"}
           </p>
         </div>
         <div className="flex flex-col justify-between h-full space-y-1">
@@ -363,7 +379,7 @@ const Header = () => {
           </h3>
           <p className="text-sm">{deals?.saleBroker?.fullName ?? "-"}</p>
           <p dir="ltr" className="text-sm text-green-700 font-bold text-right">
-            {sellAmountWithPercent?.toLocaleString("en-US") ?? "—"}
+            {formatPrice(sellAmountWithPercent?.toLocaleString("en-US")) ?? "—"}
           </p>
         </div>
         <div className="flex flex-col justify-between h-full space-y-1">
@@ -373,7 +389,7 @@ const Header = () => {
           <p className="text-sm">
             {sellerInfo?.firstName || sellerInfo?.lastName
               ? `${sellerInfo?.firstName} ${sellerInfo?.lastName}`
-              : sellerInfo?.fullName ?? deals?.seller?.fullName ?? "-"}
+              : (sellerInfo?.fullName ?? deals?.seller?.fullName ?? "-")}
           </p>
           <p className="text-sm text-orange-500">
             {sellerInfo?.phoneNumbers?.map((el) => el) ??
@@ -388,7 +404,7 @@ const Header = () => {
           <p className="text-sm">
             {buyerInfo?.firstName || buyerInfo?.lastName
               ? `${buyerInfo?.firstName} ${buyerInfo?.lastName}`
-              : buyerInfo?.fullName ?? deals?.buyer?.fullName ?? "-"}
+              : (buyerInfo?.fullName ?? deals?.buyer?.fullName ?? "-")}
           </p>
           <p className="text-sm text-orange-500">
             {buyerInfo?.phoneNumbers?.map((el) => el) ??
@@ -406,8 +422,8 @@ const Header = () => {
               deals?.buyer
                 ? "bg-red-400 text-white"
                 : deals?.seller
-                ? "bg-green-400 text-red-900"
-                : "bg-yellow-400 text-red-900"
+                  ? "bg-green-400 text-red-900"
+                  : "bg-yellow-400 text-red-900"
             }`}
           >
             {deals?.buyer ? "فروخته شد" : deals?.seller ? "موجود" : "نامعلوم"}
@@ -439,16 +455,16 @@ const Header = () => {
         {/* <h3 className="text-sm text-blue-900 font-bold">سود:</h3> */}
         <p className="text-sm text-green-700 w-fit">
           سود ناخالص:{" "}
-          <strong className="line-through text-black text-sm">
+          <strong dir="ltr" className="line-through text-black text-sm">
             {/* {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"} */}
-            {grossProfit?.toLocaleString("en-US") ?? "—"}
+            {formatPrice(grossProfit?.toLocaleString("en-US")) ?? "—"}
           </strong>
         </p>
         <p className="text-sm text-green-700">
           سود خالص:{" "}
-          <strong className="text-black text-sm">
+          <strong dir="ltr" className="text-black text-sm">
             {/* {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"} */}
-            {netProfit?.toLocaleString("en-US") ?? "—"}
+            {formatPrice(netProfit?.toLocaleString("en-US")) ?? "—"}
           </strong>
         </p>
         {/* </div> */}
@@ -461,10 +477,10 @@ const Header = () => {
               sellerSettlementStatus === "تسویه شده"
                 ? "bg-green-400 text-green-900"
                 : sellerSettlementStatus === "بدهکار"
-                ? "bg-red-400 text-red-900"
-                : sellerSettlementStatus === "بستانکار"
-                ? "bg-yellow-400 text-yellow-900"
-                : "bg-gray-200 text-gray-600"
+                  ? "bg-red-400 text-red-900"
+                  : sellerSettlementStatus === "بستانکار"
+                    ? "bg-yellow-400 text-yellow-900"
+                    : "bg-gray-200 text-gray-600"
             }`}
           >
             {sellerSettlementStatus}
@@ -480,10 +496,10 @@ const Header = () => {
               buyerSettlementStatus === "تسویه شده"
                 ? "bg-green-400 text-green-900"
                 : buyerSettlementStatus === "بستانکار"
-                ? "bg-yellow-400 text-yellow-900"
-                : buyerSettlementStatus === "بدهکار"
-                ? "bg-red-400 text-red-900"
-                : "bg-gray-200 text-gray-600"
+                  ? "bg-yellow-400 text-yellow-900"
+                  : buyerSettlementStatus === "بدهکار"
+                    ? "bg-red-400 text-red-900"
+                    : "bg-gray-200 text-gray-600"
             }`}
           >
             {buyerSettlementStatus}
