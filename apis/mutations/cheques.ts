@@ -1,5 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getChequesByDeal, getChequesByVin } from "../client/cheques";
+import {
+  getChequesByDeal,
+  getChequesByPersonId,
+  getChequesByVin,
+} from "../client/cheques";
 import { toast } from "sonner";
 import { updateCheque } from "../client/chequesNew";
 import { IChequeNew } from "@/types/new-backend-types";
@@ -18,6 +22,13 @@ export const useGetChequesByVin = () => {
   });
 };
 
+export const useGetChequesByPersonId = () => {
+  return useMutation({
+    mutationKey: ["get-cheques-by-person-id"],
+    mutationFn: getChequesByPersonId,
+  });
+};
+
 export const useUpdateCheque = () => {
   const queryClient = useQueryClient();
 
@@ -30,9 +41,7 @@ export const useUpdateCheque = () => {
       toast.success("معامله با موفقیت به‌روزرسانی شد");
     },
     onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message || "خطا در به‌روزرسانی ",
-      );
+      toast.error(error?.response?.data?.message || "خطا در به‌روزرسانی ");
     },
   });
 };
