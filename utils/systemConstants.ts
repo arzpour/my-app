@@ -50,7 +50,7 @@ export const PAYMENT_METHODS = [
 export const TRANSACTION_REASONS_FOR_PAYMENT = [
   // "وام",
   // "حقوق",
-  // "آپشن",
+  "آپشن",
   "اجاره",
   "تنخواه",
   "تبلیغات",
@@ -58,7 +58,7 @@ export const TRANSACTION_REASONS_FOR_PAYMENT = [
   "اصل سرمایه",
   "سود سرمایه",
   "درصد کارگزار",
-  // "سایر هزینه‌ها",
+  "سایر هزینه‌ها",
   "جابجایی(وسیله نقلیه)",
 ];
 
