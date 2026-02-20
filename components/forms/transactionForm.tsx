@@ -30,12 +30,14 @@ import {
 } from "@/utils/systemConstants";
 import type { IPeople, IDeal } from "@/types/new-backend-types";
 import useUpdateWalletHandler from "@/hooks/useUpdateWalletHandler";
+import useGetChequesByDealId from "@/hooks/useGetChequesByDealId";
 
 interface TransactionFormProps {
   onSuccess?: () => void;
   embedded?: boolean;
   mode?: "add" | "edit";
   transactionId?: string;
+  dealId?: string;
 }
 
 const TransactionForm: React.FC<TransactionFormProps> = ({
@@ -43,6 +45,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   embedded = false,
   mode = "add",
   transactionId,
+  dealId,
 }) => {
   const { data: allPeople } = useGetAllPeople();
   const { data: allAccounts } = useQuery({
@@ -58,10 +61,15 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     queryFn: () => getTransactionById(transactionId ?? ""),
     enabled: mode === "edit" && !!transactionId,
   });
+  const { data: getChequeByDealId } = useGetChequesByDealId(dealId ?? "");
   const [selectedPerson, setSelectedPerson] = React.useState<IPeople | null>(
     null,
   );
   const [selectedDeal, setSelectedDeal] = React.useState<IDeal | null>(null);
+
+  const selectedTransactionChequeInfo = getChequeByDealId?.filter(
+    (el) => el.relatedTransactionId === transactionId,
+  )[0];
 
   const defaultValuesOfForm =
     mode === "add"
@@ -154,6 +162,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const employees = (peopleForDeal ?? allPeople)?.filter((p) =>
     p.roles.includes("employee"),
   );
+  const providers = allPeople?.filter((p) => p.roles.includes("provider"));
 
   const { updateWalletHandler } = useUpdateWalletHandler();
   const updateTransaction = useUpdateTransaction();
@@ -177,20 +186,29 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             | "مشتری به مشتری") ?? "نقد",
         dealId: transactionDataById?.dealId ?? "",
         description: transactionDataById?.description ?? "",
-        chequeDescription: "",
-        chequeNumber: "",
-        chequeBankName: "",
-        chequeBranchName: "",
-        chequeIssueDate: "",
-        chequeDueDate: "",
-        chequeType: undefined,
-        chequeStatus: "",
-        chequePayerPersonId: "",
-        chequePayeePersonId: "",
-        chequeRelatedDealId: "",
+        chequeDescription: selectedTransactionChequeInfo?.description ?? "",
+        chequeNumber: selectedTransactionChequeInfo?.chequeNumber ?? "",
+        chequeBankName: selectedTransactionChequeInfo?.bankName ?? "",
+        chequeBranchName: selectedTransactionChequeInfo?.branchName ?? "",
+        chequeIssueDate: selectedTransactionChequeInfo?.issueDate ?? "",
+        chequeDueDate: selectedTransactionChequeInfo?.dueDate ?? "",
+        chequeType:
+          selectedTransactionChequeInfo?.type === "received"
+            ? "دریافتی"
+            : "پرداختی",
+        chequeStatus: selectedTransactionChequeInfo?.status ?? "",
+        chequePayerPersonId:
+          selectedTransactionChequeInfo?.payer.personId ?? "",
+        chequePayeePersonId:
+          selectedTransactionChequeInfo?.payee.personId ?? "",
+        chequeRelatedDealId: selectedTransactionChequeInfo?.relatedDealId ?? "",
+        chequeCustomerPersonId:
+          selectedTransactionChequeInfo?.customer.personId ?? "",
+        chequeSerial: selectedTransactionChequeInfo?.chequeSerial ?? "",
+        sayadiID: selectedTransactionChequeInfo?.sayadiID ?? "",
       });
     }
-  }, [transactionDataById, mode, reset]);
+  }, [transactionDataById, mode, reset, selectedTransactionChequeInfo]);
 
   const onSubmit: SubmitHandler<transactionChequeSchemaType> = async (data) => {
     try {
@@ -252,7 +270,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           amount: parseFloat(data.amount),
           type: data.chequeType === "دریافتی" ? "received" : "issued",
           status: data.chequeStatus || "در جریان",
-          sayadiID: "",
+          sayadiID: data.sayadiID ?? "",
           description: data.chequeDescription,
           customer: customer
             ? {
@@ -488,8 +506,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                   ].includes(transactionReason)) ||
                 (transactionType === "دریافت" &&
                   ["فروش خودرو"].includes(transactionReason))
-                  ? "(اجباری)"
-                  : "(اختیاری)"}
+                  ? " (اجباری) "
+                  : " (اختیاری) "}
               </span>
             </label>
             <select
@@ -518,8 +536,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                     ].includes(transactionReason)) ||
                   (transactionType === "دریافت" &&
                     ["فروش خودرو"].includes(transactionReason))
-                    ? "(اجباری)"
-                    : "(اختیاری)"}
+                    ? " (اجباری) "
+                    : " (اختیاری) "}
                 </span>
               </option>
 
@@ -635,7 +653,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                   // onChange={(e) =>
                   //   updatePartnership(index, "investmentAmount", e.target.value)
                   // }
-                  
+
                   placeholder="مبلغ سرمایه"
                   className="w-full px-3 py-2 border rounded-md"
                 />
@@ -658,9 +676,34 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 />
               </div>
             </>
+          ) : transactionReason === "آپشن" ? (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">تامین کننده *</label>
+              <Controller
+                name="providerPersonId"
+                control={control}
+                render={({ field }) => (
+                  <PersonSelect
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    people={providers || []}
+                    placeholder="انتخاب تامین کننده"
+                  />
+                )}
+              />
+              {errors.providerPersonId && (
+                <p className="text-red-500 text-xs">
+                  {errors.providerPersonId.message}
+                </p>
+              )}
+            </div>
           ) : (
             <div className="space-y-2">
-              <label className="block text-sm font-medium">طرف حساب *</label>
+              <label className="block text-sm font-medium">
+                {transactionReason === "سایر هزینه‌ها"
+                  ? "طرف حساب (اختیاری)"
+                  : "طرف حساب *"}
+              </label>
               <Controller
                 name="personId"
                 control={control}
@@ -705,7 +748,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
       {/* Cheque Fields */}
       {showChequeFields && (
-        <div className="space-y-4">
+        <div className="space-y-4 bg-purple-100 p-6 rounded-xl">
           <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
             اطلاعات چک
           </h3>
@@ -716,20 +759,20 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 <label className="flex items-center gap-2">
                   <input
                     type="radio"
-                    value="دریافتی"
-                    {...register("chequeType")}
-                    className="w-4 h-4"
-                  />
-                  <span>دریافتی</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
                     value="پرداختی"
                     {...register("chequeType")}
                     className="w-4 h-4"
                   />
                   <span>پرداختی</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    value="دریافتی"
+                    {...register("chequeType")}
+                    className="w-4 h-4"
+                  />
+                  <span>دریافتی</span>
                 </label>
               </div>
               {errors.chequeType && (
@@ -749,7 +792,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <select
                 id="chequeStatus"
                 {...register("chequeStatus")}
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full px-3 py-2 border border-gray-600 rounded-md"
               >
                 {CHEQUE_STATUSES.map((status) => (
                   <option key={status} value={status}>
@@ -764,7 +807,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 htmlFor="chequeNumber"
                 className="block text-sm font-medium"
               >
-                شماره چک *
+                سری چک *
               </label>
               <input
                 id="chequeNumber"
@@ -772,11 +815,29 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 type="text"
                 inputMode="numeric"
                 placeholder="شماره چک"
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full px-3 py-2 border border-gray-600 rounded-md"
               />
               {errors.chequeNumber && (
                 <p className="text-red-500 text-xs">
                   {errors.chequeNumber.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="sayadiID" className="block text-sm font-medium">
+                شناسه صیادی *
+              </label>
+              <input
+                id="sayadiID"
+                {...register("sayadiID")}
+                type="text"
+                inputMode="numeric"
+                placeholder="شناسه صیادی"
+                className="w-full px-3 py-2 border border-gray-600 rounded-md"
+              />
+              {errors.sayadiID && (
+                <p className="text-red-500 text-xs">
+                  {errors.sayadiID.message}
                 </p>
               )}
             </div>
@@ -794,7 +855,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 type="text"
                 inputMode="numeric"
                 placeholder="سریال چک"
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full px-3 py-2 border border-gray-600 rounded-md"
               />
               {errors.chequeSerial && (
                 <p className="text-red-500 text-xs">
@@ -813,7 +874,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <select
                 id="chequeBankName"
                 {...register("chequeBankName")}
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full px-3 py-2 border border-gray-600 rounded-md"
               >
                 <option value="">انتخاب بانک</option>
                 {BANK_NAMES.map((bank) => (
@@ -840,7 +901,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 id="chequeBranchName"
                 {...register("chequeBranchName")}
                 placeholder="نام شعبه"
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full px-3 py-2 border border-gray-600 rounded-md"
               />
             </div>
 
@@ -854,6 +915,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                     value={field.value}
                     onChange={field.onChange}
                     placeholder="تاریخ صدور"
+                    className="border-gray-600"
                   />
                 )}
               />
@@ -876,6 +938,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                     value={field.value}
                     onChange={field.onChange}
                     placeholder="تاریخ سررسید"
+                    className="border-gray-600"
                   />
                 )}
               />
@@ -900,6 +963,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                       onValueChange={field.onChange}
                       people={allPeople || []}
                       placeholder="انتخاب مشتری"
+                      className="border-gray-600"
                     />
                   )}
                 />
@@ -925,6 +989,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                       onValueChange={field.onChange}
                       people={allPeople || []}
                       placeholder="انتخاب صادرکننده"
+                      className="border-gray-600"
                     />
                   )}
                 />
@@ -950,6 +1015,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                       onValueChange={field.onChange}
                       people={allPeople || []}
                       placeholder="انتخاب گیرنده"
+                      className="border-gray-600"
                     />
                   )}
                 />
@@ -972,7 +1038,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 id="chequeDescription"
                 {...register("chequeDescription")}
                 placeholder="توضیحات"
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full px-3 py-2 border border-gray-600 rounded-md"
               />
             </div>
           </div>
