@@ -5,7 +5,7 @@ import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { chequeNewSchema, chequeNewSchemaType } from "@/validations/chequeNew";
 import { toast } from "sonner";
-import { createCheque } from "@/apis/client/chequesNew";
+// import { createCheque } from "@/apis/client/chequesNew";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
@@ -20,6 +20,7 @@ interface ChequeFormNewProps {
   embedded?: boolean;
   chequeId: string;
   setIsOpenEditModal: React.Dispatch<React.SetStateAction<boolean>>;
+  mode?: "add" | "edit";
 }
 
 const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
@@ -27,6 +28,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
   embedded = false,
   chequeId,
   setIsOpenEditModal,
+  mode = "add",
 }) => {
   const { data: allPeople } = useGetAllPeople();
   const { data: allDeals } = useGetAllDeals();
@@ -47,6 +49,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<chequeNewSchemaType>({
     resolver: zodResolver(chequeNewSchema) as any,
@@ -90,7 +93,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
           : null;
 
       const chequeData: Partial<IChequeNew> = {
-        chequeNumber: (data.chequeNumber),
+        chequeNumber: data.chequeNumber,
         chequeSerial: data.chequeSerial,
         bankName: data.bankName,
         branchName: "",
@@ -135,9 +138,9 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
               fullName: "",
               nationalId: "",
             },
-        relatedDealId: data.relatedDealId ? (data.relatedDealId) : "0",
+        relatedDealId: data.relatedDealId ? data.relatedDealId : "0",
         relatedTransactionId: data.relatedTransactionId
-          ? (data.relatedTransactionId)
+          ? data.relatedTransactionId
           : "0",
         actions: [
           {
@@ -158,6 +161,32 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
       toast.error(error?.response?.data?.message || "خطا در ویرایش چک");
     }
   };
+
+  React.useEffect(() => {
+    if (mode === "edit" && chequeInfoById) {
+      reset({
+        type:
+          chequeInfoById?.type === "received"
+            ? "دریافتی"
+            : chequeInfoById?.type === "issued"
+              ? "پرداختی"
+              : ((chequeInfoById?.type as "دریافتی" | "پرداختی") ?? "دریافتی"),
+        chequeNumber: chequeInfoById?.chequeNumber.toString() ?? "",
+        chequeSerial: chequeInfoById?.chequeSerial ?? "",
+        bankName: chequeInfoById?.branchName ?? "",
+        amount: chequeInfoById?.amount.toString() ?? "",
+        issueDate: chequeInfoById?.issueDate ?? "",
+        dueDate: chequeInfoById?.dueDate ?? "",
+        status: chequeInfoById?.status ?? "در جریان",
+        payerPersonId: chequeInfoById?.payer.personId ?? "",
+        payeePersonId: chequeInfoById?.payee.personId ?? "",
+        customerId: chequeInfoById?.customer.personId ?? "",
+        relatedDealId: chequeInfoById?.relatedDealId.toString() ?? "",
+        relatedTransactionId:
+          chequeInfoById?.relatedTransactionId.toString() ?? "",
+      });
+    }
+  }, [chequeInfoById, mode, reset]);
 
   const formContent = (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
