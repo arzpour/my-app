@@ -69,8 +69,8 @@ const OperatorsDashboard = () => {
     "buy" | "sell"
   >("sell");
 
-  const { data: getAllCategoryWithOptionSettings } =
-    useGetAllCategoryWithOptionSettings();
+  // const { data: getAllCategoryWithOptionSettings } =
+  //   useGetAllCategoryWithOptionSettings();
   const { data: allPeople } = useGetAllPeople();
   const { data: allDeals } = useQuery({
     queryKey: ["get-all-deals"],
@@ -82,13 +82,13 @@ const OperatorsDashboard = () => {
   });
 
   // Get operators from settings or people with broker role
-  const operatorsNameOptions =
-    getAllCategoryWithOptionSettings?.filter(
-      (item) => item.category === "operators",
-    ) || [];
+  // const operatorsNameOptions =
+  //   getAllCategoryWithOptionSettings?.filter(
+  //     (item) => item.category === "operators",
+  //   ) || [];
 
-  const operatorOptionsFromSettings =
-    operatorsNameOptions?.[0]?.options?.filter(Boolean) || [];
+  // const operatorOptionsFromSettings =
+  //   operatorsNameOptions?.[0]?.options?.filter(Boolean) || [];
 
   // Get brokers from people
   const brokerPeople =
@@ -98,10 +98,10 @@ const OperatorsDashboard = () => {
   const operatorOptions = React.useMemo(() => {
     const fromPeople = brokerPeople.map((p) => `${p.firstName} ${p.lastName}`);
     const combined = [
-      ...new Set([...fromPeople, ...operatorOptionsFromSettings]),
+      ...new Set([...fromPeople]),
     ];
     return combined;
-  }, [brokerPeople, operatorOptionsFromSettings]);
+  }, [brokerPeople]);
 
   // Find selected operator person ID
   React.useEffect(() => {
