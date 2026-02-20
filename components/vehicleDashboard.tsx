@@ -43,9 +43,7 @@ const VehicleDashboard = () => {
   const [transactionId, setTransactionId] = React.useState<string | undefined>(
     undefined,
   );
-   const [dealId, setDealId] = React.useState<string | undefined>(
-    undefined,
-  );
+  const [dealId, setDealId] = React.useState<string | undefined>(undefined);
   const [isOpenDeleteModal, setIsOpenDeleteModal] =
     React.useState<boolean>(false);
   const [transactionToDelete, setTransactionToDelete] = React.useState<
@@ -281,7 +279,6 @@ const VehicleDashboard = () => {
     ...receivedTransactions,
     ...receivedCheques.map((c) => chequeToTransaction(c, "دریافت")),
   ];
-  console.log("🚀 ~ VehicleDashboard ~ finalReceivedTransactions:", finalReceivedTransactions)
 
   const totalPaidToSeller =
     finalPaidTransactions
@@ -314,8 +311,8 @@ const VehicleDashboard = () => {
     finalPaidTransactions
       ?.filter(
         (t) =>
-          t.reason?.replace(/\s/g, "").includes("هزینهوسیله") ||
-          t.reason?.replace(/\s/g, "").includes("هزينهوسیله"),
+          t.reason?.replace(/\s/g, "").includes("سایر هزینه‌ها") ||
+          t.reason?.replace(/\s/g, "").includes("سایر هزینه‌ها"),
       )
       .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
 
@@ -473,7 +470,7 @@ const VehicleDashboard = () => {
                               onClick={() => {
                                 setIsOpenEditModal(true);
                                 setTransactionId(item._id?.toString());
-                              setDealId((item as ITransactionNew)?.dealId)
+                                setDealId((item as ITransactionNew)?.dealId);
                               }}
                             />
 
@@ -605,59 +602,61 @@ const VehicleDashboard = () => {
                   {finalReceivedTransactions &&
                     finalReceivedTransactions.length > 0 &&
                     finalReceivedTransactions?.map((item, index) => {
-                      return <TableRow
-                        key={`${item?._id}-${index}`}
-                        className="hover:bg-gray-50"
-                      >
-                        <TableCell className="text-center">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item?.transactionDate ?? ""}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {formatPrice(item?.amount?.toLocaleString("en-US")) ??
-                            ""}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item?.reason ?? ""}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {item?.paymentMethod ?? ""}
-                        </TableCell>
-                        <TableCell
-                          title={
-                            item?.bussinessAccountId
+                      return (
+                        <TableRow
+                          key={`${item?._id}-${index}`}
+                          className="hover:bg-gray-50"
+                        >
+                          <TableCell className="text-center">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.transactionDate ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {formatPrice(
+                              item?.amount?.toLocaleString("en-US"),
+                            ) ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.reason ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item?.paymentMethod ?? ""}
+                          </TableCell>
+                          <TableCell
+                            title={
+                              item?.bussinessAccountId
+                                ? accountNameMap.get(item.bussinessAccountId) ||
+                                  item.bussinessAccountId
+                                : ""
+                            }
+                            className="text-center truncate cursor-pointer"
+                          >
+                            {item?.bussinessAccountId
                               ? accountNameMap.get(item.bussinessAccountId) ||
                                 item.bussinessAccountId
-                              : ""
-                          }
-                          className="text-center truncate cursor-pointer"
-                        >
-                          {item?.bussinessAccountId
-                            ? accountNameMap.get(item.bussinessAccountId) ||
-                              item.bussinessAccountId
-                            : ""}
-                        </TableCell>
-                        <TableCell className="text-center flex gap-3 justify-center items-center">
-                          <Pencil
-                            className="w-4 h-4 cursor-pointer hover:text-indigo-500"
-                            onClick={() => {
-                              setIsOpenEditModal(true);
-                              setTransactionId(item._id?.toString());
-                              setDealId((item as ITransactionNew)?.dealId)
+                              : ""}
+                          </TableCell>
+                          <TableCell className="text-center flex gap-3 justify-center items-center">
+                            <Pencil
+                              className="w-4 h-4 cursor-pointer hover:text-indigo-500"
+                              onClick={() => {
+                                setIsOpenEditModal(true);
+                                setTransactionId(item._id?.toString());
+                                setDealId((item as ITransactionNew)?.dealId);
+                              }}
+                            />
 
-                            }}
-                          />
-
-                          <Trash
-                            className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
-                            onClick={() =>
-                              handleDeleteClick(item._id?.toString() || "")
-                            }
-                          />
-                        </TableCell>
-                      </TableRow>;
+                            <Trash
+                              className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
+                              onClick={() =>
+                                handleDeleteClick(item._id?.toString() || "")
+                              }
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
                     })}
                 </TableBody>
               </Table>
@@ -966,7 +965,14 @@ const VehicleDashboard = () => {
       )}
 
       {isOpenDeleteModal && (
-        <DeleteModal deletePending={deleteTransaction.isPending} handleConfirmDelete={handleConfirmDelete} isOpenDeleteModal={isOpenDeleteModal} setIdToDelete={setTransactionToDelete} setIsOpenDeleteModal={setIsOpenDeleteModal} title="تراکنش"  />
+        <DeleteModal
+          deletePending={deleteTransaction.isPending}
+          handleConfirmDelete={handleConfirmDelete}
+          isOpenDeleteModal={isOpenDeleteModal}
+          setIdToDelete={setTransactionToDelete}
+          setIsOpenDeleteModal={setIsOpenDeleteModal}
+          title="تراکنش"
+        />
         // <Dialog open={isOpenDeleteModal} onOpenChange={setIsOpenDeleteModal}>
         //   <DialogContent className="max-w-lg">
         //     <DialogHeader>
