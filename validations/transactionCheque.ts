@@ -26,6 +26,7 @@ export const transactionChequeSchema = z
     // Cheque fields (required if paymentMethod is "چک")
     chequeNumber: z.string().optional(),
     chequeSerial: z.string().optional(),
+    sayadiID: z.string().optional(),
     chequeBankName: z.string().optional(),
     chequeBranchName: z.string().optional(),
     chequeIssueDate: z.string().optional(),
@@ -40,6 +41,7 @@ export const transactionChequeSchema = z
     partnerPersonId: z.string().optional(),
     partnershipInvestmentAmount: z.string().optional(),
     partnershipProfitSharePercentage: z.string().optional(),
+    providerPersonId: z.string().optional(),
   })
   // .refine(
   //   (data) => {
@@ -145,6 +147,30 @@ export const transactionChequeSchema = z
     {
       message: "گیرنده چک الزامی است",
       path: ["chequePayeePersonId"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.paymentMethod === "چک" && data.chequeType === "دریافتی") {
+        return data.sayadiID;
+      }
+      return true;
+    },
+    {
+      message: "شماره صیادی چک الزامی است",
+      path: ["sayadiID"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.paymentMethod === "چک" && data.chequeType === "پرداختی") {
+        return data.sayadiID;
+      }
+      return true;
+    },
+    {
+      message: "شماره صیادی چک الزامی است",
+      path: ["sayadiID"],
     },
   )
   .refine(

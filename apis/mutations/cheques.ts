@@ -5,7 +5,7 @@ import {
   getChequesByVin,
 } from "../client/cheques";
 import { toast } from "sonner";
-import { updateCheque } from "../client/chequesNew";
+import { deleteCheque, updateCheque } from "../client/chequesNew";
 import { IChequeNew } from "@/types/new-backend-types";
 
 export const useGetChequesByDealId = () => {
@@ -42,6 +42,26 @@ export const useUpdateCheque = () => {
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "خطا در به‌روزرسانی چک");
+    },
+  });
+};
+
+export const useDeleteCheque = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deleteCheque(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get-cheques-by-deal-id"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["get-all-cheques"],
+      });
+      toast.success("چک با موفقیت حذف شد");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "خطا در حذف چک");
     },
   });
 };

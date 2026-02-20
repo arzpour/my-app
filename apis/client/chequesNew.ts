@@ -16,6 +16,13 @@ export const updateCheque: updateChequeType = async (id, data) => {
   return response.data;
 };
 
+// Get cheque byDeal
+type getChequeByDealIdType = (id: string) => Promise<IChequeNew>;
+export const getChequeByDealId: getChequeByDealIdType = async (id) => {
+  const response = await axiosInstance.get(urls.chequesNew.byDeal(id));
+  return response.data;
+};
+
 // Add action to cheque
 type addChequeActionType = (
   id: string,
@@ -31,3 +38,12 @@ export const addChequeAction: addChequeActionType = async (id, action) => {
   return response.data;
 };
 
+
+// Delete cheque
+type deleteChequeType = (id: string) => Promise<void>;
+export const deleteCheque: deleteChequeType = async (id) => {
+  const response = await axiosInstance.delete(
+    urls.chequesNew.delete(id)
+  );
+  return response.data;
+};

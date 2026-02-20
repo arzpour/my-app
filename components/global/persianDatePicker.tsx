@@ -8,12 +8,14 @@ interface PersianDatePickerProps {
   value?: string; // Format: YYYY/MM/DD
   onChange?: (date: string) => void;
   placeholder?: string;
+  className?: string;
 }
 
 const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
   value,
   onChange,
   placeholder = "انتخاب تاریخ",
+  className
 }) => {
   const [internalDate, setInternalDate] = React.useState<DateObject | null>(
     null
@@ -67,7 +69,7 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
         locale={persian_fa}
         value={internalDate}
         onChange={handleChange}
-        inputClass="border rounded w-full px-4 py-1 text-right outline-none focus:ring-2 focus:ring-blue-400"
+        inputClass={`border rounded w-full px-4 py-1 text-right outline-none focus:ring-2 focus:ring-blue-400 ${className}`}
         placeholder={placeholder}
         calendarPosition="bottom-left"
         className="w-full"

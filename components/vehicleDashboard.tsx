@@ -30,6 +30,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Pencil, Trash } from "lucide-react";
 import TransactionForm from "./forms/transactionForm";
 import { formatPrice } from "@/utils/systemConstants";
+import DeleteModal from "./modals/deleteModal";
 
 const VehicleDashboard = () => {
   const { chassisNo, selectedDealId } = useSelector(
@@ -40,6 +41,9 @@ const VehicleDashboard = () => {
   const [cheques, setCheques] = React.useState<IChequeNew[] | null>(null);
   const [isOpenEditModal, setIsOpenEditModal] = React.useState<boolean>(false);
   const [transactionId, setTransactionId] = React.useState<string | undefined>(
+    undefined,
+  );
+   const [dealId, setDealId] = React.useState<string | undefined>(
     undefined,
   );
   const [isOpenDeleteModal, setIsOpenDeleteModal] =
@@ -222,17 +226,14 @@ const VehicleDashboard = () => {
       ?.filter((c) => isReceivedCheque(c) && isChequePaid(c))
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
 
-
-
   ///////////////////////////////////////////////////////////////////////////////
 
   const paidTransactions = filteredTransactions?.filter(
-    (t) => t.type === "پرداخت" || t.type === "هزینه وسیله",
+    (t) => t.type === "پرداخت" || t.type === "سایر هزینه‌ها",
   );
   const receivedTransactions = filteredTransactions?.filter(
-    (t) => t.type === "دریافت" || t.type === "هزینه وسیله",
+    (t) => t.type === "دریافت" || t.type === "سایر هزینه‌ها",
   );
-
 
   ///////////////////////////////////////////////////////////////////////////////
   const today = new Date();
@@ -280,6 +281,7 @@ const VehicleDashboard = () => {
     ...receivedTransactions,
     ...receivedCheques.map((c) => chequeToTransaction(c, "دریافت")),
   ];
+  console.log("🚀 ~ VehicleDashboard ~ finalReceivedTransactions:", finalReceivedTransactions)
 
   const totalPaidToSeller =
     finalPaidTransactions
@@ -393,19 +395,21 @@ const VehicleDashboard = () => {
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader className="top-0 sticky">
                   <TableRow className="bg-gray-100">
-                    <TableHead className="w-12 text-center">ردیف</TableHead>
-                    <TableHead className="w-12 text-center">تاریخ</TableHead>
-                    <TableHead className="w-12 text-center">مبلغ</TableHead>
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[10%] text-center">ردیف</TableHead>
+                    <TableHead className="w-[30%] text-center">تاریخ</TableHead>
+                    <TableHead className="w-[60%] text-center">مبلغ</TableHead>
+                    <TableHead className="w-[30%] text-center">
                       دلیل تراکنش
                     </TableHead>
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[30%] text-center">
                       روش پرداخت
                     </TableHead>
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[30%] text-center">
                       حساب مبدا
                     </TableHead>
-                    <TableHead className="w-12 text-center">عملیات</TableHead>
+                    <TableHead className="w-[30%] text-center">
+                      عملیات
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -449,7 +453,15 @@ const VehicleDashboard = () => {
                           <TableCell className="text-center">
                             {item?.paymentMethod ?? ""}
                           </TableCell>
-                          <TableCell className="text-center">
+                          <TableCell
+                            title={
+                              item?.bussinessAccountId
+                                ? accountNameMap.get(item.bussinessAccountId) ||
+                                  item.bussinessAccountId
+                                : ""
+                            }
+                            className="text-center truncate cursor-pointer"
+                          >
                             {item?.bussinessAccountId
                               ? accountNameMap.get(item.bussinessAccountId) ||
                                 item.bussinessAccountId
@@ -461,6 +473,7 @@ const VehicleDashboard = () => {
                               onClick={() => {
                                 setIsOpenEditModal(true);
                                 setTransactionId(item._id?.toString());
+                              setDealId((item as ITransactionNew)?.dealId)
                               }}
                             />
 
@@ -571,25 +584,28 @@ const VehicleDashboard = () => {
               <Table className="min-w-full table-fixed text-right border-collapse">
                 <TableHeader className="top-0 sticky">
                   <TableRow className="hover:bg-transparent bg-gray-100">
-                    <TableHead className="w-12 text-center">ردیف</TableHead>
-                    <TableHead className="w-12 text-center">تاریخ</TableHead>
-                    <TableHead className="w-12 text-center">مبلغ</TableHead>
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[10%] text-center">ردیف</TableHead>
+                    <TableHead className="w-[30%] text-center">تاریخ</TableHead>
+                    <TableHead className="w-[60%] text-center">مبلغ</TableHead>
+                    <TableHead className="w-[30%] text-center">
                       دلیل تراکنش
                     </TableHead>
-                    <TableHead className="w-12 text-center">
+                    <TableHead className="w-[30%] text-center">
                       روش پرداخت
                     </TableHead>
-                    <TableHead className="w-12 text-center">
-                      حساب مبدا
+                    <TableHead className="w-[30%] text-center">
+                      حساب مقصد
+                    </TableHead>
+                    <TableHead className="w-[30%] text-center">
+                      عملیات
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {finalReceivedTransactions &&
                     finalReceivedTransactions.length > 0 &&
-                    finalReceivedTransactions?.map((item, index) => (
-                      <TableRow
+                    finalReceivedTransactions?.map((item, index) => {
+                      return <TableRow
                         key={`${item?._id}-${index}`}
                         className="hover:bg-gray-50"
                       >
@@ -609,14 +625,40 @@ const VehicleDashboard = () => {
                         <TableCell className="text-center">
                           {item?.paymentMethod ?? ""}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell
+                          title={
+                            item?.bussinessAccountId
+                              ? accountNameMap.get(item.bussinessAccountId) ||
+                                item.bussinessAccountId
+                              : ""
+                          }
+                          className="text-center truncate cursor-pointer"
+                        >
                           {item?.bussinessAccountId
                             ? accountNameMap.get(item.bussinessAccountId) ||
                               item.bussinessAccountId
                             : ""}
                         </TableCell>
-                      </TableRow>
-                    ))}
+                        <TableCell className="text-center flex gap-3 justify-center items-center">
+                          <Pencil
+                            className="w-4 h-4 cursor-pointer hover:text-indigo-500"
+                            onClick={() => {
+                              setIsOpenEditModal(true);
+                              setTransactionId(item._id?.toString());
+                              setDealId((item as ITransactionNew)?.dealId)
+
+                            }}
+                          />
+
+                          <Trash
+                            className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
+                            onClick={() =>
+                              handleDeleteClick(item._id?.toString() || "")
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>;
+                    })}
                 </TableBody>
               </Table>
             </div>
@@ -917,50 +959,52 @@ const VehicleDashboard = () => {
               mode="edit"
               transactionId={transactionId}
               onSuccess={handleEditSuccess}
+              dealId={dealId}
             />
           </DialogContent>
         </Dialog>
       )}
 
       {isOpenDeleteModal && (
-        <Dialog open={isOpenDeleteModal} onOpenChange={setIsOpenDeleteModal}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle className="!text-base text-gray-800">
-                تأیید حذف
-              </DialogTitle>
-              <DialogClose
-                onClose={() => {
-                  setIsOpenDeleteModal(false);
-                  setTransactionToDelete(undefined);
-                }}
-              />
-            </DialogHeader>
-            <div className="space-y-4 pb-4 pt-2">
-              <p className="text-gray-700">
-                آیا از حذف این تراکنش اطمینان دارید؟
-              </p>
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => {
-                    setIsOpenDeleteModal(false);
-                    setTransactionToDelete(undefined);
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  انصراف
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  disabled={deleteTransaction.isPending}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
-                >
-                  {deleteTransaction.isPending ? "در حال حذف..." : "حذف"}
-                </button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <DeleteModal deletePending={deleteTransaction.isPending} handleConfirmDelete={handleConfirmDelete} isOpenDeleteModal={isOpenDeleteModal} setIdToDelete={setTransactionToDelete} setIsOpenDeleteModal={setIsOpenDeleteModal} title="تراکنش"  />
+        // <Dialog open={isOpenDeleteModal} onOpenChange={setIsOpenDeleteModal}>
+        //   <DialogContent className="max-w-lg">
+        //     <DialogHeader>
+        //       <DialogTitle className="!text-base text-gray-800">
+        //         تأیید حذف
+        //       </DialogTitle>
+        //       <DialogClose
+        //         onClose={() => {
+        //           setIsOpenDeleteModal(false);
+        //           setTransactionToDelete(undefined);
+        //         }}
+        //       />
+        //     </DialogHeader>
+        //     <div className="space-y-4 pb-4 pt-2">
+        //       <p className="text-gray-700">
+        //         آیا از حذف این تراکنش اطمینان دارید؟
+        //       </p>
+        //       <div className="flex justify-end gap-3">
+        //         <button
+        //           onClick={() => {
+        //             setIsOpenDeleteModal(false);
+        //             setTransactionToDelete(undefined);
+        //           }}
+        //           className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+        //         >
+        //           انصراف
+        //         </button>
+        //         <button
+        //           onClick={handleConfirmDelete}
+        //           disabled={deleteTransaction.isPending}
+        //           className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+        //         >
+        //           {deleteTransaction.isPending ? "در حال حذف..." : "حذف"}
+        //         </button>
+        //       </div>
+        //     </div>
+        //   </DialogContent>
+        // </Dialog>
       )}
     </>
   );

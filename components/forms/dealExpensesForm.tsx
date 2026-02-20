@@ -16,7 +16,7 @@ import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
 import type { IDeal } from "@/types/new-backend-types";
 import useUpdateWalletHandler from "@/hooks/useUpdateWalletHandler";
-import { createTransaction } from "@/apis/client/transaction";
+// import { createTransaction } from "@/apis/client/transaction";
 
 interface DealExpensesFormProps {
   onSuccess?: () => void;
@@ -59,7 +59,7 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
   });
 
   const expenseType = watch("expenseType");
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   const onSubmit: SubmitHandler<dealExpensesSchemaType> = async (data) => {
     try {
@@ -112,22 +112,22 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
         data: updateData,
       });
 
-      const transactionData = {
-        type: "هزینه وسیله",
-        reason: "هزینه وسیله",
-        transactionDate: data.date ?? "",
-        amount: parseFloat(data.cost) ?? "",
-        personId: data.providerPersonId?.toString() || "",
-        bussinessAccountId: "",
-        paymentMethod: "-",
-        dealId: selectedDeal._id || "",
-        description: data.description ?? "",
-      };
+      // const transactionData = {
+      //   type: "هزینه وسیله",
+      //   reason: "هزینه وسیله",
+      //   transactionDate: data.date ?? "",
+      //   amount: parseFloat(data.cost) ?? "",
+      //   personId: data.providerPersonId?.toString() || "",
+      //   bussinessAccountId: "",
+      //   paymentMethod: "-",
+      //   dealId: selectedDeal._id || "",
+      //   description: data.description ?? "",
+      // };
 
-      await createTransaction(transactionData);
-      queryClient.invalidateQueries({
-        queryKey: ["get-transactions-by-deal-id"],
-      });
+      // await createTransaction(transactionData);
+      // queryClient.invalidateQueries({
+      //   queryKey: ["get-transactions-by-deal-id"],
+      // });
 
       toast.success("هزینه با موفقیت ثبت شد");
       onSuccess?.();
@@ -196,16 +196,17 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
                   {...register("expenseType")}
                   className="w-4 h-4"
                 />
-                <span>آپشن</span>
+                <span className="text-sm">آپشن</span>
               </label>
-              <label className="flex items-center gap-2">
+              <label className="flex items-center gap-2 opacity-50">
                 <input
                   type="radio"
                   value="otherCost"
                   {...register("expenseType")}
-                  className="w-4 h-4"
+                  className="w-4 h-4 disabled:opacity-70 cursor-not-allowed"
+                  disabled
                 />
-                <span>سایر هزینه‌ها</span>
+                <span className="opacity-50 cursor-not-allowed text-sm">سایر هزینه‌ها</span>
               </label>
             </div>
           </div>
