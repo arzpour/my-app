@@ -99,7 +99,7 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
 
   const handleClose = () => {
     setSelectedForm(null);
-    onOpenChange(false);
+    // onOpenChange(false);
     setMode("add");
     dispatch(resetPlateState());
   };

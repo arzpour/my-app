@@ -14,6 +14,8 @@ import { getAllVehicles } from "@/apis/client/vehicles";
 import { IVehicle, IDeal } from "@/types/new-backend-types";
 import VehicleFormModal from "@/components/forms/vehicleFormModal";
 import useGetAllDeals from "@/hooks/useGetAllDeals";
+import { setChassisNo } from "@/redux/slices/carSlice";
+import { useDispatch } from "react-redux";
 
 const VehicleList = () => {
   const { data: vehicles, isLoading: vehiclesLoading } = useQuery({
@@ -21,26 +23,28 @@ const VehicleList = () => {
     queryFn: getAllVehicles,
   });
 
-  const {data:allDeals} = useGetAllDeals()
+  const { data: allDeals } = useGetAllDeals();
   // const getAllDeals = useGetAllDeals();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  
+
   const [selectedVehicle, setSelectedVehicle] = React.useState<IVehicle | null>(
     null,
   );
   const [modalMode, setModalMode] = React.useState<"add" | "edit">("add");
 
-//   React.useEffect(() => {
-//     const fetchDeals = async () => {
-//       try {
-//        const res = await getAllDeals.mutateAsync();
-// setAllDeals(res)
-//       } catch (error) {
-//         console.error("Error fetching deals:", error);
-//       }
-//     };
-//     fetchDeals();
-//   }, []);
+  const dispatch = useDispatch();
+
+  //   React.useEffect(() => {
+  //     const fetchDeals = async () => {
+  //       try {
+  //        const res = await getAllDeals.mutateAsync();
+  // setAllDeals(res)
+  //       } catch (error) {
+  //         console.error("Error fetching deals:", error);
+  //       }
+  //     };
+  //     fetchDeals();
+  //   }, []);
 
   // const deals = getAllDeals.data || [];
 
@@ -81,8 +85,8 @@ const VehicleList = () => {
 
   return (
     <>
-      <div className="flex justify-between items-center gap-2 mb-4">
-        <h4>اطلاعات خودرو</h4>
+      <div className="flex justify-between items-center gap-2 my-4 mt-6">
+        <h4 className="font-semibold text-gray-700">اطلاعات خودرو</h4>
         {/* <button
           onClick={handleAdd}
           className="px-6 py-2 text-white bg-indigo-400 cursor-pointer rounded-md hover:bg-indigo-500 transition-colors"
@@ -103,13 +107,17 @@ const VehicleList = () => {
                   <TableHead className="text-center">ردیف</TableHead>
                   <TableHead className="text-center">شاسی</TableHead>
                   <TableHead className="text-center">مدل ماشین</TableHead>
-                  <TableHead className="text-center">خریدار</TableHead>
-                  <TableHead className="text-center">فروشنده</TableHead>
+                  <TableHead className="text-center">پلاک</TableHead>
+                  <TableHead className="text-center">
+                    {/* طرف اول(فروشنده) */}
+                    طرف اول
+                  </TableHead>
+                  {/* <TableHead className="text-center">طرف دوم(خریدار)</TableHead> */}
+                  <TableHead className="text-center">طرف دوم</TableHead>
                   <TableHead className="text-center">کارگزار خرید</TableHead>
                   <TableHead className="text-center">کارگزار فروش</TableHead>
-                  <TableHead className="text-center">مبلغ فروش</TableHead>
                   <TableHead className="text-center">مبلغ خرید</TableHead>
-                  <TableHead className="text-center">پلاک</TableHead>
+                  <TableHead className="text-center">مبلغ فروش</TableHead>
                   <TableHead className="text-center">عملیات</TableHead>
                 </TableRow>
               </TableHeader>
@@ -133,10 +141,13 @@ const VehicleList = () => {
                         {vehicle.model || "—"}
                       </TableCell>
                       <TableCell className="text-center">
-                        {relatedDeal?.buyer?.fullName || "—"}
+                        {vehicle?.plateNumber || "—"}
                       </TableCell>
                       <TableCell className="text-center">
                         {relatedDeal?.seller?.fullName || "—"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {relatedDeal?.buyer?.fullName || "—"}
                       </TableCell>
                       <TableCell className="text-center">
                         {relatedDeal?.purchaseBroker?.fullName || "—"}
@@ -145,22 +156,23 @@ const VehicleList = () => {
                         {relatedDeal?.saleBroker?.fullName || "—"}
                       </TableCell>
                       <TableCell className="text-center">
-                        {relatedDeal?.salePrice
-                          ? relatedDeal?.salePrice?.toLocaleString("en-US")
-                          : "—"}
-                      </TableCell>
-                      <TableCell className="text-center">
                         {relatedDeal?.purchasePrice
                           ? relatedDeal?.purchasePrice?.toLocaleString("en-US")
                           : "—"}
                       </TableCell>
                       <TableCell className="text-center">
-                        {vehicle?.plateNumber || "—"}
+                        {relatedDeal?.salePrice
+                          ? relatedDeal?.salePrice?.toLocaleString("en-US")
+                          : "—"}
                       </TableCell>
+
                       <TableCell className="text-center flex gap-3 items-center justify-center">
                         <Pencil
                           className="w-4 h-4 cursor-pointer hover:text-indigo-500"
-                          onClick={() => handleEdit(vehicle)}
+                          onClick={() => {
+                            handleEdit(vehicle);
+                            dispatch(setChassisNo(vehicle.vin));
+                          }}
                         />
                       </TableCell>
                     </TableRow>

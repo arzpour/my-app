@@ -354,6 +354,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
   // }
 
   const onSubmit: SubmitHandler<VehicleFormData> = async (data) => {
+    console.log("🚀 ~ onSubmit ~ data:", data);
     try {
       //   const vehiclePayload: Partial<IVehicle> = {
       //     vin: data?.ChassisNo,
@@ -541,8 +542,10 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
           (d) => d.vehicleSnapshot.vin === res.vin,
         )[0]._id;
         await updateDeal.mutateAsync({ id: dealId, data: dealPayload });
-        await getAllDeals.mutateAsync(); // دیتای deal ها را بروزرسانی می‌کند
+        await getAllDeals.mutateAsync();
         queryClient.invalidateQueries({ queryKey: ["get-all-vehicles"] });
+        queryClient.invalidateQueries({ queryKey: ["get-deals-by-vin"] });
+        
         toast("اطلاعات با موفقیت به‌روزرسانی شد", {
           icon: "✅",
           className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
@@ -589,15 +592,21 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
-                شماره ردیف
+                شماره شاسی
               </label>
               <input
-                type="number"
-                {...register("RowNo")}
+                type="text"
+                {...register("ChassisNo", {
+                  required: "شماره شاسی الزامی است",
+                })}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
               />
+              {errors.ChassisNo && (
+                <p className="text-red-500 text-xs">
+                  {errors.ChassisNo.message}
+                </p>
+              )}
             </div>
-
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
                 مدل ماشین
@@ -615,24 +624,6 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
             </div>
 
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">
-                شماره شاسی
-              </label>
-              <input
-                type="text"
-                {...register("ChassisNo", {
-                  required: "شماره شاسی الزامی است",
-                })}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              />
-              {errors.ChassisNo && (
-                <p className="text-red-500 text-xs">
-                  {errors.ChassisNo.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">پلاک</label>
               <input
                 type="text"
@@ -643,13 +634,72 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
 
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
-                مبلغ فروش
+                کارگزار خرید
               </label>
-              <input
-                type="number"
-                {...register("SaleAmount")}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              <Controller
+                name="PurchaseBroker"
+                control={control}
+                render={({ field }) => {
+                  return (
+                    <PersonSelect
+                      value={field.value}
+                      onValueChange={(personId, person) => {
+                        field.onChange(personId);
+                        setValue(
+                          "PurchaseBrokerName",
+                          `${person.firstName} ${person.lastName}`,
+                        );
+                      }}
+                      people={brokers || []}
+                      placeholder={
+                        relatedDeal?.purchaseBroker?.fullName
+                          ? relatedDeal?.purchaseBroker?.fullName
+                          : "انتخاب کارگزار خرید"
+                      }
+                    />
+                  );
+                }}
               />
+              {errors.PurchaseBroker && (
+                <p className="text-red-500 text-xs">
+                  {errors.PurchaseBroker.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">
+                کارگزار فروش
+              </label>
+              <Controller
+                name="SaleBroker"
+                control={control}
+                render={({ field }) => {
+                  return (
+                    <PersonSelect
+                      value={field.value}
+                      onValueChange={(personId, person) => {
+                        field.onChange(personId);
+                        setValue(
+                          "SaleBrokerName",
+                          `${person.firstName} ${person.lastName}`,
+                        );
+                      }}
+                      people={brokers || []}
+                      placeholder={
+                        relatedDeal?.saleBroker?.fullName
+                          ? relatedDeal?.saleBroker?.fullName
+                          : "انتخاب کارگزار فروش"
+                      }
+                    />
+                  );
+                }}
+              />
+              {errors.SaleBroker && (
+                <p className="text-red-500 text-xs">
+                  {errors.SaleBroker.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-1">
@@ -662,8 +712,18 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
               />
             </div>
-
             <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">
+                مبلغ فروش
+              </label>
+              <input
+                type="number"
+                {...register("SaleAmount")}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              />
+            </div>
+
+            {/* <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
                 نام فروشنده
               </label>
@@ -695,12 +755,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                   {errors.SellerName.message}
                 </p>
               )}
-              {/* <input
-                type="text"
-                {...register("SellerName")}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              /> */}
-            </div>
+            </div> */}
             {/* 
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
@@ -724,17 +779,10 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               />
             </div> */}
 
-            <div className="space-y-1">
+            {/* <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
                 نام خریدار
               </label>
-              {/* <input
-                type="text"
-                {...register("BuyerName")}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              />
-            </div> */}
-
               <Controller
                 name="BuyerName"
                 control={control}
@@ -762,7 +810,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                   {errors.BuyerName.message}
                 </p>
               )}
-            </div>
+            </div> */}
 
             {/* <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
@@ -788,22 +836,6 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
 
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
-                تاریخ فروش
-              </label>
-              {/* <input
-                type="text"
-                {...register("SaleDate")}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              /> */}
-              <PersianDatePicker
-                value={getValues().SaleDate}
-                onChange={(date: string) => setValue("SaleDate", date)}
-                placeholder="تاریخ فروش"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">
                 تاریخ خرید
               </label>
               {/* <input
@@ -820,76 +852,18 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
 
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
-                کارگزار خرید
+                تاریخ فروش
               </label>
-              <Controller
-                name="PurchaseBroker"
-                control={control}
-                render={({ field }) => {
-                  return (
-                    <PersonSelect
-                      value={field.value}
-                      onValueChange={(personId) => {
-                        field.onChange(personId);
-                        setValue("PurchaseBrokerName", field.value);
-                      }}
-                      people={brokers || []}
-                      placeholder={
-                        relatedDeal?.purchaseBroker?.fullName
-                          ? relatedDeal?.purchaseBroker?.fullName
-                          : "انتخاب کارگزار خرید"
-                      }
-                    />
-                  );
-                }}
-              />
-              {errors.PurchaseBroker && (
-                <p className="text-red-500 text-xs">
-                  {errors.PurchaseBroker.message}
-                </p>
-              )}
               {/* <input
                 type="text"
-                {...register("PurchaseBroker")}
+                {...register("SaleDate")}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
               /> */}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">
-                کارگزار فروش
-              </label>
-              <Controller
-                name="SaleBroker"
-                control={control}
-                render={({ field }) => {
-                  return (
-                    <PersonSelect
-                      value={field.value}
-                      onValueChange={(personId) => {
-                        field.onChange(personId);
-                        setValue("SaleBrokerName", field.value);
-                      }}
-                      people={brokers || []}
-                      placeholder={
-                        relatedDeal?.saleBroker?.fullName
-                          ? relatedDeal?.saleBroker?.fullName
-                          : "انتخاب کارگزار فروش"
-                      }
-                    />
-                  );
-                }}
+              <PersianDatePicker
+                value={getValues().SaleDate}
+                onChange={(date: string) => setValue("SaleDate", date)}
+                placeholder="تاریخ فروش"
               />
-              {errors.SaleBroker && (
-                <p className="text-red-500 text-xs">
-                  {errors.SaleBroker.message}
-                </p>
-              )}
-              {/* <input
-                type="text"
-                {...register("SaleBroker")}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              /> */}
             </div>
 
             <div className="space-y-1">
