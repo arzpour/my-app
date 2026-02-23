@@ -154,7 +154,8 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
         </h3>
         <div className="space-y-2">
           <label className="block text-sm font-medium">
-            انتخاب خودرو (پلاک/مدل) *
+            {" "}
+            انتخاب خودرو (پلاک/مدل) <span className="text-red-600">*</span>
           </label>
           <select
             {...register("dealId")}
@@ -187,7 +188,10 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
         </h3>
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium">نوع هزینه *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              نوع هزینه <span className="text-red-600">*</span>
+            </label>
             <div className="flex gap-4">
               <label className="flex items-center gap-2">
                 <input
@@ -206,7 +210,9 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
                   className="w-4 h-4 disabled:opacity-70 cursor-not-allowed"
                   disabled
                 />
-                <span className="opacity-50 cursor-not-allowed text-sm">سایر هزینه‌ها</span>
+                <span className="opacity-50 cursor-not-allowed text-sm">
+                  سایر هزینه‌ها
+                </span>
               </label>
             </div>
           </div>
@@ -214,9 +220,14 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="block text-sm font-medium">
-                {expenseType === "otherCost"
-                  ? "تامین کننده (اختیاری)"
-                  : "تامین کننده *"}
+                {expenseType === "otherCost" ? (
+                  "تامین کننده"
+                ) : (
+                  <>
+                    {" "}
+                    تامین کننده <span className="text-red-600">*</span>
+                  </>
+                )}
               </label>
               <Controller
                 name="providerPersonId"
@@ -242,7 +253,8 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
                 htmlFor="description"
                 className="block text-sm font-medium"
               >
-                شرح هزینه/آپشن *
+                {" "}
+                شرح هزینه/آپشن <span className="text-red-600">*</span>
               </label>
               <input
                 id="description"
@@ -259,7 +271,8 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
 
             <div className="space-y-2">
               <label htmlFor="cost" className="block text-sm font-medium">
-                مبلغ هزینه (ریال) *
+                {" "}
+                مبلغ هزینه (ریال) <span className="text-red-600">*</span>
               </label>
               {/* <input
                 id="cost"
@@ -302,7 +315,10 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium">تاریخ *</label>
+              <label className="block text-sm font-medium">
+                {" "}
+                تاریخ <span className="text-red-600">*</span>
+              </label>
               <Controller
                 name="date"
                 control={control}

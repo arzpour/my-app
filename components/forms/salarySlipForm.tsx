@@ -283,7 +283,10 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium">کارمند *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              کارمند <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="employeePersonId"
               control={control}
@@ -312,7 +315,8 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="forYear" className="block text-sm font-medium">
-              سال عملکرد *
+              {" "}
+              سال عملکرد <span className="text-red-600">*</span>
             </label>
             <select
               id="forYear"
@@ -333,7 +337,8 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="forMonth" className="block text-sm font-medium">
-              ماه عملکرد *
+              {" "}
+              ماه عملکرد <span className="text-red-600">*</span>
             </label>
             <select
               id="forMonth"
@@ -353,7 +358,10 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">تاریخ پرداخت *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              تاریخ پرداخت <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="paymentDate"
               control={control}
@@ -381,7 +389,8 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="baseSalary" className="block text-sm font-medium">
-              حقوق پایه (ریال) *
+              {" "}
+              حقوق پایه (ریال) <span className="text-red-600">*</span>
             </label>
             {/* <input
               id="baseSalary"
@@ -576,7 +585,6 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
               value={getValues().tax.toLocaleString()}
             /> */}
 
-            
             <Controller
               name="tax"
               control={control}
@@ -724,7 +732,8 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
             htmlFor="businessAccountId"
             className="block text-sm font-medium"
           >
-            پرداخت از حساب *
+            {" "}
+            پرداخت از حساب <span className="text-red-600">*</span>
           </label>
           <select
             id="businessAccountId"

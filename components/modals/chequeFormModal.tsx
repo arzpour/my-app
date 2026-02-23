@@ -430,9 +430,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
           ارتباطات
         </h3>
         <div className="space-y-2">
-          <label className="block text-sm font-medium">
-            مرتبط با معامله (اختیاری)
-          </label>
+          <label className="block text-sm font-medium">مرتبط با معامله</label>
           <select
             {...register("relatedDealId")}
             onChange={(e) => {
@@ -444,7 +442,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
             }}
             className="w-full px-3 py-2 border rounded-md"
           >
-            <option value="">انتخاب معامله (اختیاری)</option>
+            <option value="">انتخاب معامله</option>
             {allDeals?.map((deal) => (
               <option key={deal._id?.toString()} value={deal._id?.toString()}>
                 {deal.vehicleSnapshot.plateNumber || "بدون پلاک"} -{" "}

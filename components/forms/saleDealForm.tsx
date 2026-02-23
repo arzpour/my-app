@@ -154,7 +154,8 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
         </h3>
         <div className="space-y-2">
           <label className="block text-sm font-medium">
-            انتخاب خودرو (پلاک/مدل) *
+            {" "}
+            انتخاب خودرو (پلاک/مدل) <span className="text-red-600">*</span>
           </label>
           <select
             {...register("dealId")}
@@ -189,7 +190,10 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium">خریدار *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              خریدار <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="buyerPersonId"
               control={control}
@@ -221,7 +225,8 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="salePrice" className="block text-sm font-medium">
-              قیمت فروش نهایی (ریال) *
+              {" "}
+              قیمت فروش نهایی (ریال) <span className="text-red-600">*</span>
             </label>
             {/* <input
               id="salePrice"
@@ -264,7 +269,10 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">تاریخ فروش *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              تاریخ فروش <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="saleDate"
               control={control}

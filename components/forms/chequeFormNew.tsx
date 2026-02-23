@@ -160,7 +160,10 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium">نوع چک *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              نوع چک <span className="text-red-600">*</span>
+            </label>
             <div className="flex gap-4">
               <label className="flex items-center gap-2">
                 <input
@@ -188,7 +191,8 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="chequeNumber" className="block text-sm font-medium">
-              سری چک *
+              {" "}
+              سری چک <span className="text-red-600">*</span>
             </label>
             <input
               id="chequeNumber"
@@ -205,7 +209,8 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
           </div>
           <div className="space-y-2">
             <label htmlFor="chequeSerial" className="block text-sm font-medium">
-              سریال چک *
+              {" "}
+              سریال چک <span className="text-red-600">*</span>
             </label>
             <input
               id="chequeSerial"
@@ -223,7 +228,8 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="bankName" className="block text-sm font-medium">
-              نام بانک *
+              {" "}
+              نام بانک <span className="text-red-600">*</span>
             </label>
             <select
               id="bankName"
@@ -244,7 +250,8 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="amount" className="block text-sm font-medium">
-              مبلغ (ریال) *
+              {" "}
+              مبلغ (ریال) <span className="text-red-600">*</span>
             </label>
             <input
               id="amount"
@@ -259,7 +266,10 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">تاریخ صدور *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              تاریخ صدور <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="issueDate"
               control={control}
@@ -277,7 +287,10 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">تاریخ سررسید *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              تاریخ سررسید <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="dueDate"
               control={control}
@@ -395,7 +408,7 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
         </h3>
         <div className="space-y-2">
           <label className="block text-sm font-medium">
-            مرتبط با معامله (اختیاری)
+            مرتبط با معامله
           </label>
           <select
             {...register("relatedDealId")}
@@ -408,7 +421,7 @@ const ChequeFormNew: React.FC<ChequeFormNewProps> = ({
             }}
             className="w-full px-3 py-2 border rounded-md"
           >
-            <option value="">انتخاب معامله (اختیاری)</option>
+            <option value="">انتخاب معامله</option>
             {allDeals?.map((deal) => (
               <option key={deal._id?.toString()} value={deal._id?.toString()}>
                 {deal.vehicleSnapshot.plateNumber || "بدون پلاک"} -{" "}

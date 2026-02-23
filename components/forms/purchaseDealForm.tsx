@@ -245,7 +245,8 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="vin" className="block text-sm font-medium">
-              شماره شاسی (VIN) *
+              {" "}
+              شماره شاسی <span className="text-red-600">*</span>
             </label>
             <input
               id="vin"
@@ -260,7 +261,8 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="model" className="block text-sm font-medium">
-              مدل خودرو *
+              {" "}
+              مدل خودرو <span className="text-red-600">*</span>
             </label>
             <input
               id="model"
@@ -278,7 +280,8 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
               htmlFor="productionYear"
               className="block text-sm font-medium"
             >
-              سال ساخت *
+              {" "}
+              سال ساخت <span className="text-red-600">*</span>
             </label>
             <select
               id="productionYear"
@@ -334,7 +337,10 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium">فروشنده *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              فروشنده <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="sellerPersonId"
               control={control}
@@ -364,7 +370,8 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
               htmlFor="purchasePrice"
               className="block text-sm font-medium"
             >
-              قیمت خرید (ریال) *
+              {" "}
+              قیمت خرید (ریال) <span className="text-red-600">*</span>
             </label>
             {/* <input
               id="purchasePrice"
@@ -410,7 +417,10 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">تاریخ خرید *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              تاریخ خرید <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="purchaseDate"
               control={control}

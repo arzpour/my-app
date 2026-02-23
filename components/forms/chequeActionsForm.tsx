@@ -78,7 +78,8 @@ const ChequeActionsForm: React.FC<ChequeActionsFormProps> = ({
           {!chequeId && (
             <div className="space-y-2">
               <label htmlFor="chequeId" className="block text-sm font-medium">
-                شماره چک *
+                {" "}
+                شماره چک <span className="text-red-600">*</span>
               </label>
               <input
                 id="chequeId"
@@ -96,7 +97,8 @@ const ChequeActionsForm: React.FC<ChequeActionsFormProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="actionType" className="block text-sm font-medium">
-              نوع عملیات *
+              {" "}
+              نوع عملیات <span className="text-red-600">*</span>
             </label>
             <select
               id="actionType"
@@ -117,7 +119,10 @@ const ChequeActionsForm: React.FC<ChequeActionsFormProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">تاریخ عملیات *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              تاریخ عملیات <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="actionDate"
               control={control}
