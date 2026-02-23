@@ -230,7 +230,7 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
             {...register("currentBalance")}
             placeholder="0"
             type="number"
-            disabled={mode === "edit"}
+            // disabled={mode === "edit"}
             className="w-full px-3 py-2 border rounded-md disabled:bg-gray-100"
           />
           {errors.currentBalance && (
@@ -238,11 +238,11 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
               {errors.currentBalance.message}
             </p>
           )}
-          {mode === "edit" && (
+          {/* {mode === "edit" && (
             <p className="text-xs text-muted-foreground">
               موجودی فقط در زمان ایجاد قابل ویرایش است
             </p>
-          )}
+          )} */}
         </div>
 
         <div className="space-y-2">

@@ -148,7 +148,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
           vin: data.vin,
           model: data.model,
           productionYear: parseInt(data.productionYear),
-          plateNumber: data.plateNumber || "",
+          plateNumber: plateData || data.plateNumber || "",
         },
         status: "in_stock",
         purchaseDate: data.purchaseDate,

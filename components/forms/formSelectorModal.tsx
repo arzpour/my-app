@@ -138,9 +138,9 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
               personData={mode === "add" ? null : personData}
               mode={mode}
               embedded={true}
-              onSuccess={() => {
-                handleClose();
-              }}
+              // onSuccess={() => {
+              //   handleClose();
+              // }}
               setMode={setMode}
               handleBack={handleBack}
             />
@@ -155,9 +155,9 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
               accountData={mode === "add" ? null : accountData}
               mode={mode}
               embedded={true}
-              onSuccess={() => {
-                handleClose();
-              }}
+              // onSuccess={() => {
+              //   handleClose();
+              // }}
               setMode={setMode}
             />
             <p className="text-gray-700 font-semibold">لیست حساب بانکی</p>

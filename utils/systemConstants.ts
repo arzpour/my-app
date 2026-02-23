@@ -36,6 +36,13 @@ export const CHEQUE_STATUSES = [
   "ثبت شده",
 ];
 
+export const documents = [
+  "کارت ملی خریدار",
+  "کارت ملی فروشنده",
+  "کارت خودرو",
+  "سند خودرو",
+];
+
 export const TRANSACTION_TYPES = ["پرداخت", "دریافت"];
 
 export const PAYMENT_METHODS = [
@@ -233,4 +240,15 @@ export const formatPrice = (price?: string | number) => {
   const formatted = value.toLocaleString("en-US");
 
   return isNegative ? `\u200E-${formatted}` : `\u200E${formatted}`;
+};
+
+export const parsePriceToNumber = (value?: string | number): number => {
+  if (value == null || value === "") return 0;
+  if (typeof value === "number" && !isNaN(value)) return value;
+  const normalized = String(value)
+    .replace(/,/g, "")
+    .replace(/\s/g, "")
+    .replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString());
+  const num = Number(normalized);
+  return isNaN(num) ? 0 : num;
 };

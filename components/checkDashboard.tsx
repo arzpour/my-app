@@ -1386,8 +1386,8 @@ const CheckDashboard = () => {
     );
   };
 
-  const issuedCheques = cheques?.filter((cheque) => isIssuedCheque(cheque));
-  const importedCheques = cheques?.filter((cheque) => isImportedCheque(cheque));
+  // const issuedCheques = cheques?.filter((cheque) => isIssuedCheque(cheque));
+  // const importedCheques = cheques?.filter((cheque) => isImportedCheque(cheque));
 
   const sayadiIDOptions = Array.from(
     new Set(cheques?.map((cheque) => cheque.sayadiID)),
@@ -1405,11 +1405,11 @@ const CheckDashboard = () => {
     new Set(cheques?.map((cheque) => cheque.branchName)),
   );
 
-  const getOptions = (key: string) => {
-    const values = cheques?.map((d: any) => d[key] ?? "") ?? [];
-    const uniqueValues = Array.from(new Set(values.filter(Boolean)));
-    return ["همه", ...uniqueValues];
-  };
+  // const getOptions = (key: string) => {
+  //   const values = cheques?.map((d: any) => d[key] ?? "") ?? [];
+  //   const uniqueValues = Array.from(new Set(values.filter(Boolean)));
+  //   return ["همه", ...uniqueValues];
+  // };
 
   const getRangeNumbers = (range: DateObject[]) => {
     if (range.length !== 2) return null;
