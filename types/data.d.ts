@@ -21,7 +21,9 @@ interface ICarRes {
   PurchaseBroker: string;
   SaleBroker: string;
   Secretary: string;
+  SecretaryName: string;
   DocumentsCopy: string[];
+  documents: string;
   SellerNationalID: number;
   BuyerNationalID: number;
   status?: string;

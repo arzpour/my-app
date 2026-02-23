@@ -115,7 +115,6 @@ const Header = () => {
     try {
       await logout.mutateAsync();
 
-      // Clear all React Query cache
       queryClient.clear();
 
       if (typeof window !== "undefined") {
@@ -240,11 +239,12 @@ const Header = () => {
       .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
   const totalPaidToSeller = paymentsToSeller + issuedPaidCheques;
   const sellerSettlementAmount = deals?.purchasePrice || 0;
+  const SETTLEMENT_TOLERANCE = 10000;
   const sellerSettlementStatus = React.useMemo(() => {
     if (!deals?.purchasePrice) return "—";
     const diff = Math.abs(totalPaidToSeller - sellerSettlementAmount);
-    if (diff < 10000) return "تسویه شده";
-    return totalPaidToSeller < sellerSettlementAmount ? "بدهکار" : "بستانکار";
+    if (diff < SETTLEMENT_TOLERANCE) return "تسویه شده";
+    return totalPaidToSeller > sellerSettlementAmount ? "بدهکار" : "بستانکار";
   }, [totalPaidToSeller, sellerSettlementAmount, deals?.purchasePrice]);
 
   const receiptsFromBuyer =
@@ -270,7 +270,7 @@ const Header = () => {
   const buyerSettlementStatus = React.useMemo(() => {
     if (!deals?.salePrice) return "—";
     const diff = Math.abs(totalReceivedFromBuyer - buyerSettlementAmount);
-    if (diff < 10000) return "تسویه شده";
+    if (diff < SETTLEMENT_TOLERANCE) return "تسویه شده";
     return totalReceivedFromBuyer < buyerSettlementAmount
       ? "بدهکار"
       : "بستانکار";
@@ -419,13 +419,12 @@ const Header = () => {
         <div className="flex gap-2 items-right items-baseline text-sm">
           <p className="text-sm">وضعیت خودرو:</p>
           <p
-            className={`px-7 rounded py-1 text-sm ${
-              deals?.buyer
+            className={`px-7 rounded py-1 text-sm ${deals?.buyer
                 ? "bg-red-400 text-white"
                 : deals?.seller
                   ? "bg-green-400 text-red-900"
                   : "bg-yellow-400 text-red-900"
-            }`}
+              }`}
           >
             {deals?.buyer ? "فروخته شد" : deals?.seller ? "موجود" : "نامعلوم"}
           </p>
@@ -474,15 +473,14 @@ const Header = () => {
             وضعیت مالی با طرف اول:
           </p>
           <p
-            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${
-              sellerSettlementStatus === "تسویه شده"
+            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${sellerSettlementStatus === "تسویه شده"
                 ? "bg-green-400 text-green-900"
                 : sellerSettlementStatus === "بدهکار"
                   ? "bg-red-400 text-red-900"
                   : sellerSettlementStatus === "بستانکار"
                     ? "bg-yellow-400 text-yellow-900"
                     : "bg-gray-200 text-gray-600"
-            }`}
+              }`}
           >
             {sellerSettlementStatus}
           </p>
@@ -493,15 +491,14 @@ const Header = () => {
             وضعیت مالی با طرف دوم:
           </p>
           <p
-            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${
-              buyerSettlementStatus === "تسویه شده"
+            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${buyerSettlementStatus === "تسویه شده"
                 ? "bg-green-400 text-green-900"
                 : buyerSettlementStatus === "بستانکار"
                   ? "bg-yellow-400 text-yellow-900"
                   : buyerSettlementStatus === "بدهکار"
                     ? "bg-red-400 text-red-900"
                     : "bg-gray-200 text-gray-600"
-            }`}
+              }`}
           >
             {buyerSettlementStatus}
           </p>

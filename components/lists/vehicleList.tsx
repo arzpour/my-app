@@ -7,32 +7,39 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash } from "lucide-react";
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAllVehicles } from "@/apis/client/vehicles";
 import { IVehicle, IDeal } from "@/types/new-backend-types";
 import VehicleFormModal from "@/components/forms/vehicleFormModal";
 import useGetAllDeals from "@/hooks/useGetAllDeals";
 import { setChassisNo } from "@/redux/slices/carSlice";
 import { useDispatch } from "react-redux";
+import useGetTransactionByDealId from "@/hooks/useGetTransactionByDealId";
+import { toast } from "sonner";
+import DeleteModal from "@/components/modals/deleteModal";
+import { useDeleteVehicle } from "@/apis/mutations/vehicle";
+import { formatPrice } from "@/utils/systemConstants";
 
 const VehicleList = () => {
   const { data: vehicles, isLoading: vehiclesLoading } = useQuery({
     queryKey: ["get-all-vehicles"],
     queryFn: getAllVehicles,
   });
-
   const { data: allDeals } = useGetAllDeals();
-  // const getAllDeals = useGetAllDeals();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [selectedDealId, setSelectedDealId] = React.useState<string | undefined>(undefined);
   const [selectedVehicle, setSelectedVehicle] = React.useState<IVehicle | null>(
     null,
   );
   const [modalMode, setModalMode] = React.useState<"add" | "edit">("add");
 
   const dispatch = useDispatch();
+  const deleteVehicleMutation = useDeleteVehicle();
+
+  const getTransactionByDealId = useGetTransactionByDealId(selectedDealId);
 
   //   React.useEffect(() => {
   //     const fetchDeals = async () => {
@@ -73,6 +80,42 @@ const VehicleList = () => {
     setSelectedVehicle(vehicle);
     setModalMode("edit");
     setIsModalOpen(true);
+  };
+
+  const handleDeleteClick = (vehicle: IVehicle) => {
+    const relatedDeal = (allDeals ?? []).find(
+      (el) => el.vehicleSnapshot?.vin === vehicle.vin,
+    );
+    setSelectedVehicle(vehicle);
+    setSelectedDealId(relatedDeal?._id?.toString());
+    setIsDeleteModalOpen(true);
+  };
+
+  const queryClient = useQueryClient();
+
+  const handleConfirmDelete = async () => {
+    if (!selectedVehicle?._id) return;
+    const relatedDeal = (allDeals ?? []).find(
+      (el) => el.vehicleSnapshot?.vin === selectedVehicle.vin,
+    );
+    const hasTransactions =
+      (getTransactionByDealId.data?.length ?? 0) > 0;
+    const hasDirectCosts =
+      (relatedDeal?.directCosts?.otherCost?.length ?? 0) > 0 ||
+      (relatedDeal?.directCosts?.options?.length ?? 0) > 0;
+    if (hasTransactions || hasDirectCosts) {
+      toast.error("این خودرو قابل حذف نیست، برای حذف ابتدا تراکنش های مربوط به این خودرو را حذف کنید");
+      return;
+    }
+    try {
+      await deleteVehicleMutation.mutateAsync(selectedVehicle._id);
+      setIsDeleteModalOpen(false);
+      setSelectedDealId(undefined);
+      setSelectedVehicle(null);
+      queryClient.invalidateQueries({ queryKey: ["get-all-vehicles"] });
+    } catch (error) {
+      console.error("Error deleting vehicle:", error);
+    }
   };
 
   // const handleAdd = () => {
@@ -118,15 +161,16 @@ const VehicleList = () => {
                   <TableHead className="text-center">کارگزار فروش</TableHead>
                   <TableHead className="text-center">مبلغ خرید</TableHead>
                   <TableHead className="text-center">مبلغ فروش</TableHead>
+                  <TableHead className="text-center">منشی</TableHead>
+                  <TableHead className="text-center">مدارک</TableHead>
                   <TableHead className="text-center">عملیات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {vehiclesList.map((vehicle, index) => {
-                  // const relatedDeal = vinToDealMap.get(vehicle.vin);
-                  const relatedDeal = (allDeals ?? []).filter(
-                    (el) => el.vehicleSnapshot.vin === vehicle.vin,
-                  )[0];
+                  const relatedDeal = (allDeals ?? []).find(
+                    (el) => el.vehicleSnapshot?.vin === vehicle.vin,
+                  );
 
                   return (
                     <TableRow
@@ -156,16 +200,27 @@ const VehicleList = () => {
                         {relatedDeal?.saleBroker?.fullName || "—"}
                       </TableCell>
                       <TableCell className="text-center">
-                        {relatedDeal?.purchasePrice
-                          ? relatedDeal?.purchasePrice?.toLocaleString("en-US")
+                        {relatedDeal?.purchasePrice != null
+                          ? formatPrice(relatedDeal.purchasePrice)
                           : "—"}
                       </TableCell>
                       <TableCell className="text-center">
-                        {relatedDeal?.salePrice
-                          ? relatedDeal?.salePrice?.toLocaleString("en-US")
+                        {relatedDeal?.salePrice != null
+                          ? formatPrice(relatedDeal.salePrice)
                           : "—"}
                       </TableCell>
-
+                      <TableCell className="text-center">
+                        {vehicle.SecretaryName || "—"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {Array.isArray(vehicle.documents)
+                          ? vehicle.documents.length === 0
+                            ? "فاقد مدارک"
+                            : vehicle.documents.length >= 4
+                              ? "کامل"
+                              : "ناقص"
+                          : (vehicle.documents ?? "—")}
+                      </TableCell>
                       <TableCell className="text-center flex gap-3 items-center justify-center">
                         <Pencil
                           className="w-4 h-4 cursor-pointer hover:text-indigo-500"
@@ -173,6 +228,10 @@ const VehicleList = () => {
                             handleEdit(vehicle);
                             dispatch(setChassisNo(vehicle.vin));
                           }}
+                        />
+                        <Trash
+                          className="w-4 h-4 cursor-pointer hover:text-red-500"
+                          onClick={() => handleDeleteClick(vehicle)}
                         />
                       </TableCell>
                     </TableRow>
@@ -193,6 +252,16 @@ const VehicleList = () => {
         vehicleData={selectedVehicle as any}
         mode={modalMode}
       />
+      {isDeleteModalOpen && (
+        <DeleteModal
+          isOpenDeleteModal={isDeleteModalOpen}
+          setIsOpenDeleteModal={setIsDeleteModalOpen}
+          handleConfirmDelete={handleConfirmDelete}
+          setIdToDelete={setSelectedDealId}
+          title="خودرو"
+          deletePending={deleteVehicleMutation.isPending}
+        />
+      )}
     </>
   );
 };

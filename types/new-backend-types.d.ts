@@ -330,6 +330,10 @@ export interface IVehicle {
   SellerMobile;
   SellerName;
   SellerNationalID;
+  SecretaryName?: string;
+  Secretary?: string;
+  DocumentsCopy?: string[];
+  documents?: "ناقص" | "کامل" | "فاقد مدارک";
   createdAt: string;
   updatedAt: string;
   status: "in_stock" | "sold";

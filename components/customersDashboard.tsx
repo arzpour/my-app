@@ -1535,7 +1535,8 @@ const CustomersDashboard = () => {
                   <TableHead className="w-[70%] text-center">وضعیت</TableHead>
                   <TableHead className="w-[70%] text-center">
                     تراز مالی
-                  </TableHead>
+                  </TableHead> 
+
                 </TableRow>
               </TableHeader>
 
@@ -1556,12 +1557,11 @@ const CustomersDashboard = () => {
                           setSelectedDealId(null);
                           setSelectedChassisNo(null);
                         }}
-                        className={`cursor-pointer ${
-                          selectedNationalId?.toString() ===
+                        className={`cursor-pointer ${selectedNationalId?.toString() ===
                           person.nationalId.toString()
-                            ? "bg-gray-200"
-                            : "bg-white"
-                        }`}
+                          ? "bg-gray-200"
+                          : "bg-white"
+                          }`}
                       >
                         <TableCell className="text-center">
                           {index + 1}
@@ -1604,7 +1604,7 @@ const CustomersDashboard = () => {
                           })()}
                         </TableCell>
                         <TableCell className="text-center">
-                          {(() => {
+                          {/* {(() => {
                             const status = customerStatusMap.get(
                               person.nationalId?.toString() || "",
                             );
@@ -1619,7 +1619,8 @@ const CustomersDashboard = () => {
                             ) : (
                               0
                             );
-                          })()}
+                          })()} */}
+                          {formatPrice(person.wallet.balance.toLocaleString("en-US"))}
                         </TableCell>
                       </TableRow>
                     );
@@ -1673,38 +1674,37 @@ const CustomersDashboard = () => {
 
                 {carSeller && carSeller.length > 0
                   ? carSeller.map((deal: IDeal, index: number) => (
-                      <TableRow
-                        key={`${deal?._id}-${index}`}
-                        onClick={() => {
-                          handleTransationDataByDealId(deal._id.toString());
-                          handleChequeDataByDealId(deal._id.toString());
-                        }}
-                        className={`hover:bg-gray-50 cursor-pointer ${
-                          selectedDealId === deal._id.toString() &&
-                          selectedChassisNo === deal.vehicleSnapshot?.vin
-                            ? "bg-blue-100"
-                            : ""
+                    <TableRow
+                      key={`${deal?._id}-${index}`}
+                      onClick={() => {
+                        handleTransationDataByDealId(deal._id.toString());
+                        handleChequeDataByDealId(deal._id.toString());
+                      }}
+                      className={`hover:bg-gray-50 cursor-pointer ${selectedDealId === deal._id.toString() &&
+                        selectedChassisNo === deal.vehicleSnapshot?.vin
+                        ? "bg-blue-100"
+                        : ""
                         }`}
-                      >
-                        <TableCell className="text-center">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {deal.vehicleSnapshot?.vin}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {deal.vehicleSnapshot?.model}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {deal.purchaseDate}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {formatPrice(
-                            deal.purchasePrice?.toLocaleString("en-US"),
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    >
+                      <TableCell className="text-center">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {deal.vehicleSnapshot?.vin}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {deal.vehicleSnapshot?.model}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {deal.purchaseDate}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {formatPrice(
+                          deal.purchasePrice?.toLocaleString("en-US"),
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
                   : null}
               </Table>
             </div>
@@ -1739,12 +1739,11 @@ const CustomersDashboard = () => {
                           handleTransationDataByDealId(deal._id.toString());
                           handleChequeDataByDealId(deal._id.toString());
                         }}
-                        className={`hover:bg-gray-50 cursor-pointer ${
-                          selectedDealId === deal._id.toString() &&
+                        className={`hover:bg-gray-50 cursor-pointer ${selectedDealId === deal._id.toString() &&
                           selectedChassisNo === deal.vehicleSnapshot?.vin
-                            ? "bg-blue-100"
-                            : ""
-                        }`}
+                          ? "bg-blue-100"
+                          : ""
+                          }`}
                       >
                         <TableCell className="text-center">
                           {index + 1}
@@ -1798,50 +1797,50 @@ const CustomersDashboard = () => {
                 <TableBody>
                   {transactions && transactions.length > 0
                     ? transactions.map((item, index) => {
-                        let customerReason;
-                        let customerType;
+                      let customerReason;
+                      let customerType;
 
-                        if (item.reason === "خرید خودرو") {
-                          customerReason = "فروش خودرو";
-                        } else if (item.reason === "فروش") {
-                          customerReason = "خرید خودرو";
-                        } else {
-                          customerReason = item.reason;
-                        }
+                      if (item.reason === "خرید خودرو") {
+                        customerReason = "فروش خودرو";
+                      } else if (item.reason === "فروش") {
+                        customerReason = "خرید خودرو";
+                      } else {
+                        customerReason = item.reason;
+                      }
 
-                        if (item.type === "دریافت") {
-                          customerType = "پرداخت";
-                        } else if (item.type === "پرداخت") {
-                          customerType = "دریافت";
-                        } else {
-                          customerType = item.type;
-                        }
+                      if (item.type === "دریافت") {
+                        customerType = "پرداخت";
+                      } else if (item.type === "پرداخت") {
+                        customerType = "دریافت";
+                      } else {
+                        customerType = item.type;
+                      }
 
-                        return (
-                          <TableRow
-                            key={`${item?._id}-${index}`}
-                            className="hover:bg-gray-50 cursor-pointer"
-                          >
-                            <TableCell className="text-center">
-                              {index + 1}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {item.transactionDate}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {formatPrice(
-                                item?.amount?.toLocaleString("en-US"),
-                              ) ?? ""}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {customerType} - {customerReason}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              {item.paymentMethod}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
+                      return (
+                        <TableRow
+                          key={`${item?._id}-${index}`}
+                          className="hover:bg-gray-50 cursor-pointer"
+                        >
+                          <TableCell className="text-center">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item.transactionDate}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {formatPrice(
+                              item?.amount?.toLocaleString("en-US"),
+                            ) ?? ""}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {customerType} - {customerReason}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {item.paymentMethod}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                     : null}
                 </TableBody>
               </Table>
@@ -1891,57 +1890,57 @@ const CustomersDashboard = () => {
 
                 <TableBody>
                   {// (displayedCheques.length > 0
-                  //   ? displayedCheques
-                  //   : cheques
-                  // )
-                  cheques?.map((item, index) => (
-                    <TableRow
-                      key={`${item?._id}-${index}`}
-                      className="hover:bg-gray-50 cursor-pointer"
-                    >
-                      <TableCell className="text-center">{index + 1}</TableCell>
-                      <TableCell className="text-center">
-                        {item?.chequeNumber ?? ""}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.sayadiID ?? ""}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {formatPrice(item?.amount?.toLocaleString("en-US")) ??
-                          ""}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.dueDate ?? "-"}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.type === "issued" || item?.type === "صادره"
-                          ? "صادره"
-                          : item?.type === "received" || item?.type === "وارده"
-                            ? "وارده"
-                            : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                    //   ? displayedCheques
+                    //   : cheques
+                    // )
+                    cheques?.map((item, index) => (
+                      <TableRow
+                        key={`${item?._id}-${index}`}
+                        className="hover:bg-gray-50 cursor-pointer"
+                      >
+                        <TableCell className="text-center">{index + 1}</TableCell>
+                        <TableCell className="text-center">
+                          {item?.chequeNumber ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.sayadiID ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {formatPrice(item?.amount?.toLocaleString("en-US")) ??
+                            ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.dueDate ?? "-"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.type === "issued" || item?.type === "صادره"
+                            ? "صادره"
+                            : item?.type === "received" || item?.type === "وارده"
+                              ? "وارده"
+                              : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   {[].length > 0
                     ? []?.map((item, index) => (
-                        <TableRow
-                          key={`${item}-${index}`}
-                          className="has-data-[state=checked]:bg-muted/50"
-                        >
-                          <TableCell className="text-center">
-                            {index + 1}
-                          </TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">
-                            {item ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                        </TableRow>
-                      ))
+                      <TableRow
+                        key={`${item}-${index}`}
+                        className="has-data-[state=checked]:bg-muted/50"
+                      >
+                        <TableCell className="text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">
+                          {item ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                      </TableRow>
+                    ))
                     : null}
                 </TableBody>
               </Table>
