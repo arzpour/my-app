@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { updateVehicle } from "../client/vehicles";
+import { deleteVehicle, updateVehicle } from "../client/vehicles";
 
 export const useUpdateVehicle = () => {
     return useMutation({
@@ -8,3 +8,9 @@ export const useUpdateVehicle = () => {
     });
   };
   
+  export const useDeleteVehicle = () => {
+    return useMutation({
+      mutationKey: ["delete-vehicle"],
+      mutationFn: deleteVehicle,
+    });
+  };

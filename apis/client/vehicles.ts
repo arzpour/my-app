@@ -43,5 +43,6 @@ export const updateVehicle: updateVehicleType = async ({ id, data }) => {
 // Delete vehicle
 type deleteVehicleType = (id: string) => Promise<void>;
 export const deleteVehicle: deleteVehicleType = async (id) => {
-  await axiosInstance.delete(urls.vehicles.delete(id));
+  const response = await axiosInstance.delete(urls.vehicles.delete(id));
+  return response.data;
 };
