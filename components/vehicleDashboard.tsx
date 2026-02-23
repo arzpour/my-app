@@ -309,11 +309,13 @@ const VehicleDashboard = () => {
 
   const vehicleCosts =
     finalPaidTransactions
-      ?.filter(
-        (t) =>
+      ?.filter((t) => {
+        return (
           t.reason?.replace(/\s/g, "").includes("سایر هزینه‌ها") ||
-          t.reason?.replace(/\s/g, "").includes("سایر هزینه‌ها"),
-      )
+          t.reason?.replace(/\s/g, "").includes("سایر هزینه‌ها") ||
+          t.reason === "سایر هزینه‌ها"
+        );
+      })
       .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
 
   const remainingToSeller =
@@ -647,7 +649,6 @@ const VehicleDashboard = () => {
                                 setDealId((item as ITransactionNew)?.dealId);
                               }}
                             />
-
                             <Trash
                               className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
                               onClick={() =>
@@ -973,44 +974,6 @@ const VehicleDashboard = () => {
           setIsOpenDeleteModal={setIsOpenDeleteModal}
           title="تراکنش"
         />
-        // <Dialog open={isOpenDeleteModal} onOpenChange={setIsOpenDeleteModal}>
-        //   <DialogContent className="max-w-lg">
-        //     <DialogHeader>
-        //       <DialogTitle className="!text-base text-gray-800">
-        //         تأیید حذف
-        //       </DialogTitle>
-        //       <DialogClose
-        //         onClose={() => {
-        //           setIsOpenDeleteModal(false);
-        //           setTransactionToDelete(undefined);
-        //         }}
-        //       />
-        //     </DialogHeader>
-        //     <div className="space-y-4 pb-4 pt-2">
-        //       <p className="text-gray-700">
-        //         آیا از حذف این تراکنش اطمینان دارید؟
-        //       </p>
-        //       <div className="flex justify-end gap-3">
-        //         <button
-        //           onClick={() => {
-        //             setIsOpenDeleteModal(false);
-        //             setTransactionToDelete(undefined);
-        //           }}
-        //           className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-        //         >
-        //           انصراف
-        //         </button>
-        //         <button
-        //           onClick={handleConfirmDelete}
-        //           disabled={deleteTransaction.isPending}
-        //           className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
-        //         >
-        //           {deleteTransaction.isPending ? "در حال حذف..." : "حذف"}
-        //         </button>
-        //       </div>
-        //     </div>
-        //   </DialogContent>
-        // </Dialog>
       )}
     </>
   );
