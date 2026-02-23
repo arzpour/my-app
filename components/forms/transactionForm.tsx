@@ -13,11 +13,11 @@ import {
   getTransactionById,
 } from "@/apis/client/transaction";
 import { useUpdateTransaction } from "@/apis/mutations/transaction";
-import { createCheque } from "@/apis/client/chequesNew";
+import { createCheque, updateCheque } from "@/apis/client/chequesNew";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import { getAllBusinessAccounts } from "@/apis/client/businessAccounts";
 import { getAllDeals } from "@/apis/client/deals";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
 import {
@@ -166,6 +166,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
   const { updateWalletHandler } = useUpdateWalletHandler();
   const updateTransaction = useUpdateTransaction();
+  const queryClient = useQueryClient();
 
   // Reset form when transaction data is loaded in edit mode
   React.useEffect(() => {
@@ -317,25 +318,36 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           ],
         };
 
-        await createCheque(chequeData);
+        if (mode === "add") {
+          await createCheque(chequeData);
+        } else if (mode === "edit") {
+          await updateCheque(selectedTransactionChequeInfo?._id, chequeData);
+        }
       }
+
+      queryClient.invalidateQueries({
+        queryKey: ["get-transactions-by-deal-id"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["get-cheques-by-deal-id"],
+      });
 
       if (mode === "edit") {
         toast.success("تراکنش با موفقیت به‌روزرسانی شد");
       } else {
         toast.success("تراکنش با موفقیت ثبت شد");
+
         reset({
           amount: "",
           transactionDate: "",
         });
-
         const price = Number(data.amount);
         const walletData = {
           amount: data.type === "دریافت" ? price : -price,
           type: data.type,
           description: data.description,
         };
-        updateWalletHandler(data.personId, walletData);
+        updateWalletHandler(data.personId ?? "", walletData);
       }
 
       onSuccess?.();
@@ -365,7 +377,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="type" className="block text-sm font-medium">
-              نوع تراکنش *
+              {" "}
+              نوع تراکنش <span className="text-red-600">*</span>
             </label>
             <select
               id="type"
@@ -385,7 +398,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="reason" className="block text-sm font-medium">
-              بابت (Reason) *
+              {" "}
+              دلیل تراکنش <span className="text-red-600">*</span>
             </label>
             <select
               id="reason"
@@ -405,7 +419,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">تاریخ تراکنش *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              تاریخ تراکنش <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="transactionDate"
               control={control}
@@ -426,7 +443,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="amount" className="block text-sm font-medium">
-              مبلغ (ریال) *
+              {" "}
+              مبلغ (ریال) <span className="text-red-600">*</span>
             </label>
             {/* <input
               id="amount"
@@ -473,7 +491,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               htmlFor="paymentMethod"
               className="block text-sm font-medium"
             >
-              روش پرداخت *
+              {" "}
+              روش پرداخت <span className="text-red-600">*</span>
             </label>
             <select
               id="paymentMethod"
@@ -505,9 +524,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                     "جابجایی(وسیله نقلیه)",
                   ].includes(transactionReason)) ||
                 (transactionType === "دریافت" &&
-                  ["فروش خودرو"].includes(transactionReason))
-                  ? " (اجباری) "
-                  : " (اختیاری) "}
+                  ["فروش خودرو"].includes(transactionReason)) ? (
+                  <span className="text-red-600">*</span>
+                ) : (
+                  ""
+                )}
               </span>
             </label>
             <select
@@ -535,9 +556,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                       "جابجایی(وسیله نقلیه)",
                     ].includes(transactionReason)) ||
                   (transactionType === "دریافت" &&
-                    ["فروش خودرو"].includes(transactionReason))
-                    ? " (اجباری) "
-                    : " (اختیاری) "}
+                    ["فروش خودرو"].includes(transactionReason)) ? (
+                    <span className="text-red-600">*</span>
+                  ) : (
+                    ""
+                  )}
                 </span>
               </option>
 
@@ -553,7 +576,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           {getValues().paymentMethod === "مشتری به مشتری" ? (
             <div className="space-y-2">
               <label className="block text-sm font-medium">
-                طرف حساب دوم *
+                {" "}
+                طرف حساب دوم <span className="text-red-600">*</span>
               </label>
               <Controller
                 name="secondPartyId"
@@ -582,7 +606,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 htmlFor="bussinessAccountId"
                 className="block text-sm font-medium"
               >
-                حساب بانکی *
+                {" "}
+                حساب بانکی <span className="text-red-600">*</span>
               </label>
               <select
                 id="bussinessAccountId"
@@ -678,7 +703,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             </>
           ) : transactionReason === "آپشن" ? (
             <div className="space-y-2">
-              <label className="block text-sm font-medium">تامین کننده *</label>
+              <label className="block text-sm font-medium">
+                {" "}
+                تامین کننده <span className="text-red-600">*</span>
+              </label>
               <Controller
                 name="providerPersonId"
                 control={control}
@@ -700,9 +728,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           ) : (
             <div className="space-y-2">
               <label className="block text-sm font-medium">
-                {transactionReason === "سایر هزینه‌ها"
-                  ? "طرف حساب (اختیاری)"
-                  : "طرف حساب *"}
+                {transactionReason === "سایر هزینه‌ها" ? (
+                  "طرف حساب"
+                ) : (
+                  <>
+                    {" "}
+                    طرف حساب <span className="text-red-600">*</span>
+                  </>
+                )}
               </label>
               <Controller
                 name="personId"
@@ -754,7 +787,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="block text-sm font-medium">نوع چک *</label>
+              <label className="block text-sm font-medium">
+                {" "}
+                نوع چک <span className="text-red-600">*</span>
+              </label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2">
                   <input
@@ -807,7 +843,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 htmlFor="chequeNumber"
                 className="block text-sm font-medium"
               >
-                سری چک *
+                {" "}
+                سری چک <span className="text-red-600">*</span>
               </label>
               <input
                 id="chequeNumber"
@@ -825,7 +862,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             </div>
             <div className="space-y-2">
               <label htmlFor="sayadiID" className="block text-sm font-medium">
-                شناسه صیادی *
+                {" "}
+                شناسه صیادی <span className="text-red-600">*</span>
               </label>
               <input
                 id="sayadiID"
@@ -847,7 +885,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 htmlFor="chequeSerial"
                 className="block text-sm font-medium"
               >
-                سریال چک *
+                {" "}
+                سریال چک <span className="text-red-600">*</span>
               </label>
               <input
                 id="chequeSerial"
@@ -869,7 +908,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 htmlFor="chequeBankName"
                 className="block text-sm font-medium"
               >
-                نام بانک *
+                {" "}
+                نام بانک <span className="text-red-600">*</span>
               </label>
               <select
                 id="chequeBankName"
@@ -906,7 +946,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium">تاریخ صدور *</label>
+              <label className="block text-sm font-medium">
+                {" "}
+                تاریخ صدور <span className="text-red-600">*</span>
+              </label>
               <Controller
                 name="chequeIssueDate"
                 control={control}
@@ -928,7 +971,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
             <div className="space-y-2">
               <label className="block text-sm font-medium">
-                تاریخ سررسید *
+                {" "}
+                تاریخ سررسید <span className="text-red-600">*</span>
               </label>
               <Controller
                 name="chequeDueDate"
@@ -952,7 +996,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             {showPayer && (
               <div className="space-y-2">
                 <label className="block text-sm font-medium">
-                  مشتری (Customer) *
+                  {" "}
+                  مشتری <span className="text-red-600">*</span>
                 </label>
                 <Controller
                   name="chequeCustomerPersonId"
@@ -978,7 +1023,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             {showPayer && (
               <div className="space-y-2">
                 <label className="block text-sm font-medium">
-                  صادرکننده (Payer) *
+                  {" "}
+                  صادرکننده <span className="text-red-600">*</span>
                 </label>
                 <Controller
                   name="chequePayerPersonId"
@@ -1004,7 +1050,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             {showPayee && (
               <div className="space-y-2">
                 <label className="block text-sm font-medium">
-                  گیرنده (Payee) *
+                  {" "}
+                  گیرنده <span className="text-red-600">*</span>
                 </label>
                 <Controller
                   name="chequePayeePersonId"
@@ -1064,9 +1111,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   if (embedded) {
     return (
       <div dir="rtl">
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <h2 className="text-xl font-bold">ثبت تراکنش</h2>
-        </div>
+        </div> */}
         {formContent}
       </div>
     );

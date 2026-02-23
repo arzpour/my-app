@@ -170,7 +170,13 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
       case "transactions":
         return (
           <div className="p-4">
-            <TransactionForm />
+            <TransactionForm
+              mode={mode}
+              embedded={true}
+              onSuccess={() => {
+                handleClose();
+              }}
+            />
           </div>
         );
       case "expenses":

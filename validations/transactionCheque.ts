@@ -10,7 +10,11 @@ export const transactionChequeSchema = z
     reason: z.string().min(1, "بابت تراکنش الزامی است"),
     transactionDate: z.string().min(1, "تاریخ تراکنش الزامی است"),
     amount: z.string().min(1, "مبلغ تراکنش الزامی است"),
+
+    ///////////////////////////
     personId: z.string().min(1, "طرف حساب الزامی است"),
+
+    //////////////////////////
     secondPartyId: z.string().optional(),
     bussinessAccountId: z.string().min(1, "حساب بانکی الزامی است"),
     paymentMethod: z.enum(
@@ -123,6 +127,18 @@ export const transactionChequeSchema = z
       }
     }
   })
+  .refine(
+    (data) => {
+      if (data.reason === "آپشن") {
+        return data.providerPersonId;
+      }
+      return true;
+    },
+    {
+      message: "تامین کننده الزامی است",
+      path: ["providerPersonId"],
+    },
+  )
   .refine(
     (data) => {
       // If cheque type is received, payer is required
