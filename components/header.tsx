@@ -68,6 +68,7 @@ const Header = () => {
   }, [allDeals, selectedDeal]);
 
   const deals = selectedDeal || allDeals[0] || null;
+  console.log("🚀 ~ Header ~ deals:", deals)
 
   const dealId = deals?._id?.toString();
   const getTransactionByDealId = useGetTransactionByDealId(dealId);
