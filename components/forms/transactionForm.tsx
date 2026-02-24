@@ -95,16 +95,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         chequePayerPersonId: "",
         chequePayeePersonId: "",
         chequeRelatedDealId: "",
-        brokerPersonId: {
-          personId: "",
-          fullName: "",
-          nationalId: "",
-        },
-        providerPersonId: {
-          personId: "",
-          fullName: "",
-          nationalId: "",
-        },
+        brokerPersonId: "",
+        providerPersonId: "",
       }
       : {
         type:
@@ -135,16 +127,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         chequePayerPersonId: "",
         chequePayeePersonId: "",
         chequeRelatedDealId: "",
-        brokerPersonId: {
-          personId: "",
-          fullName: "",
-          nationalId: "",
-        },
-        providerPersonId: {
-          personId: "",
-          fullName: "",
-          nationalId: "",
-        },
+        brokerPersonId: "",
+        providerPersonId: "",
       };
   const {
     control,

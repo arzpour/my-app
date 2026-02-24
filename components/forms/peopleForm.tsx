@@ -79,7 +79,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
   const { fields, append, remove } = useFieldArray({
     control,
     name: "phoneNumbers",
-  });
+  } as any);
 
   const selectedRoles = watch("roles");
 
@@ -355,7 +355,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
             {fields.map((field: { id: string }, index: number) => (
               <div key={field.id} className="flex gap-2 items-start">
                 <input
-                  {...register(`phoneNumbers.${index}` as string)}
+                  {...register(`phoneNumbers.${index}`)}
                   placeholder="09123456789"
                   maxLength={11}
                   className="flex-1 px-3 py-2 border rounded-md"
