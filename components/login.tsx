@@ -129,9 +129,10 @@ const Login = () => {
 
           <button
             type="submit"
+            disabled={login.isPending}
             className="mt-8 w-full h-11 cursor-pointer flex justify-center items-center font-semibold rounded-full text-white bg-indigo-500 hover:opacity-90 transition-opacity"
           >
-            ورود
+            {login.isPending ? "در حال ورود..." : "ورود"}
             {login.isPending && (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
             )}

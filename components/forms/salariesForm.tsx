@@ -23,6 +23,7 @@ import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
 import { PERSIAN_YEARS, PERSIAN_MONTHS } from "@/utils/systemConstants";
 import type { IPeople, ILoan } from "@/types/new-backend-types";
+import { useCreateSalary } from "@/apis/mutations/salaries";
 
 interface SalariesFormProps {
   onSuccess?: () => void;
@@ -84,6 +85,8 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
     control,
     name: "otherDeductions",
   });
+
+  const createSalary = useCreateSalary();
 
   const baseSalary = watch("baseSalary");
   const overtimePay = watch("overtimePay");
@@ -243,7 +246,7 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
         },
       };
 
-      await createSalary(salaryData as any);
+      await createSalary.mutateAsync(salaryData as any);
       toast.success("پرداخت حقوق با موفقیت ثبت شد");
       onSuccess?.();
     } catch (error: any) {
@@ -624,7 +627,7 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
                                 !(
                                   li.loanId === inst.loanId &&
                                   li.installmentNumber ===
-                                    inst.installmentNumber
+                                  inst.installmentNumber
                                 ),
                             ),
                           );
@@ -735,9 +738,10 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
       <div className="flex justify-end gap-2 pt-4 border-t">
         <button
           type="submit"
+          disabled={createSalary.isPending}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
-          ثبت پرداخت حقوق
+          {createSalary.isPending ? "در حال ثبت..." : "ثبت پرداخت حقوق"}
         </button>
       </div>
     </form>

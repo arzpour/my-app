@@ -5,7 +5,9 @@ import {
   getTransactionsByPerson,
   updateTransaction,
   deleteTransaction,
+  createTransaction,
 } from "../client/transaction";
+
 
 export const useGetTransactionsByDealId = () => {
   return useMutation({
@@ -18,6 +20,13 @@ export const useGetTransactionsByPersonId = () => {
   return useMutation({
     mutationKey: ["get-transactions-by-person-id"],
     mutationFn: getTransactionsByPerson,
+  });
+};
+
+export const useCreateTransaction = () => {
+  return useMutation({
+    mutationKey: ["create-transaction"],
+    mutationFn: createTransaction,
   });
 };
 

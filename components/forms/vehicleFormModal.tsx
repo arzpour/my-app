@@ -9,7 +9,6 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-import { createVehicle, updateVehicle } from "@/apis/client/vehicles";
 import { useQueryClient } from "@tanstack/react-query";
 import PersianDatePicker from "../global/persianDatePicker";
 import { IVehicle } from "@/types/new-backend-types";
@@ -18,6 +17,7 @@ import PersonSelect from "../ui/person-select";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import useGetAllUsers from "@/hooks/useGetAllUsers";
 import { documents, formatPrice, parsePriceToNumber } from "@/utils/systemConstants";
+import { useCreateVehicle, useUpdateVehicle } from "@/apis/mutations/vehicle";
 
 interface VehicleFormModalProps {
   open: boolean;
@@ -129,6 +129,8 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
   const { data: allPeople } = useGetAllPeople();
   const { data: allUsers } = useGetAllUsers();
   const updateDeal = useUpdateDeal();
+  const createVehicle = useCreateVehicle();
+  const updateVehicle = useUpdateVehicle();
 
   const customers = allPeople?.filter((el) => el.roles.includes("customer"));
   const brokers = allPeople?.filter((el) => el.roles.includes("broker"));
@@ -559,7 +561,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
         const vehicleId = isIVehicle(vehicleData)
           ? vehicleData._id.toString()
           : vehicleData._id;
-        const res = await updateVehicle({
+        const res = await updateVehicle.mutateAsync({
           id: vehicleId,
           data: vehiclePayload,
         });
@@ -579,7 +581,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
           className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
         });
       } else {
-        await createVehicle(vehiclePayload);
+        await createVehicle.mutateAsync(vehiclePayload);
         // await getAllDeals.mutateAsync();
         // queryClient.invalidateQueries({ queryKey: ["get-all-vehicles"] });
         toast("اطلاعات با موفقیت ثبت شد", {
@@ -1048,9 +1050,10 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
             </button>
             <button
               type="submit"
+              disabled={createVehicle.isPending || mode === "edit" && updateVehicle.isPending}
               className="px-4 py-2 text-sm font-medium text-white bg-indigo-500 rounded-md hover:bg-indigo-600"
             >
-              {mode === "edit" ? "ذخیره تغییرات" : "ثبت اطلاعات"}
+              {mode === "edit" && updateVehicle.isPending ? "در حال به‌روزرسانی..." : mode === "edit" ? "ذخیره تغییرات" : createVehicle.isPending ? "در حال ثبت..." : "ثبت اطلاعات"}
             </button>
           </div>
         </form>
