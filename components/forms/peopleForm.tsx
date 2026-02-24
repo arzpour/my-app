@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-// @ts-expect-error - react-hook-form types can fail to resolve in some Next/TS setups; runtime export exists
+// @ts-ignore - react-hook-form useForm: types sometimes not resolved (e.g. Next build); runtime is fine. Use @ts-ignore so Ubuntu build does not report "Unused directive".
 import { useForm, type SubmitHandler, Controller, useFieldArray, ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { peopleSchema, peopleSchemaType } from "@/validations/people";
@@ -586,7 +586,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
                     <option value="">انتخاب کنید</option>
                     {CONTRACT_TYPES.map((type) => (
                       <option key={type.value} value={type.value}>
-                        {type.label} 
+                        {type.label}
                       </option>
                     ))}
                   </select>
@@ -615,7 +615,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
               <Controller
                 name="baseSalary"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<peopleSchemaType, "baseSalary"> }  ) => {
+                render={({ field }: { field: ControllerRenderProps<peopleSchemaType, "baseSalary"> }) => {
                   const formattedValue = field.value
                     ? Number(field.value).toLocaleString("en-US")
                     : "";
