@@ -162,6 +162,13 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
     }
 
     if (isIVehicle(vehicleData)) {
+      const docsArray =
+        Array.isArray((vehicleData as any).DocumentsCopy)
+          ? ((vehicleData as any).DocumentsCopy as string[])
+          : Array.isArray((vehicleData as any).documents)
+            ? ((vehicleData as any).documents as string[])
+            : [];
+
       if (relatedDeal) {
         return {
           _id: vehicleData._id.toString(),
@@ -179,10 +186,9 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
           BuyerMobile: parseInt(relatedDeal.buyer?.mobile || "0") || 0,
           PurchaseBroker: relatedDeal.purchaseBroker?.fullName || "",
           SaleBroker: relatedDeal.saleBroker?.fullName || "",
-          Secretary: "",
-          SecretaryName: "",
-          DocumentsCopy: [],
-          documents: "",
+          Secretary: vehicleData.Secretary || "",
+          SecretaryName: vehicleData.SecretaryName || "",
+          DocumentsCopy: docsArray,
           SellerNationalID:
             parseInt(relatedDeal.seller?.nationalId || "0") || 0,
           BuyerNationalID: parseInt(relatedDeal.buyer?.nationalId || "0") || 0,
@@ -206,8 +212,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
           SaleBroker: "",
           Secretary: "",
           SecretaryName: "",
-          DocumentsCopy: [],
-          documents: "",
+          DocumentsCopy: docsArray,
           SellerNationalID: 0,
           BuyerNationalID: 0,
         } as ICarRes;
