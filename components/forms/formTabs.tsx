@@ -1,8 +1,6 @@
 "use client";
 import React from "react";
-import ChequeForm from "./chequeForm";
 // import OptionForm from "./optionForm";
-import TransactionForm from "./transactionForm";
 import SettingsManagement from "./settingsManagement";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 

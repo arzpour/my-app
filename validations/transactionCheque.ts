@@ -10,7 +10,7 @@ export const transactionChequeSchema = z
     reason: z.string().min(1, "بابت تراکنش الزامی است"),
     transactionDate: z.string().min(1, "تاریخ تراکنش الزامی است"),
     amount: z.string().min(1, "مبلغ تراکنش الزامی است"),
-    personId: z.string().min(1, "طرف حساب الزامی است"),
+    personId: z.string().optional(),
     secondPartyId: z.string().optional(),
     bussinessAccountId: z.string().min(1, "حساب بانکی الزامی است"),
     paymentMethod: z.enum(
@@ -42,28 +42,8 @@ export const transactionChequeSchema = z
     partnershipInvestmentAmount: z.string().optional(),
     partnershipProfitSharePercentage: z.string().optional(),
     providerPersonId: z.string().optional(),
+    brokerPersonId: z.string().optional(),
   })
-  // .refine(
-  //   (data) => {
-  //     // If payment method is cheque, cheque fields are required
-  //     if (data.paymentMethod === "چک") {
-  //       return (
-  //         data.chequeNumber &&
-  //         data.chequeSerial &&
-  //         data.chequeBankName &&
-  //         data.chequeIssueDate &&
-  //         data.chequeDueDate &&
-  //         data.chequeType &&
-  //         data.chequeStatus
-  //       );
-  //     }
-  //     return true;
-  //   },
-  //   {
-  //     message: "اطلاعات چک الزامی است",
-  //     path: ["chequeNumber"],
-  //   },
-  // )
   .superRefine((data, ctx) => {
     if (data.paymentMethod === "چک") {
       if (!data.chequeNumber) {
@@ -123,6 +103,38 @@ export const transactionChequeSchema = z
       }
     }
   })
+  .refine(
+    (data) => {
+      const isOptionReason = data.reason === "آپشن";
+
+      const isPartnershipReason =
+        (data.type === "دریافت" && data.reason === "سرمایه گذاری") ||
+        (data.type === "پرداخت" &&
+          (data.reason === "اصل سرمایه" || data.reason === "سود سرمایه"));
+
+      if (isOptionReason || isPartnershipReason) {
+        return true;
+      }
+
+      return !!data.personId;
+    },
+    {
+      message: "طرف حساب الزامی است",
+      path: ["personId"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.reason === "آپشن") {
+        return data.providerPersonId;
+      }
+      return true;
+    },
+    {
+      message: "تامین کننده الزامی است",
+      path: ["providerPersonId"],
+    },
+  )
   .refine(
     (data) => {
       // If cheque type is received, payer is required

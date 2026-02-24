@@ -179,7 +179,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
           (personData.brokerDetails.currentRates.purchaseCommissionPercent !==
             data.purchaseCommissionPercent ||
             personData.brokerDetails.currentRates.saleCommissionPercent !==
-              data.saleCommissionPercent)
+            data.saleCommissionPercent)
         ) {
           payload.brokerDetails.rateHistory = [
             ...(personData.brokerDetails.rateHistory || []),
@@ -262,7 +262,8 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="firstName" className="block text-sm font-medium">
-              نام *
+              {" "}
+              نام <span className="text-red-600">*</span>
             </label>
             <input
               id="firstName"
@@ -277,7 +278,8 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="lastName" className="block text-sm font-medium">
-              نام خانوادگی *
+              {" "}
+              نام خانوادگی <span className="text-red-600">*</span>
             </label>
             <input
               id="lastName"
@@ -304,7 +306,8 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="nationalId" className="block text-sm font-medium">
-              کد ملی *
+              {" "}
+              کد ملی <span className="text-red-600">*</span>
             </label>
             <input
               id="nationalId"
@@ -352,7 +355,8 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
 
           <div className="space-y-2 md:col-span-2">
             <label className="block text-sm font-medium">
-              شماره موبایل (ها) *
+              {" "}
+              شماره موبایل (ها) <span className="text-red-600">*</span>
             </label>
             {fields.map((field, index) => (
               <div key={field.id} className="flex gap-2 items-start">
@@ -409,7 +413,10 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
 
         {/* Roles Selection */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium">نقش‌ها *</label>
+          <label className="block text-sm font-medium">
+            {" "}
+            نقش‌ها <span className="text-red-600">*</span>
+          </label>
           <div className="flex gap-4 flex-wrap">
             {PERSON_ROLES.map((role) => {
               const roleKey = role as keyof typeof PERSON_ROLES_DISPLAY;
@@ -430,15 +437,13 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
                       handleRoleChange(roleKey, e.target.checked)
                     }
                     disabled={isDisabled}
-                    className={`w-4 h-4 disabled:opacity-50 disabled:cursor-not-allowed ${
-                      isDisabled ? "hidden" : ""
-                    }`}
+                    className={`w-4 h-4 disabled:opacity-50 disabled:cursor-not-allowed ${isDisabled ? "hidden" : ""
+                      }`}
                   />
                   <label
                     htmlFor={`role-${role}`}
-                    className={`cursor-pointer text-sm ${
-                      isDisabled ? "hidden" : ""
-                    }`}
+                    className={`cursor-pointer text-sm ${isDisabled ? "hidden" : ""
+                      }`}
                   >
                     {PERSON_ROLES_DISPLAY[roleKey]}
                   </label>
@@ -470,7 +475,8 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
                 htmlFor="purchaseCommissionPercent"
                 className="block text-sm font-medium"
               >
-                درصد کمیسیون خرید *
+                {" "}
+                درصد کمیسیون خرید <span className="text-red-600">*</span>
               </label>
               <input
                 id="purchaseCommissionPercent"
@@ -492,7 +498,8 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
                 htmlFor="saleCommissionPercent"
                 className="block text-sm font-medium"
               >
-                درصد کمیسیون فروش *
+                {" "}
+                درصد کمیسیون فروش <span className="text-red-600">*</span>
               </label>
               <input
                 id="saleCommissionPercent"
@@ -545,7 +552,8 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="startDate" className="block text-sm font-medium">
-                تاریخ شروع همکاری *
+                {" "}
+                تاریخ شروع همکاری <span className="text-red-600">*</span>
               </label>
               <Controller
                 name="startDate"
@@ -570,7 +578,8 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
                 htmlFor="contractType"
                 className="block text-sm font-medium"
               >
-                نوع قرارداد *
+                {" "}
+                نوع قرارداد <span className="text-red-600">*</span>
               </label>
               <Controller
                 name="contractType"
@@ -598,7 +607,8 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
 
             <div className="space-y-2">
               <label htmlFor="baseSalary" className="block text-sm font-medium">
-                حقوق پایه (ریال) *
+                {" "}
+                حقوق پایه (ریال) <span className="text-red-600">*</span>
               </label>
               {/* <input
                 id="baseSalary"

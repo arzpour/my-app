@@ -80,7 +80,7 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
   }, [accountData, mode, reset]);
 
   const onSubmit: SubmitHandler<businessAccountSchemaType> = async (
-    data: any
+    data: any,
   ) => {
     try {
       const payload: Partial<IBusinessAccounts> = {
@@ -117,7 +117,8 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <label htmlFor="accountName" className="block text-sm font-medium">
-            نام نمایشی حساب *
+            {" "}
+            نام نمایشی حساب <span className="text-red-600">*</span>
           </label>
           <input
             id="accountName"
@@ -132,7 +133,8 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
 
         <div className="space-y-2">
           <label htmlFor="bankName" className="block text-sm font-medium">
-            نام بانک *
+            {" "}
+            نام بانک <span className="text-red-600">*</span>
           </label>
           <select
             id="bankName"
@@ -153,7 +155,8 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
 
         <div className="space-y-2">
           <label htmlFor="branchName" className="block text-sm font-medium">
-            نام شعبه *
+            {" "}
+            نام شعبه <span className="text-red-600">*</span>
           </label>
           <input
             id="branchName"
@@ -168,7 +171,8 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
 
         <div className="space-y-2">
           <label htmlFor="accountNumber" className="block text-sm font-medium">
-            شماره حساب *
+            {" "}
+            شماره حساب <span className="text-red-600">*</span>
           </label>
           <input
             id="accountNumber"
@@ -185,7 +189,8 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
 
         <div className="space-y-2">
           <label htmlFor="iban" className="block text-sm font-medium">
-            شماره شبا *
+            {" "}
+            شماره شبا <span className="text-red-600">*</span>
           </label>
           <input
             id="iban"
@@ -217,7 +222,8 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
 
         <div className="space-y-2">
           <label htmlFor="currentBalance" className="block text-sm font-medium">
-            موجودی اولیه (ریال) *
+            {" "}
+            موجودی اولیه (ریال) <span className="text-red-600">*</span>
           </label>
           <input
             id="currentBalance"
@@ -277,8 +283,8 @@ const BusinessAccountForm: React.FC<BusinessAccountFormProps> = ({
           {createAccount.isPending || updateAccount.isPending
             ? "در حال ثبت..."
             : mode === "edit"
-            ? "ذخیره تغییرات"
-            : "ثبت"}
+              ? "ذخیره تغییرات"
+              : "ثبت"}
         </button>
       </div>
     </form>

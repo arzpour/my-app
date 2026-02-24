@@ -152,7 +152,10 @@ const LoansForm: React.FC<LoansFormProps> = ({
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium">کارمند *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              کارمند <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="borrowerPersonId"
               control={control}
@@ -178,7 +181,8 @@ const LoansForm: React.FC<LoansFormProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="totalAmount" className="block text-sm font-medium">
-              مبلغ وام (ریال) *
+              {" "}
+              مبلغ وام (ریال) <span className="text-red-600">*</span>
             </label>
             {/* <input
               id="totalAmount"
@@ -222,7 +226,8 @@ const LoansForm: React.FC<LoansFormProps> = ({
 
           <div className="space-y-2">
             <label className="block text-sm font-medium">
-              تاریخ پرداخت وام *
+              {" "}
+              تاریخ پرداخت وام <span className="text-red-600">*</span>
             </label>
             <Controller
               name="loanDate"
@@ -245,7 +250,8 @@ const LoansForm: React.FC<LoansFormProps> = ({
               htmlFor="numberOfInstallments"
               className="block text-sm font-medium"
             >
-              تعداد اقساط *
+              {" "}
+              تعداد اقساط <span className="text-red-600">*</span>
             </label>
             <input
               id="numberOfInstallments"

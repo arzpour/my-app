@@ -107,37 +107,37 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
         description: data.description ?? "",
         customer: customer
           ? {
-              personId: customer._id?.toString() || "",
-              fullName: `${customer.firstName} ${customer.lastName}`,
-              nationalId: customer.nationalId?.toString() || "",
-            }
+            personId: customer._id?.toString() || "",
+            fullName: `${customer.firstName} ${customer.lastName}`,
+            nationalId: customer.nationalId?.toString() || "",
+          }
           : {
-              personId: "",
-              fullName: "",
-              nationalId: "",
-            },
+            personId: "",
+            fullName: "",
+            nationalId: "",
+          },
         payer: payer
           ? {
-              personId: payer._id?.toString() || "",
-              fullName: `${payer.firstName} ${payer.lastName}`,
-              nationalId: payer.nationalId?.toString() || "",
-            }
+            personId: payer._id?.toString() || "",
+            fullName: `${payer.firstName} ${payer.lastName}`,
+            nationalId: payer.nationalId?.toString() || "",
+          }
           : {
-              personId: "",
-              fullName: "",
-              nationalId: "",
-            },
+            personId: "",
+            fullName: "",
+            nationalId: "",
+          },
         payee: payee
           ? {
-              personId: payee._id?.toString() || "",
-              fullName: `${payee.firstName} ${payee.lastName}`,
-              nationalId: payee.nationalId?.toString() || "",
-            }
+            personId: payee._id?.toString() || "",
+            fullName: `${payee.firstName} ${payee.lastName}`,
+            nationalId: payee.nationalId?.toString() || "",
+          }
           : {
-              personId: "",
-              fullName: "",
-              nationalId: "",
-            },
+            personId: "",
+            fullName: "",
+            nationalId: "",
+          },
         relatedDealId: data.relatedDealId ? data.relatedDealId : "0",
         relatedTransactionId: data.relatedTransactionId
           ? data.relatedTransactionId
@@ -430,9 +430,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
           ارتباطات
         </h3>
         <div className="space-y-2">
-          <label className="block text-sm font-medium">
-            مرتبط با معامله (اختیاری)
-          </label>
+          <label className="block text-sm font-medium">مرتبط با معامله</label>
           <select
             {...register("relatedDealId")}
             onChange={(e) => {
@@ -444,7 +442,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
             }}
             className="w-full px-3 py-2 border rounded-md"
           >
-            <option value="">انتخاب معامله (اختیاری)</option>
+            <option value="">انتخاب معامله</option>
             {allDeals?.map((deal) => (
               <option key={deal._id?.toString()} value={deal._id?.toString()}>
                 {deal.vehicleSnapshot.plateNumber || "بدون پلاک"} -{" "}
@@ -471,9 +469,10 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
       <div className="flex justify-end gap-2 pt-4 border-t">
         <button
           type="submit"
+          disabled={updateCheque.isPending}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
-          ثبت چک
+          {updateCheque.isPending ? "در حال به‌روزرسانی..." : "ثبت چک"}
         </button>
       </div>
     </form>

@@ -28,7 +28,6 @@ export const INSTALLMENT_STATUSES = ["پرداخت شده", "معوق"];
 
 export const CHEQUE_STATUSES = [
   "در جریان",
-  "پاس شده",
   "برگشتی",
   "خرج شده",
   "عودت داده شده",
@@ -58,21 +57,21 @@ export const TRANSACTION_REASONS_FOR_PAYMENT = [
   // "وام",
   // "حقوق",
   "آپشن",
-  "اجاره",
-  "تنخواه",
-  "تبلیغات",
+  // "اجاره",
+  // "تنخواه",
+  // "تبلیغات",
   "خرید خودرو",
   "اصل سرمایه",
   "سود سرمایه",
   "درصد کارگزار",
   "سایر هزینه‌ها",
-  "جابجایی(وسیله نقلیه)",
+  // "جابجایی(وسیله نقلیه)",
 ];
 
 export const TRANSACTION_REASONS_FOR_RECEIPT = [
   "فروش خودرو",
   "سرمایه گذاری",
-  "اقساط وام",
+  // "اقساط وام",
 ];
 
 export const PERSON_ROLES = ["customer", "broker", "employee", "provider"];
@@ -191,7 +190,6 @@ export const persianToEnglish = (
 //     : value.toLocaleString("en-US");
 // };
 
-
 // export const formatPrice = (price?: string | number) => {
 //   if (price == null) return "—";
 
@@ -223,19 +221,15 @@ export const persianToEnglish = (
 //     : finalValue.toLocaleString("en-US");
 // };
 
-
 export const formatPrice = (price?: string | number) => {
   if (price == null) return "—";
 
   let normalized = String(price)
     .replace(/,/g, "")
     .replace(/\s/g, "")
-    .replace(/[۰-۹]/g, (d) =>
-      "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString()
-    );
+    .replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString());
 
-  const isNegative =
-    normalized.startsWith("-") || normalized.endsWith("-");
+  const isNegative = normalized.startsWith("-") || normalized.endsWith("-");
 
   normalized = normalized.replace(/-/g, "");
 
@@ -245,9 +239,7 @@ export const formatPrice = (price?: string | number) => {
 
   const formatted = value.toLocaleString("en-US");
 
-  return isNegative
-    ? `\u200E-${formatted}`
-    : `\u200E${formatted}`;
+  return isNegative ? `\u200E-${formatted}` : `\u200E${formatted}`;
 };
 
 export const parsePriceToNumber = (value?: string | number): number => {

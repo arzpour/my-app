@@ -23,6 +23,7 @@ import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
 import { PERSIAN_YEARS, PERSIAN_MONTHS } from "@/utils/systemConstants";
 import type { IPeople, ILoan } from "@/types/new-backend-types";
+import { useCreateSalary } from "@/apis/mutations/salaries";
 
 interface SalariesFormProps {
   onSuccess?: () => void;
@@ -84,6 +85,8 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
     control,
     name: "otherDeductions",
   });
+
+  const createSalary = useCreateSalary();
 
   const baseSalary = watch("baseSalary");
   const overtimePay = watch("overtimePay");
@@ -243,7 +246,7 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
         },
       };
 
-      await createSalary(salaryData as any);
+      await createSalary.mutateAsync(salaryData as any);
       toast.success("پرداخت حقوق با موفقیت ثبت شد");
       onSuccess?.();
     } catch (error: any) {
@@ -260,7 +263,10 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium">کارمند *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              کارمند <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="employeePersonId"
               control={control}
@@ -289,7 +295,8 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="forYear" className="block text-sm font-medium">
-              سال عملکرد *
+              {" "}
+              سال عملکرد <span className="text-red-600">*</span>
             </label>
             <select
               id="forYear"
@@ -310,7 +317,8 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="forMonth" className="block text-sm font-medium">
-              ماه عملکرد *
+              {" "}
+              ماه عملکرد <span className="text-red-600">*</span>
             </label>
             <select
               id="forMonth"
@@ -330,7 +338,10 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">تاریخ پرداخت *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              تاریخ پرداخت <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="paymentDate"
               control={control}
@@ -358,7 +369,8 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="baseSalary" className="block text-sm font-medium">
-              حقوق پایه (ریال) *
+              {" "}
+              حقوق پایه (ریال) <span className="text-red-600">*</span>
             </label>
             {/* <input
               id="baseSalary"
@@ -615,7 +627,7 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
                                 !(
                                   li.loanId === inst.loanId &&
                                   li.installmentNumber ===
-                                    inst.installmentNumber
+                                  inst.installmentNumber
                                 ),
                             ),
                           );
@@ -698,7 +710,8 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
             htmlFor="businessAccountId"
             className="block text-sm font-medium"
           >
-            پرداخت از حساب *
+            {" "}
+            پرداخت از حساب <span className="text-red-600">*</span>
           </label>
           <select
             id="businessAccountId"
@@ -725,9 +738,10 @@ const SalariesForm: React.FC<SalariesFormProps> = ({
       <div className="flex justify-end gap-2 pt-4 border-t">
         <button
           type="submit"
+          disabled={createSalary.isPending}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
-          ثبت پرداخت حقوق
+          {createSalary.isPending ? "در حال ثبت..." : "ثبت پرداخت حقوق"}
         </button>
       </div>
     </form>
