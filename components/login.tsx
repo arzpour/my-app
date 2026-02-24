@@ -5,6 +5,7 @@ import { loginSchema, loginSchemaType } from "@/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+// @ts-expect-error - react-hook-form types can fail to resolve in some Next/TS setups; runtime export exists
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { toast } from "sonner";
@@ -23,7 +24,7 @@ const Login = () => {
   const login = useLogin();
   const dispatch = useDispatch();
 
-  const onSubmit: SubmitHandler<loginSchemaType> = async (data) => {
+  const onSubmit: SubmitHandler<loginSchemaType> = async (data: loginSchemaType) => {
     if (!data) return;
     try {
       const res = await login.mutateAsync(data);

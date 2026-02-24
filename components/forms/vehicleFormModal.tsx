@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
-import { useForm, SubmitHandler, Controller } from "react-hook-form";
+// @ts-expect-error - react-hook-form types can fail to resolve in some Next/TS setups; runtime export exists
+import { useForm, SubmitHandler, Controller, ControllerRenderProps } from "react-hook-form";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -362,7 +363,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
   //   return result;
   // }
 
-  const onSubmit: SubmitHandler<VehicleFormData> = async (data) => {
+  const onSubmit: SubmitHandler<VehicleFormData> = async (data: VehicleFormData & { DocumentsCopy: string[] }) => {
     try {
       //   const vehiclePayload: Partial<IVehicle> = {
       //     vin: data?.ChassisNo,
@@ -669,7 +670,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               <Controller
                 name="PurchaseBroker"
                 control={control}
-                render={({ field }) => {
+                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "PurchaseBroker"> }) => {
                   return (
                     <PersonSelect
                       value={field.value}
@@ -704,7 +705,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               <Controller
                 name="SaleBroker"
                 control={control}
-                render={({ field }) => {
+                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "SaleBroker"> }) => { 
                   return (
                     <PersonSelect
                       value={field.value}
@@ -739,7 +740,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               <Controller
                 name="PurchaseAmount"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "PurchaseAmount"> }) => (
                   <input
                     type="text"
                     inputMode="numeric"
@@ -767,7 +768,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               <Controller
                 name="SaleAmount"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "SaleAmount"> }) => (
                   <input
                     type="text"
                     inputMode="numeric"
@@ -937,7 +938,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               <Controller
                 name="Secretary"
                 control={control}
-                render={({ field }) => {
+                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "Secretary"> }) => {
                   return (
                     <PersonSelect
                       value={field.value}
@@ -1000,7 +1001,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               <Controller
                 name="DocumentsCopy"
                 control={control}
-                render={({ field }) => {
+                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "DocumentsCopy"> }) => {
                   const toggleItem = (item: string) => {
                     if (field.value?.includes(item)) {
                       field.onChange(

@@ -12,13 +12,10 @@ import TransactionForm from "./transactionForm";
 import PeopleForm from "./peopleForm";
 import BusinessAccountForm from "./businessAccountForm";
 import PurchaseDealForm from "./purchaseDealForm";
-import SaleDealForm from "./saleDealForm";
 import DealExpensesForm from "./dealExpensesForm";
 import LoansForm from "./loansForm";
-import ChequeActionsForm from "./chequeActionsForm";
-import ChequeFormNew from "./chequeFormNew";
-import SalarySlipForm from "./salarySlipForm";
 import SalariesForm from "./salariesForm";
+import SalarySlipForm from "./salarySlipForm";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import PeopleList from "../lists/peopleList";
@@ -35,9 +32,9 @@ type FormType =
   | "peoples"
   | "expenses"
   | "business_accounts"
-  | "sale_deal"
-  | "cheque_actions"
-  | "cheque"
+  // | "sale_deal"
+  // | "cheque_actions"
+  // | "cheque"
   | "salary_slip"
   | "salaries"
   | null;

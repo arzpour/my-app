@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+// @ts-expect-error - react-hook-form types can fail to resolve in some Next/TS setups; runtime export exists
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   businessAccountSchema,

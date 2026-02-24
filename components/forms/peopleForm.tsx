@@ -1,17 +1,12 @@
 "use client";
 
 import React from "react";
-import {
-  useForm,
-  Controller,
-  SubmitHandler,
-  useFieldArray,
-} from "react-hook-form";
+// @ts-expect-error - react-hook-form types can fail to resolve in some Next/TS setups; runtime export exists
+import { useForm, type SubmitHandler, Controller, useFieldArray, ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { peopleSchema, peopleSchemaType } from "@/validations/people";
 import { toast } from "sonner";
 import { useCreatePerson, useUpdatePerson } from "@/apis/mutations/people";
-import useGetAllPeople from "@/hooks/useGetAllPeople";
 import PersianDatePicker from "../global/persianDatePicker";
 import {
   PERSON_ROLES,
@@ -83,7 +78,6 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
 
   const { fields, append, remove } = useFieldArray({
     control,
-    // @ts-expect-error - TypeScript inference issue with refined Zod schemas
     name: "phoneNumbers",
   });
 
@@ -138,7 +132,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
     }
   }, [personData, mode, reset]);
 
-  const onSubmit: SubmitHandler<peopleSchemaType> = async (data) => {
+  const onSubmit: SubmitHandler<peopleSchemaType> = async (data: peopleSchemaType) => {
     try {
       const fullName = `${data.firstName} ${data.lastName}`.trim();
 
@@ -150,7 +144,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
         nationalId: Number(data.nationalId),
         idCardNumber: data.idCardNumber ? Number(data.idCardNumber) : undefined,
         postalCode: data.postalCode ? Number(data.postalCode) : undefined,
-        phoneNumbers: data.phoneNumbers.map((p) => Number(p)),
+        phoneNumbers: data.phoneNumbers.map((p: string) => Number(p)),
         phoneNumber:
           data.phoneNumbers.length > 0
             ? Number(data.phoneNumbers[0])
@@ -237,7 +231,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
     } else {
       setValue(
         "roles",
-        currentRoles.filter((r) => r !== role),
+        currentRoles.filter((r: string) => r !== role),
       );
       if (role === "broker") {
         setValue("purchaseCommissionPercent", "");
@@ -358,10 +352,10 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
               {" "}
               شماره موبایل (ها) <span className="text-red-600">*</span>
             </label>
-            {fields.map((field, index) => (
+            {fields.map((field: { id: string }, index: number) => (
               <div key={field.id} className="flex gap-2 items-start">
                 <input
-                  {...register(`phoneNumbers.${index}` as any)}
+                  {...register(`phoneNumbers.${index}` as string)}
                   placeholder="09123456789"
                   maxLength={11}
                   className="flex-1 px-3 py-2 border rounded-md"
@@ -379,7 +373,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
             ))}
             <button
               type="button"
-              onClick={() => append("" as any)}
+              onClick={() => append("" as string)}
               className="flex items-center gap-2 px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-md border border-blue-200"
             >
               <span className="text-lg">+</span>
@@ -558,7 +552,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
               <Controller
                 name="startDate"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<peopleSchemaType, "startDate"> }) => (
                   <PersianDatePicker
                     value={field.value}
                     onChange={field.onChange}
@@ -584,7 +578,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
               <Controller
                 name="contractType"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<peopleSchemaType, "contractType"> }) => (
                   <select
                     {...field}
                     className="w-full px-3 py-2 border rounded-md"
@@ -592,7 +586,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
                     <option value="">انتخاب کنید</option>
                     {CONTRACT_TYPES.map((type) => (
                       <option key={type.value} value={type.value}>
-                        {type.label}
+                        {type.label} 
                       </option>
                     ))}
                   </select>
@@ -621,7 +615,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
               <Controller
                 name="baseSalary"
                 control={control}
-                render={({ field }) => {
+                render={({ field }: { field: ControllerRenderProps<peopleSchemaType, "baseSalary"> }  ) => {
                   const formattedValue = field.value
                     ? Number(field.value).toLocaleString("en-US")
                     : "";

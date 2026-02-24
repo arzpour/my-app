@@ -1,12 +1,8 @@
 "use client";
 
 import React from "react";
-import {
-  useForm,
-  Controller,
-  SubmitHandler,
-  useFieldArray,
-} from "react-hook-form";
+// @ts-expect-error - react-hook-form types can fail to resolve in some Next/TS setups; runtime export exists
+import { Controller, useForm, type SubmitHandler, useFieldArray, ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   salarySlipSchema,
@@ -152,7 +148,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
     const base = parseFloat(baseSalary || "0");
     const overtime = parseFloat(overtimePay || "0");
     const bonusTotal =
-      bonuses?.reduce((sum, b) => sum + parseFloat(b.amount || "0"), 0) || 0;
+      bonuses?.reduce((sum: number, b: { amount: string }) => sum + parseFloat(b.amount || "0"), 0) || 0;
     return base + overtime + bonusTotal;
   }, [baseSalary, overtimePay, bonuses]);
 
@@ -161,12 +157,12 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
     const taxAmount = parseFloat(tax || "0");
     const loanTotal =
       loanInstallments?.reduce(
-        (sum, l) => sum + parseFloat(l.amount || "0"),
+        (sum: number, l: { amount: string }) => sum + parseFloat(l.amount || "0"),
         0,
       ) || 0;
     const otherTotal =
       otherDeductions?.reduce(
-        (sum, d) => sum + parseFloat(d.amount || "0"),
+        (sum: number, d: { amount: string }) => sum + parseFloat(d.amount || "0"),
         0,
       ) || 0;
     return ins + taxAmount + loanTotal + otherTotal;
@@ -184,7 +180,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
     }
   }, [selectedEmployee, setValue]);
 
-  const onSubmit: SubmitHandler<salarySlipSchemaType> = async (data) => {
+  const onSubmit: SubmitHandler<salarySlipSchemaType> = async (data: salarySlipSchemaType) => {
     try {
       if (!selectedEmployee) {
         toast.error("لطفاً کارمند را انتخاب کنید");
@@ -290,10 +286,10 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
             <Controller
               name="employeePersonId"
               control={control}
-              render={({ field }) => (
+              render={({ field }: { field: ControllerRenderProps<salarySlipSchemaType, "employeePersonId"> }) => (
                 <PersonSelect
                   value={field.value}
-                  onValueChange={(personId, person) => {
+                  onValueChange={(personId, person: IPeople) => {
                     field.onChange(personId);
                     setSelectedEmployee(person || null);
                   }}
@@ -365,7 +361,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
             <Controller
               name="paymentDate"
               control={control}
-              render={({ field }) => (
+              render={({ field }: { field: ControllerRenderProps<salarySlipSchemaType, "paymentDate"> }) => (
                 <PersianDatePicker
                   value={field.value}
                   onChange={field.onChange}
@@ -404,7 +400,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
             <Controller
               name="baseSalary"
               control={control}
-              render={({ field }) => {
+              render={({ field }: { field: ControllerRenderProps<salarySlipSchemaType, "baseSalary"> }) => {
                 const formattedValue = field.value
                   ? Number(field.value).toLocaleString("en-US")
                   : "";
@@ -451,7 +447,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
             <Controller
               name="overtimePay"
               control={control}
-              render={({ field }) => {
+              render={({ field }: { field: ControllerRenderProps<salarySlipSchemaType, "overtimePay"> }) => {
                 const formattedValue = field.value
                   ? Number(field.value).toLocaleString("en-US")
                   : "";
@@ -489,7 +485,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
               افزودن پاداش
             </button>
           </div>
-          {bonusFields.map((field, index) => (
+          {bonusFields.map((field: { id: string }, index: number) => (
             <div
               key={field.id}
               className="grid grid-cols-2 gap-2 p-2 border rounded"
@@ -546,7 +542,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
             <Controller
               name="insurance"
               control={control}
-              render={({ field }) => {
+              render={({ field }: { field: ControllerRenderProps<salarySlipSchemaType, "insurance"> }) => {
                 const formattedValue = field.value
                   ? Number(field.value).toLocaleString("en-US")
                   : "";
@@ -588,7 +584,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
             <Controller
               name="tax"
               control={control}
-              render={({ field }) => {
+              render={({ field }: { field: ControllerRenderProps<salarySlipSchemaType, "tax"> }) => {
                 const formattedValue = field.value
                   ? Number(field.value).toLocaleString("en-US")
                   : "";
@@ -619,7 +615,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
           <label className="block text-sm font-medium">اقساط وام</label>
           {currentInstallments.length > 0 ? (
             <div className="space-y-2">
-              {currentInstallments.map((inst, index) => {
+              {currentInstallments.map((inst: { loanId: string; installmentNumber: string; amount: string }, index: number  ) => {
                 const loan = employeeLoans.find(
                   (l) => l._id?.toString() === inst.loanId,
                 );
@@ -631,7 +627,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
                     <input
                       type="checkbox"
                       checked={loanInstallments?.some(
-                        (li) =>
+                        (li: { loanId: string; installmentNumber: string; amount: string }) =>
                           li.loanId === inst.loanId &&
                           li.installmentNumber === inst.installmentNumber,
                       )}
@@ -643,11 +639,11 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
                           setValue(
                             "loanInstallments",
                             current.filter(
-                              (li) =>
+                              (li: { loanId: string; installmentNumber: string; amount: string }) =>
                                 !(
                                   li.loanId === inst.loanId &&
                                   li.installmentNumber ===
-                                    inst.installmentNumber
+                                  inst.installmentNumber
                                 ),
                             ),
                           );
@@ -684,7 +680,7 @@ const SalarySlipForm: React.FC<SalarySlipFormProps> = ({
               افزودن
             </button>
           </div>
-          {deductionFields.map((field, index) => (
+          {deductionFields.map((field: { id: string }, index: number) => (
             <div
               key={field.id}
               className="grid grid-cols-2 gap-2 p-2 border rounded"

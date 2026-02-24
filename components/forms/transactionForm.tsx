@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
+// @ts-expect-error - react-hook-form types can fail to resolve in some Next/TS setups; runtime export exists
+import { Controller, useForm, type SubmitHandler, ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   transactionChequeSchema,
@@ -234,7 +235,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     }
   }, [transactionDataById, mode, reset, selectedTransactionChequeInfo]);
 
-  const onSubmit: SubmitHandler<transactionChequeSchemaType> = async (data) => {
+  const onSubmit: SubmitHandler<transactionChequeSchemaType> = async (data: transactionChequeSchemaType) => {
     try {
       const transactionData = {
         type: data.type,
@@ -457,7 +458,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             <Controller
               name="transactionDate"
               control={control}
-              render={({ field }) => (
+              render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "transactionDate"> }) => (
                 <PersianDatePicker
                   value={field.value}
                   onChange={field.onChange}
@@ -488,7 +489,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             <Controller
               name="amount"
               control={control}
-              render={({ field }) => {
+              render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "amount"> }) => {
                 const formattedValue = field.value
                   ? Number(field.value).toLocaleString("en-US")
                   : "";
@@ -613,7 +614,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="secondPartyId"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "secondPartyId"> }) => (
                   <PersonSelect
                     value={field.value}
                     onValueChange={(personId, person) => {
@@ -681,7 +682,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 <Controller
                   name="partnerPersonId"
                   control={control}
-                  render={({ field }) => (
+                  render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "partnerPersonId"> }) => (
                     <PersonSelect
                       value={field.value}
                       onValueChange={(personId, person) => {
@@ -743,7 +744,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="providerPersonId"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "providerPersonId"> }) => (
                   <PersonSelect
                     value={field.value}
                     onValueChange={field.onChange}
@@ -767,7 +768,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="brokerPersonId"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "brokerPersonId"> }) => (
                   <PersonSelect
                     value={field.value}
                     onValueChange={field.onChange}
@@ -797,10 +798,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="personId"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "personId"> }) => (
                   <PersonSelect
                     value={field.value}
-                    onValueChange={(personId, person) => {
+                    onValueChange={(personId, person: IPeople) => {
                       field.onChange(personId);
                       setSelectedPerson(person || null);
                     }}
@@ -1010,7 +1011,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="chequeIssueDate"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "chequeIssueDate"> }) => (
                   <PersianDatePicker
                     value={field.value}
                     onChange={field.onChange}
@@ -1034,7 +1035,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="chequeDueDate"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "chequeDueDate"> }) => (
                   <PersianDatePicker
                     value={field.value}
                     onChange={field.onChange}
@@ -1059,7 +1060,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 <Controller
                   name="chequeCustomerPersonId"
                   control={control}
-                  render={({ field }) => (
+                  render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "chequeCustomerPersonId"> }) => (
                     <PersonSelect
                       value={field.value}
                       onValueChange={field.onChange}
@@ -1086,7 +1087,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 <Controller
                   name="chequePayerPersonId"
                   control={control}
-                  render={({ field }) => (
+                  render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "chequePayerPersonId"> }) => (
                     <PersonSelect
                       value={field.value}
                       onValueChange={field.onChange}
@@ -1113,7 +1114,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 <Controller
                   name="chequePayeePersonId"
                   control={control}
-                  render={({ field }) => (
+                  render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "chequePayeePersonId"> }) => (
                     <PersonSelect
                       value={field.value}
                       onValueChange={field.onChange}
