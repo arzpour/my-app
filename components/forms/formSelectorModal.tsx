@@ -24,6 +24,7 @@ import { useGetPersonById } from "@/apis/mutations/people";
 import { IBusinessAccounts, IPeople } from "@/types/new-backend-types";
 import { useGetBusinessAccountById } from "@/apis/mutations/businessAccounts";
 import { resetPlateState } from "@/redux/slices/plateSlice";
+import SaleDealForm from "./saleDealForm";
 
 type FormType =
   | "transactions"
@@ -32,7 +33,7 @@ type FormType =
   | "peoples"
   | "expenses"
   | "business_accounts"
-  // | "sale_deal"
+  | "sale_deal"
   // | "cheque_actions"
   // | "cheque"
   | "salary_slip"
@@ -216,17 +217,17 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
             />
           </div>
         );
-      // case "sale_deal":
-      //   return (
-      //     <div className="p-4">
-      //       <SaleDealForm
-      //         embedded={true}
-      //         onSuccess={() => {
-      //           handleClose();
-      //         }}
-      //       />
-      //     </div>
-      //   );
+      case "sale_deal":
+        return (
+          <div className="p-4">
+            <SaleDealForm
+              embedded={true}
+              onSuccess={() => {
+                handleClose();
+              }}
+            />
+          </div>
+        );
       // case "cheque":
       //   return (
       //     <div className="p-4">
