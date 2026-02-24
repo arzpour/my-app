@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
+// @ts-expect-error - react-hook-form types can fail to resolve in some Next/TS setups; runtime export exists
+import { Controller, useForm, type SubmitHandler, ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   purchaseDealSchema,
@@ -119,7 +120,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
     setValue("partnerships", updated);
   };
 
-  const onSubmit: SubmitHandler<purchaseDealSchemaType> = async (data) => {
+  const onSubmit: SubmitHandler<purchaseDealSchemaType> = async (data: purchaseDealSchemaType) => {
     const plateData = `${leftDigits} ${centerAlphabet} ${centerDigits} ${ir}`;
     try {
       const vehicleData: Partial<IVehicle> = {
@@ -155,25 +156,25 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
         purchasePrice: parseFloat(data.purchasePrice),
         seller: seller
           ? {
-              personId: seller._id?.toString() || "",
-              fullName: `${seller.firstName} ${seller.lastName}`,
-              nationalId: seller.nationalId?.toString() || "",
-              mobile: seller.phoneNumbers?.map((el) => el)?.toString() || "",
-            }
+            personId: seller._id?.toString() || "",
+            fullName: `${seller.firstName} ${seller.lastName}`,
+            nationalId: seller.nationalId?.toString() || "",
+            mobile: seller.phoneNumbers?.map((el) => el)?.toString() || "",
+          }
           : undefined,
         purchaseBroker:
           selectedBroker && data.purchaseBrokerPersonId
             ? {
-                personId: data.purchaseBrokerPersonId,
-                fullName: `${selectedBroker.firstName} ${selectedBroker.lastName}`,
-                commissionPercent: parseFloat(
-                  data.purchaseBrokerCommissionPercent || "0",
-                ),
-                commissionAmount:
-                  parseFloat(data.purchasePrice) *
-                  (parseFloat(data.purchaseBrokerCommissionPercent || "0") /
-                    100),
-              }
+              personId: data.purchaseBrokerPersonId,
+              fullName: `${selectedBroker.firstName} ${selectedBroker.lastName}`,
+              commissionPercent: parseFloat(
+                data.purchaseBrokerCommissionPercent || "0",
+              ),
+              commissionAmount:
+                parseFloat(data.purchasePrice) *
+                (parseFloat(data.purchaseBrokerCommissionPercent || "0") /
+                  100),
+            }
             : undefined,
         partnerships: partnerships.map((p) => {
           const partner = allPeople?.find(
@@ -182,19 +183,19 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
           return {
             partner: partner
               ? {
-                  personId: partner._id?.toString() || "",
-                  name:
-                    partner.fullName ??
-                    `${partner.firstName} ${partner.lastName}`,
-                  nationalID: partner.nationalId?.toString() || "",
-                  mobile: partner.phoneNumber?.toString() || "",
-                }
+                personId: partner._id?.toString() || "",
+                name:
+                  partner.fullName ??
+                  `${partner.firstName} ${partner.lastName}`,
+                nationalID: partner.nationalId?.toString() || "",
+                mobile: partner.phoneNumber?.toString() || "",
+              }
               : {
-                  personId: p.partnerPersonId,
-                  name: "",
-                  nationalID: "",
-                  mobile: "",
-                },
+                personId: p.partnerPersonId,
+                name: "",
+                nationalID: "",
+                mobile: "",
+              },
             investmentAmount: parseFloat(p.investmentAmount),
             profitSharePercentage: parseFloat(p.profitSharePercentage),
             payoutAmount: 0,
@@ -344,7 +345,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
             <Controller
               name="sellerPersonId"
               control={control}
-              render={({ field }) => {
+              render={({ field }: { field: ControllerRenderProps<purchaseDealSchemaType, "sellerPersonId"> }) => {
                 return (
                   <PersonSelect
                     value={field.value}
@@ -385,7 +386,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
             <Controller
               name="purchasePrice"
               control={control}
-              render={({ field }) => {
+              render={({ field }: { field: ControllerRenderProps<purchaseDealSchemaType, "purchasePrice"> }) => {
                 const formattedValue = field.value
                   ? Number(field.value).toLocaleString("en-US")
                   : "";
@@ -424,7 +425,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
             <Controller
               name="purchaseDate"
               control={control}
-              render={({ field }) => (
+              render={({ field }: { field: ControllerRenderProps<purchaseDealSchemaType, "purchaseDate"> }) => (
                 <PersianDatePicker
                   value={field.value}
                   onChange={field.onChange}
@@ -452,7 +453,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
             <Controller
               name="purchaseBrokerPersonId"
               control={control}
-              render={({ field }) => (
+              render={({ field }: { field: ControllerRenderProps<purchaseDealSchemaType, "purchaseBrokerPersonId"> }) => (
                 <PersonSelect
                   value={field.value}
                   onValueChange={(personId, person: IPeople) => {

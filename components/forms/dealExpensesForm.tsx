@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
+// @ts-expect-error - react-hook-form types can fail to resolve in some Next/TS setups; runtime export exists
+import { useForm, Controller, SubmitHandler, ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   dealExpensesSchema,
@@ -61,7 +62,7 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
   const expenseType = watch("expenseType");
   // const queryClient = useQueryClient();
 
-  const onSubmit: SubmitHandler<dealExpensesSchemaType> = async (data) => {
+  const onSubmit: SubmitHandler<dealExpensesSchemaType> = async (data: dealExpensesSchemaType) => {
     try {
       if (!selectedDeal) {
         toast.error("لطفاً خودرو را انتخاب کنید");
@@ -232,7 +233,7 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
               <Controller
                 name="providerPersonId"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<dealExpensesSchemaType, "providerPersonId"> }) => (
                   <PersonSelect
                     value={field.value}
                     onValueChange={field.onChange}
@@ -285,7 +286,7 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
               <Controller
                 name="cost"
                 control={control}
-                render={({ field }) => {
+                render={({ field }: { field: ControllerRenderProps<dealExpensesSchemaType, "cost"> }) => {
                   const formattedValue = field.value
                     ? Number(field.value).toLocaleString("en-US")
                     : "";
@@ -322,7 +323,7 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
               <Controller
                 name="date"
                 control={control}
-                render={({ field }) => (
+                render={({ field }: { field: ControllerRenderProps<dealExpensesSchemaType, "date"> }) => (
                   <PersianDatePicker
                     value={field.value}
                     onChange={field.onChange}

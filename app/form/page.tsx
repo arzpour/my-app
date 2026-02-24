@@ -1,7 +1,7 @@
 "use client";
 import FormTabs from "@/components/forms/formTabs";
-import SecretaryForm from "@/components/forms/secretaryForm";
 import Header from "@/components/header";
+import PanelMenu from "@/containers/panelMenu";
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
 
@@ -10,7 +10,7 @@ const FormPage = () => {
   return (
     <div dir="rtl" className="w-full p-4">
       <Header />
-      {role === "secretary" && <SecretaryForm />}
+      {role === "secretary" && <PanelMenu />}
       {role === "accountant" && <FormTabs />}
     </div>
   );

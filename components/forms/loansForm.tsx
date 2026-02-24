@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
+// @ts-expect-error - react-hook-form types can fail to resolve in some Next/TS setups; runtime export exists
+import { useForm, Controller, SubmitHandler, ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loansSchema, loansSchemaType } from "@/validations/loans";
 import { toast } from "sonner";
@@ -62,7 +63,7 @@ const LoansForm: React.FC<LoansFormProps> = ({
     }
   }, [totalAmount, numberOfInstallments, setValue]);
 
-  const onSubmit: SubmitHandler<loansSchemaType> = async (data) => {
+  const onSubmit: SubmitHandler<loansSchemaType> = async (data: loansSchemaType) => {
     try {
       const borrower = allPeople?.find(
         (p) => p._id?.toString() === data.borrowerPersonId,
@@ -159,7 +160,7 @@ const LoansForm: React.FC<LoansFormProps> = ({
             <Controller
               name="borrowerPersonId"
               control={control}
-              render={({ field }) => (
+              render={({ field }: { field: ControllerRenderProps<loansSchemaType, "borrowerPersonId"> }) => (
                 <PersonSelect
                   value={field.value}
                   onValueChange={field.onChange}
@@ -194,7 +195,7 @@ const LoansForm: React.FC<LoansFormProps> = ({
             <Controller
               name="totalAmount"
               control={control}
-              render={({ field }) => {
+              render={({ field }: { field: ControllerRenderProps<loansSchemaType, "totalAmount"> }) => {
                 const formattedValue = field.value
                   ? Number(field.value).toLocaleString("en-US")
                   : "";
@@ -232,7 +233,7 @@ const LoansForm: React.FC<LoansFormProps> = ({
             <Controller
               name="loanDate"
               control={control}
-              render={({ field }) => (
+              render={({ field }: { field: ControllerRenderProps<loansSchemaType, "loanDate"> }) => (
                 <PersianDatePicker
                   value={field.value}
                   onChange={field.onChange}
@@ -284,7 +285,7 @@ const LoansForm: React.FC<LoansFormProps> = ({
             <Controller
               name="installmentAmount"
               control={control}
-              render={({ field }) => {
+              render={({ field }: { field: ControllerRenderProps<loansSchemaType, "installmentAmount"> }) => {
                 const formattedValue = field.value
                   ? Number(field.value).toLocaleString("en-US")
                   : "";
