@@ -179,7 +179,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
           (personData.brokerDetails.currentRates.purchaseCommissionPercent !==
             data.purchaseCommissionPercent ||
             personData.brokerDetails.currentRates.saleCommissionPercent !==
-              data.saleCommissionPercent)
+            data.saleCommissionPercent)
         ) {
           payload.brokerDetails.rateHistory = [
             ...(personData.brokerDetails.rateHistory || []),
@@ -437,15 +437,13 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
                       handleRoleChange(roleKey, e.target.checked)
                     }
                     disabled={isDisabled}
-                    className={`w-4 h-4 disabled:opacity-50 disabled:cursor-not-allowed ${
-                      isDisabled ? "hidden" : ""
-                    }`}
+                    className={`w-4 h-4 disabled:opacity-50 disabled:cursor-not-allowed ${isDisabled ? "hidden" : ""
+                      }`}
                   />
                   <label
                     htmlFor={`role-${role}`}
-                    className={`cursor-pointer text-sm ${
-                      isDisabled ? "hidden" : ""
-                    }`}
+                    className={`cursor-pointer text-sm ${isDisabled ? "hidden" : ""
+                      }`}
                   >
                     {PERSON_ROLES_DISPLAY[roleKey]}
                   </label>

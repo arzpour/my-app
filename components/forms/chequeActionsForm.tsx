@@ -12,7 +12,6 @@ import { getAllBusinessAccounts } from "@/apis/client/businessAccounts";
 import { useQuery } from "@tanstack/react-query";
 import PersianDatePicker from "../global/persianDatePicker";
 import { CHEQUE_ACTIONS } from "@/utils/systemConstants";
-import type { IBusinessAccounts } from "@/types/new-backend-types";
 
 interface ChequeActionsFormProps {
   chequeId?: string;
@@ -35,7 +34,6 @@ const ChequeActionsForm: React.FC<ChequeActionsFormProps> = ({
     register,
     handleSubmit,
     watch,
-    setValue,
     formState: { errors },
   } = useForm<chequeActionsSchemaType>({
     resolver: zodResolver(chequeActionsSchema),

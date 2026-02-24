@@ -47,6 +47,13 @@ interface FormSelectorModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface FormItem {
+  id: string;
+  title: string;
+  icon?: string;
+  disabled?: boolean;
+}
+
 const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
   open,
   onOpenChange,
@@ -64,7 +71,7 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
   const getBusinessAccountById = useGetBusinessAccountById();
   const dispatch = useDispatch();
 
-  const forms = [
+  const forms: FormItem[] = [
     { id: "peoples", title: "ثبت/ویرایش شخص", icon: "/7.png" },
     {
       id: "business_accounts",
@@ -81,9 +88,9 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
       { id: "transactions", title: "ثبت تراکنش", icon: "/2.png" },
       // { id: "cheque", title: "ثبت چک", icon: "/9.png" },
       // { id: "cheque_actions", title: "عملیات روی چک", icon: "📋" },
-      { id: "loans", title: "ثبت وام پرسنلی", icon: "/6.png" },
-      { id: "salary_slip", title: "محاسبه و صدور فیش حقوقی", icon: "/3.png" },
-      // { id: "salaries", title: "پرداخت حقوق", icon: "/3.png" },
+      { id: "loans", title: "ثبت وام پرسنلی", icon: "/6.png", disabled: true },
+      { id: "salary_slip", title: "محاسبه و صدور فیش حقوقی", icon: "/3.png", disabled: true },
+      // { id: "salaries", title: "پرداخت حقوق", icon: "/3.png", disabled: true },
     );
 
   const handleFormSelect = (formId: string) => {
@@ -212,39 +219,39 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
             />
           </div>
         );
-      case "sale_deal":
-        return (
-          <div className="p-4">
-            <SaleDealForm
-              embedded={true}
-              onSuccess={() => {
-                handleClose();
-              }}
-            />
-          </div>
-        );
-      case "cheque":
-        return (
-          <div className="p-4">
-            <ChequeFormNew
-              embedded={true}
-              onSuccess={() => {
-                handleClose();
-              }}
-            />
-          </div>
-        );
-      case "cheque_actions":
-        return (
-          <div className="p-4">
-            <ChequeActionsForm
-              embedded={true}
-              onSuccess={() => {
-                handleClose();
-              }}
-            />
-          </div>
-        );
+      // case "sale_deal":
+      //   return (
+      //     <div className="p-4">
+      //       <SaleDealForm
+      //         embedded={true}
+      //         onSuccess={() => {
+      //           handleClose();
+      //         }}
+      //       />
+      //     </div>
+      //   );
+      // case "cheque":
+      //   return (
+      //     <div className="p-4">
+      //       <ChequeFormNew
+      //         embedded={true}
+      //         onSuccess={() => {
+      //           handleClose();
+      //         }}
+      //       />
+      //     </div>
+      //   );
+      // case "cheque_actions":
+      //   return (
+      //     <div className="p-4">
+      //       <ChequeActionsForm
+      //         embedded={true}
+      //         onSuccess={() => {
+      //           handleClose();
+      //         }}
+      //       />
+      //     </div>
+      //   );
       case "salary_slip":
         return (
           <div className="p-4">
@@ -284,30 +291,38 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
                 </DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                {forms.map((form) => (
-                  <button
-                    key={form.id}
-                    onClick={() => handleFormSelect(form.id)}
-                    className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50 hover:border-blue-500 transition-all text-right"
-                  >
-                    {/* <span className="text-xl">{form.icon}</span> */}
-                    {/* <Image
+                {forms.map((form) => {
+                  const isDisabled = form.disabled === true;
+                  return (
+                    <button
+                      key={form.id}
+                      type="button"
+                      disabled={isDisabled}
+                      onClick={() => !isDisabled && handleFormSelect(form.id)}
+                      className={`flex items-center gap-4 p-4 border rounded-lg transition-all text-right ${isDisabled
+                          ? "opacity-60 cursor-not-allowed bg-gray-50 border-gray-200"
+                          : "hover:bg-gray-50 hover:border-blue-500"
+                        }`}
+                    >
+                      {/* <span className="text-xl">{form.icon}</span> */}
+                      {/* <Image
                       alt={`${form.icon}-icon`}
                       src={form.icon ?? ""}
                       width={500}
                       height={500}
                     /> */}
-                    <img
-                      alt={`${form.icon}-icon`}
-                      src={form.icon ?? ""}
-                      className="w-12 h-9"
-                    />
-                    <span className="flex-1 text-base font-medium">
-                      {form.title}
-                    </span>
-                    <ArrowLeftIcon className="size-4 text-gray-400" />
-                  </button>
-                ))}
+                      <img
+                        alt={`${form.icon}-icon`}
+                        src={form.icon ?? ""}
+                        className="w-12 h-9"
+                      />
+                      <span className="flex-1 text-base font-medium">
+                        {form.title}
+                      </span>
+                      <ArrowLeftIcon className="size-4 text-gray-400" />
+                    </button>
+                  );
+                })}
               </div>
             </>
           ) : (

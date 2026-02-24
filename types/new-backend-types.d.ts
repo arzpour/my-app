@@ -62,6 +62,16 @@ export interface IChequeNew {
   };
   relatedDealId: string;
   relatedTransactionId: string;
+  brokerPersonId: {
+    personId: string;
+    fullName: string;
+    nationalId: string;
+  };
+  providerPersonId: {
+    personId: string;
+    fullName: string;
+    nationalId: string;
+  };
   actions: {
     actionType: string;
     actionDate: string;
@@ -309,7 +319,8 @@ export interface ITransactionNew {
   bussinessAccountId: string;
   description: string;
   vin: string;
-  // chequeDescription?: string
+  brokerPersonId: string
+  providerPersonId: string
   createdAt: string;
   updatedAt: string;
 }
