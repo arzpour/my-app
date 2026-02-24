@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-// @ts-expect-error - react-hook-form types can fail to resolve in some Next/TS setups; runtime export exists
+// @ts-ignore - react-hook-form useForm: types sometimes not resolved (e.g. Next build); runtime is fine. Use @ts-ignore so Ubuntu build does not report "Unused directive".
 import { Controller, useForm, type SubmitHandler, useFieldArray, ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
