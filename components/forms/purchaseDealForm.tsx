@@ -141,7 +141,9 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
       const vehicleIdNumber =
         (vehicle as any).id ||
         (vehicle as any).vehicleId ||
-        (vehicle._id ? parseInt(vehicle._id.toString().slice(-8), 16) : 0);
+        ((vehicle as any)._id
+          ? parseInt((vehicle as any)._id.toString().slice(-8), 16)
+          : 0);
 
       const dealData: Partial<IDeal> = {
         vehicleId: vehicleIdNumber,
@@ -213,23 +215,30 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
       onSuccess?.();
 
       const price = Number(data.purchasePrice);
+      const brokerPercent = parseFloat(data.purchaseBrokerCommissionPercent || "0");
+      const brokerCommission =
+        !isNaN(price) && !isNaN(brokerPercent) ? (price * brokerPercent) / 100 : 0;
 
-      const walletDataForPurchaseBroker = {
-        amount: -price,
-        type: "خرید ماشین",
-        description: "خرید ماشین",
-      };
-      updateWalletHandler(
-        data.purchaseBrokerPersonId ?? "",
-        walletDataForPurchaseBroker,
-      );
+      if (data.sellerPersonId) {
+        const walletDataForSeller = {
+          amount: price,
+          type: "فروش ماشین",
+          description: "فروش ماشین",
+        };
+        updateWalletHandler(data.sellerPersonId, walletDataForSeller);
+      }
 
-      const walletDataForSeller = {
-        amount: price,
-        type: "فروش ماشین",
-        description: "فروش ماشین",
-      };
-      updateWalletHandler(data.sellerPersonId, walletDataForSeller);
+      if (data.purchaseBrokerPersonId && brokerCommission !== 0) {
+        const walletDataForPurchaseBroker = {
+          amount: brokerCommission,
+          type: "کمیسیون خرید",
+          description: "کمیسیون خرید خودرو",
+        };
+        updateWalletHandler(
+          data.purchaseBrokerPersonId,
+          walletDataForPurchaseBroker,
+        );
+      }
     } catch (error: any) {
       console.error("Error creating purchase deal:", error);
       toast.error(error?.response?.data?.message || "خطا در ثبت خرید خودرو");
