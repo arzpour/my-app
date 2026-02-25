@@ -22,9 +22,7 @@ import { useLogout } from "@/apis/mutations/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useGetPersonById } from "@/apis/mutations/people";
-import {
-  formatPrice,
-} from "@/utils/systemConstants";
+import { formatPrice } from "@/utils/systemConstants";
 
 const Header = () => {
   const { chassisNo: chassisNoSaved } = useSelector(
@@ -68,7 +66,6 @@ const Header = () => {
   }, [allDeals, selectedDeal]);
 
   const deals = selectedDeal || allDeals[0] || null;
-  console.log("🚀 ~ Header ~ deals:", deals)
 
   const dealId = deals?._id?.toString();
   const getTransactionByDealId = useGetTransactionByDealId(dealId);
@@ -150,8 +147,10 @@ const Header = () => {
           otherCostCategories.some((category) => t.reason === category),
       )
       .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+
+      const otherOptionsTransaction = transactions.filter(el=> el.reason === "سایر هزینه‌ها").reduce((sum, t)=> sum + (t.amount || 0), 0) || 0
   const totalOtherCosts =
-    otherCostsFromDirectCosts + otherCostsFromTransactions;
+    otherCostsFromDirectCosts + otherCostsFromTransactions + otherOptionsTransaction
 
   let grossProfit: number | null = null;
   if (deals?.purchasePrice && deals?.salePrice) {
@@ -172,10 +171,14 @@ const Header = () => {
     const amountWithoutPercent = grossProfit - totalOtherCosts;
     buyAmountWithPercent =
       amountWithoutPercent *
-      parseFloat(String(deals?.purchaseBroker?.commissionPercent || 0));
+      parseFloat(
+        String(deals?.purchaseBroker?.commissionPercent / 100 || 0),
+      )
     sellAmountWithPercent =
       amountWithoutPercent *
-      parseFloat(String(deals?.saleBroker?.commissionPercent || 0));
+      parseFloat(
+        String(deals?.saleBroker?.commissionPercent / 100 || 0),
+      );
   }
 
   let netProfit: number | null = null;
@@ -419,12 +422,13 @@ const Header = () => {
         <div className="flex gap-2 items-right items-baseline text-sm">
           <p className="text-sm">وضعیت خودرو:</p>
           <p
-            className={`px-7 rounded py-1 text-sm ${deals?.buyer
+            className={`px-7 rounded py-1 text-sm ${
+              deals?.buyer
                 ? "bg-red-400 text-white"
                 : deals?.seller
                   ? "bg-green-400 text-red-900"
                   : "bg-yellow-400 text-red-900"
-              }`}
+            }`}
           >
             {deals?.buyer ? "فروخته شد" : deals?.seller ? "موجود" : "نامعلوم"}
           </p>
@@ -473,14 +477,15 @@ const Header = () => {
             وضعیت مالی با طرف اول:
           </p>
           <p
-            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${sellerSettlementStatus === "تسویه شده"
+            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${
+              sellerSettlementStatus === "تسویه شده"
                 ? "bg-green-400 text-green-900"
                 : sellerSettlementStatus === "بدهکار"
                   ? "bg-red-400 text-red-900"
                   : sellerSettlementStatus === "بستانکار"
                     ? "bg-yellow-400 text-yellow-900"
                     : "bg-gray-200 text-gray-600"
-              }`}
+            }`}
           >
             {sellerSettlementStatus}
           </p>
@@ -491,14 +496,15 @@ const Header = () => {
             وضعیت مالی با طرف دوم:
           </p>
           <p
-            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${buyerSettlementStatus === "تسویه شده"
+            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${
+              buyerSettlementStatus === "تسویه شده"
                 ? "bg-green-400 text-green-900"
                 : buyerSettlementStatus === "بستانکار"
                   ? "bg-yellow-400 text-yellow-900"
                   : buyerSettlementStatus === "بدهکار"
                     ? "bg-red-400 text-red-900"
                     : "bg-gray-200 text-gray-600"
-              }`}
+            }`}
           >
             {buyerSettlementStatus}
           </p>

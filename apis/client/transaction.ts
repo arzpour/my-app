@@ -38,7 +38,7 @@ import { formatPrice } from "@/utils/systemConstants";
  * MIGRATION: Replace with GET /transactions
  * Returns: ITransactionNew[] instead of ITransactionRes[]
  */
-type getAllTransactionsType = () => Promise<ITransactionRes[]>;
+type getAllTransactionsType = () => Promise<ITransactionNew[]>;
 export const getAllTransactions: getAllTransactionsType = async () => {
   const response = await axiosInstance.get(urls.transactions.list);
   return response.data;
