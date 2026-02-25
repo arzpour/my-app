@@ -125,6 +125,20 @@ export const transactionChequeSchema = z
   )
   .refine(
     (data) => {
+      const isPartnershipReason =
+        (data.type === "دریافت" && data.reason === "سرمایه گذاری") ||
+        (data.type === "پرداخت" &&
+          (data.reason === "اصل سرمایه" || data.reason === "سود سرمایه"));
+      if (!isPartnershipReason) return true;
+      return !!(data.partnerPersonId && data.partnerPersonId.trim());
+    },
+    {
+      message: "نام شریک الزامی است",
+      path: ["partnerPersonId"],
+    },
+  )
+  .refine(
+    (data) => {
       if (data.reason === "آپشن") {
         return data.providerPersonId;
       }

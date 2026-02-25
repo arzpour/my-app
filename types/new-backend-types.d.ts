@@ -35,6 +35,7 @@ export interface IChequeNew {
   _id: Types.ObjectId;
   chequeNumber: string;
   chequeSerial: string;
+  sayadiID: string;
   bankName: string;
   branchName: string;
   vin: string;

@@ -19,6 +19,10 @@ import useGetAllPeople from "@/hooks/useGetAllPeople";
 import useGetAllUsers from "@/hooks/useGetAllUsers";
 import { documents, formatPrice, parsePriceToNumber } from "@/utils/systemConstants";
 import { useCreateVehicle, useUpdateVehicle } from "@/apis/mutations/vehicle";
+import { getVehicleByVin } from "@/apis/client/vehicles";
+
+const isMongoObjectId = (id: string): boolean =>
+  typeof id === "string" && /^[a-fA-F0-9]{24}$/.test(id);
 
 interface VehicleFormModalProps {
   open: boolean;
@@ -392,7 +396,11 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
         vehiclePayload.Secretary = data.Secretary?.toString();
       }
 
-      const docCount = data.DocumentsCopy?.length ?? 0;
+      const cleanedDocs = (data.DocumentsCopy ?? []).filter(
+        (d) => d !== "کامل" && d !== "ناقص" && d !== "فاقد مدارک",
+      );
+
+      const docCount = cleanedDocs.length;
       const docStatus: "ناقص" | "کامل" | "فاقد مدارک" =
         docCount === 0
           ? "فاقد مدارک"
@@ -400,11 +408,9 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
             ? "کامل"
             : "ناقص";
       vehiclePayload.documents = docStatus;
-      vehiclePayload.documents = docStatus;
-
 
       if (dirtyFields.DocumentsCopy) {
-        vehiclePayload.DocumentsCopy = data.DocumentsCopy;
+        vehiclePayload.DocumentsCopy = cleanedDocs;
       }
 
       if (dirtyFields.CarModel) vehiclePayload.model = data.CarModel;
@@ -564,13 +570,27 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
       // };
 
       if (mode === "edit" && vehicleData?._id) {
-        const vehicleId = isIVehicle(vehicleData)
-          ? vehicleData._id.toString()
-          : vehicleData._id;
+        let vehicleId: string =
+          isIVehicle(vehicleData) ? vehicleData._id?.toString?.() ?? String(vehicleData._id) : String(vehicleData._id);
+        if (!isMongoObjectId(vehicleId)) {
+          const vin = isIVehicle(vehicleData) ? vehicleData.vin : (vehicleData as any).ChassisNo;
+          if (vin) {
+            try {
+              const byVin = await getVehicleByVin(vin);
+              const realId = (byVin as any)?._id?.toString?.() ?? (byVin as any)?._id;
+              if (realId && isMongoObjectId(String(realId))) vehicleId = String(realId);
+            } catch (_) { }
+          }
+        }
+        if (!isMongoObjectId(vehicleId)) {
+          toast.error("شناسه خودرو نامعتبر است. لطفاً از لیست خودروها ویرایش کنید.");
+          return;
+        }
         const res = await updateVehicle.mutateAsync({
           id: vehicleId,
           data: vehiclePayload,
         });
+
         const deal = getAllDeals.data?.find(
           (d) => d.vehicleSnapshot?.vin === res.vin,
         );
@@ -669,6 +689,31 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
             </div>
 
             <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">منشی</label>
+              <Controller
+                name="Secretary"
+                control={control}
+                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "Secretary"> }) => {
+                  return (
+                    <PersonSelect
+                      value={field.value}
+                      onValueChange={(personId, person) => {
+                        field.onChange(personId);
+                        const name = person
+                          ? `${(person as any).firstname ?? (person as any).firstName ?? ""} ${(person as any).lastname ?? (person as any).lastName ?? ""}`.trim()
+                          : "";
+                        setValue("SecretaryName", name);
+                      }}
+                      users={secretaries || []}
+                      isUser={true}
+                      placeholder={"انتخاب منشی"}
+                    />
+                  );
+                }}
+              />
+            </div>
+
+            <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
                 کارگزار خرید
               </label>
@@ -710,7 +755,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               <Controller
                 name="SaleBroker"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "SaleBroker"> }) => { 
+                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "SaleBroker"> }) => {
                   return (
                     <PersonSelect
                       value={field.value}
@@ -938,30 +983,6 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">منشی</label>
-              <Controller
-                name="Secretary"
-                control={control}
-                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "Secretary"> }) => {
-                  return (
-                    <PersonSelect
-                      value={field.value}
-                      onValueChange={(personId, person) => {
-                        field.onChange(personId);
-                        const name = person
-                          ? `${(person as any).firstname ?? (person as any).firstName ?? ""} ${(person as any).lastname ?? (person as any).lastName ?? ""}`.trim()
-                          : "";
-                        setValue("SecretaryName", name);
-                      }}
-                      users={secretaries || []}
-                      isUser={true}
-                      placeholder={"انتخاب منشی"}
-                    />
-                  );
-                }}
-              />
-            </div>
 
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
