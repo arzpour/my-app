@@ -320,8 +320,11 @@ export interface ITransactionNew {
   bussinessAccountId: string;
   description: string;
   vin: string;
-  brokerPersonId: string
-  providerPersonId: string
+  brokerPersonId: string;
+  providerPersonId: string;
+  partnerPersonId: string;
+  partnershipProfitSharePercentage: string;
+  partnerShipProfit: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -248,18 +248,24 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           ? data.partnerPersonId
           : data.personId;
 
+      const partnerShip = allPeople?.find(el=> el._id === data.partnerPersonId)
+
       const transactionData = {
         type: data.type,
         reason: data.reason,
         transactionDate: data.transactionDate,
         amount: parseFloat(data.amount),
-        personId: effectivePersonId,
+        personId: data.personId,
+        secondPersonId: data.secondPersonId,
         bussinessAccountId: data.bussinessAccountId,
         paymentMethod: data.paymentMethod,
         dealId: data.dealId || undefined,
         description: data.description || "",
         brokerPersonId: data.brokerPersonId || "",
         providerPersonId: data.providerPersonId || "",
+        partnerPersonId:data.partnerPersonId || "",
+        partnerShipProfit: `${partnerShip?.firstName} ${partnerShip?.lastName}`,
+        partnershipProfitSharePercentage: data.partnershipProfitSharePercentage || "",
       };
       if (data.brokerPersonId) {
         transactionData.brokerPersonId = data.brokerPersonId;
@@ -680,13 +686,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 طرف حساب دوم <span className="text-red-600">*</span>
               </label>
               <Controller
-                name="secondPartyId"
+                name="secondPersonId"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "secondPartyId"> }) => (
+                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "secondPersonId"> }) => (
                   <PersonSelect
                     value={field.value}
-                    onValueChange={(personId, person) => {
-                      field.onChange(personId);
+                    onValueChange={(secondPersonId, person) => {
+                      field.onChange(secondPersonId);
                       setSelectedPerson(person || null);
                     }}
                     people={allPeople || []}
@@ -694,9 +700,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                   />
                 )}
               />
-              {errors.personId && (
+              {errors.secondPersonId && (
                 <p className="text-red-500 text-xs">
-                  {errors.personId.message}
+                  {errors.secondPersonId.message}
                 </p>
               )}
             </div>

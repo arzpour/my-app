@@ -11,7 +11,7 @@ export const transactionChequeSchema = z
     transactionDate: z.string().min(1, "تاریخ تراکنش الزامی است"),
     amount: z.string().min(1, "مبلغ تراکنش الزامی است"),
     personId: z.string().optional(),
-    secondPartyId: z.string().optional(),
+    secondPersonId: z.string().optional(),
     bussinessAccountId: z.string().min(1, "حساب بانکی الزامی است"),
     paymentMethod: z.enum(
       ["نقد", "کارت به کارت", "چک", "شبا", "مشتری به مشتری"] as const,
@@ -39,7 +39,7 @@ export const transactionChequeSchema = z
     chequeRelatedDealId: z.string().optional(),
     chequeImage: z.any().optional(), // File upload
     partnerPersonId: z.string().optional(),
-    partnershipInvestmentAmount: z.string().optional(),
+    // partnershipInvestmentAmount: z.string().optional(),
     partnershipProfitSharePercentage: z.string().optional(),
     providerPersonId: z.string().optional(),
     brokerPersonId: z.string().optional(),
@@ -112,7 +112,9 @@ export const transactionChequeSchema = z
         (data.type === "پرداخت" &&
           (data.reason === "اصل سرمایه" || data.reason === "سود سرمایه"));
 
-      if (isOptionReason || isPartnershipReason) {
+      const isCustomerToCustomer = data.paymentMethod === "مشتری به مشتری";
+
+      if (isOptionReason || isPartnershipReason || isCustomerToCustomer) {
         return true;
       }
 
@@ -121,6 +123,18 @@ export const transactionChequeSchema = z
     {
       message: "طرف حساب الزامی است",
       path: ["personId"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.reason === "درصد کارگزار") {
+        return !!data.brokerPersonId;
+      }
+      return true;
+    },
+    {
+      message: "کارگزار الزامی است",
+      path: ["brokerPersonId"],
     },
   )
   .refine(
@@ -215,13 +229,13 @@ export const transactionChequeSchema = z
   .refine(
     (data) => {
       if (data.paymentMethod === "مشتری به مشتری") {
-        return data.secondPartyId;
+        return data.secondPersonId;
       }
       return true;
     },
     {
       message: "طرف حساب دوم الزامی است",
-      path: ["secondPartyId"],
+      path: ["secondPersonId"],
     },
   );
 
