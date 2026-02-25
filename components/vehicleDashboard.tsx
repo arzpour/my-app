@@ -226,12 +226,19 @@ const VehicleDashboard = () => {
 
   ///////////////////////////////////////////////////////////////////////////////
 
+
+  const investmentTransactionConditions = (t: ITransactionNew) => {
+    return (t.type === "پرداخت" && t.reason === "اصل سرمایه") || (t.type === "پرداخت" && t.reason === "سود سرمایه") || (t.type === "دریافت" && t.reason === "اصل سرمایه") || (t.type === "دریافت" && t.reason === "سود سرمایه") || (t.type === "دریافت" && t.reason === "سرمایه گذاری");
+  }
+
   const paidTransactions = filteredTransactions?.filter(
-    (t) => t.type === "پرداخت" || t.type === "سایر هزینه‌ها",
+    (t) => (t.type === "پرداخت" || t.type === "سایر هزینه‌ها") && !investmentTransactionConditions(t),
   );
   const receivedTransactions = filteredTransactions?.filter(
-    (t) => t.type === "دریافت" || t.type === "سایر هزینه‌ها",
+    (t) => (t.type === "دریافت" || t.type === "سایر هزینه‌ها") && !investmentTransactionConditions(t),
   );
+
+  const investmentTransactions = filteredTransactions?.filter(investmentTransactionConditions);
 
   ///////////////////////////////////////////////////////////////////////////////
   const today = new Date();
@@ -323,13 +330,13 @@ const VehicleDashboard = () => {
       ? deal.purchasePrice - totalPaidToSeller
       : deal?.purchasePrice || 0;
 
-  const investmentTransactions = filteredTransactions?.filter(
-    (t) =>
-      t.reason === "افزایش سرمایه" ||
-      t.reason === "کاهش سرمایه" ||
-      t.type === "افزایش سرمایه" ||
-      t.type === "برداشت سرمایه",
-  );
+  // const investmentTransactions = filteredTransactions?.filter(
+  //   (t) =>
+  //     t.reason === "افزایش سرمایه" ||
+  //     t.reason === "کاهش سرمایه" ||
+  //     t.type === "افزایش سرمایه" ||
+  //     t.type === "برداشت سرمایه",
+  // );
 
   const totalPaidForInvestment =
     investmentTransactions
@@ -718,60 +725,48 @@ const VehicleDashboard = () => {
                 </TableHeader>
 
                 <TableBody>
-                  {deal?.partnerships && deal.partnerships.length > 0
-                    ? deal.partnerships.map((partnership, index) => {
-                      const relatedTransaction = transactions?.find(
-                        (t) =>
-                          t.type === "پرداخت" &&
-                          t.personId?.toString() ===
-                          partnership.partner.personId,
+                  {investmentTransactions && investmentTransactions.length > 0
+                    ? investmentTransactions.map((tx, index) => {
+                      const relatedPartnership = deal?.partnerships?.find(
+                        (p) => p.partner.personId === tx.personId,
                       );
 
                       return (
                         <TableRow
-                          key={`${partnership.partner.personId}-${index}`}
+                          key={`${tx._id}-${index}`}
                           className="hover:bg-gray-50"
                         >
                           <TableCell className="text-center">
                             {index + 1}
                           </TableCell>
                           <TableCell className="text-center">
-                            {relatedTransaction?.transactionDate ||
-                              deal.createdAt?.split("T")[0] ||
+                            {tx.transactionDate ||
+                              (deal?.createdAt?.split("T")[0] || "") ||
                               ""}
                           </TableCell>
                           <TableCell className="text-center">
-                            {partnership.investmentAmount
-                              ? formatPrice(
-                                partnership.investmentAmount.toLocaleString(
-                                  "en-US",
-                                ),
-                              )
+                            {tx.amount
+                              ? formatPrice(tx.amount.toLocaleString("en-US"))
                               : ""}
                           </TableCell>
                           <TableCell className="text-center">
-                            {partnership.partner.name || ""}
+                            {relatedPartnership?.partner.name || ""}
                           </TableCell>
                           <TableCell className="text-center">
-                            {partnership.profitSharePercentage
-                              ? `${(
-                                partnership.profitSharePercentage * 100
-                              ).toFixed(2)}%`
+                            {relatedPartnership?.profitSharePercentage != null
+                              ? `${relatedPartnership.profitSharePercentage}%`
                               : "-"}
                           </TableCell>
                           <TableCell className="text-center">
-                            {partnership.investmentAmount > 0
-                              ? "اصل شرکت"
-                              : "سود شراکت"}
+                            {tx.reason || "-"}
                           </TableCell>
                           <TableCell className="text-center">
-                            {relatedTransaction?.paymentMethod || "-"}
+                            {tx.paymentMethod || "-"}
                           </TableCell>
                           <TableCell className="text-center">
-                            {relatedTransaction?.bussinessAccountId
-                              ? accountNameMap.get(
-                                relatedTransaction.bussinessAccountId,
-                              ) || relatedTransaction.bussinessAccountId
+                            {tx.bussinessAccountId
+                              ? accountNameMap.get(tx.bussinessAccountId) ||
+                              tx.bussinessAccountId
                               : "-"}
                           </TableCell>
                         </TableRow>

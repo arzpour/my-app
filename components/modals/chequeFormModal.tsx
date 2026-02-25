@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
-import { BANK_NAMES, CHEQUE_STATUSES } from "@/utils/systemConstants";
+import { BANK_NAMES, CHEQUE_STATUSES, formatPrice } from "@/utils/systemConstants";
 import type { IPeople, IDeal, IChequeNew } from "@/types/new-backend-types";
 import useGetChequeById from "@/hooks/useGetChequeById";
 import { useUpdateCheque } from "@/apis/mutations/cheques";
@@ -58,7 +58,9 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
       type: (chequeInfoById?.type as "دریافتی" | "پرداختی") ?? "دریافتی",
       chequeNumber: chequeInfoById?.chequeNumber.toString() ?? "",
       chequeSerial: chequeInfoById?.chequeSerial ?? "",
-      bankName: chequeInfoById?.branchName ?? "",
+      sayadiID: chequeInfoById?.sayadiID ?? "",
+      bankName: chequeInfoById?.bankName ?? "",
+      branchName: chequeInfoById?.branchName ?? "",
       amount: chequeInfoById?.amount.toString() ?? "",
       issueDate: chequeInfoById?.issueDate ?? "",
       dueDate: chequeInfoById?.dueDate ?? "",
@@ -96,15 +98,15 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
       const chequeData: Partial<IChequeNew> = {
         chequeNumber: data.chequeNumber,
         chequeSerial: data.chequeSerial,
+        sayadiID: data.sayadiID ?? "",
         bankName: data.bankName,
-        branchName: "",
+        branchName: data.branchName ?? "",
         vin: selectedDeal?.vehicleSnapshot?.vin || "",
         issueDate: data.issueDate,
         dueDate: data.dueDate,
         amount: parseFloat(data.amount),
         type: data.type === "دریافتی" ? "received" : "issued",
         status: data.status,
-        sayadiID: "",
         description: data.description ?? "",
         customer: customer
           ? {
@@ -174,7 +176,9 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
               : ((chequeInfoById?.type as "دریافتی" | "پرداختی") ?? "دریافتی"),
         chequeNumber: chequeInfoById?.chequeNumber.toString() ?? "",
         chequeSerial: chequeInfoById?.chequeSerial ?? "",
-        bankName: chequeInfoById?.branchName ?? "",
+        sayadiID: chequeInfoById?.sayadiID ?? "",
+        bankName: chequeInfoById?.bankName ?? "",
+        branchName: chequeInfoById?.branchName ?? "",
         amount: chequeInfoById?.amount.toString() ?? "",
         issueDate: chequeInfoById?.issueDate ?? "",
         dueDate: chequeInfoById?.dueDate ?? "",
@@ -197,7 +201,10 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="block text-sm font-medium">نوع چک *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              نوع چک <span className="text-red-600">*</span>
+            </label>
             <div className="flex gap-4">
               <label className="flex items-center gap-2">
                 <input
@@ -225,7 +232,8 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="chequeNumber" className="block text-sm font-medium">
-              سری چک *
+              {" "}
+              سری چک <span className="text-red-600">*</span>
             </label>
             <input
               id="chequeNumber"
@@ -242,7 +250,8 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
           </div>
           <div className="space-y-2">
             <label htmlFor="chequeSerial" className="block text-sm font-medium">
-              سریال چک *
+              {" "}
+              سریال چک <span className="text-red-600">*</span>
             </label>
             <input
               id="chequeSerial"
@@ -259,8 +268,28 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
           </div>
 
           <div className="space-y-2">
+            <label htmlFor="sayadiID" className="block text-sm font-medium">
+              {" "}
+              شناسه صیادی <span className="text-red-600">*</span>
+            </label>
+            <input
+              id="sayadiID"
+              {...register("sayadiID")}
+              type="number"
+              placeholder="شناسه صیادی"
+              className="w-full px-3 py-2 border rounded-md"
+            />
+            {errors.sayadiID && (
+              <p className="text-red-500 text-xs">
+                {errors.sayadiID.message}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
             <label htmlFor="bankName" className="block text-sm font-medium">
-              نام بانک *
+              {" "}
+              نام بانک <span className="text-red-600">*</span>
             </label>
             <select
               id="bankName"
@@ -281,14 +310,48 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
 
           <div className="space-y-2">
             <label htmlFor="amount" className="block text-sm font-medium">
-              مبلغ (ریال) *
+              {" "}
+              مبلغ (ریال) <span className="text-red-600">*</span>
             </label>
-            <input
-              id="amount"
-              {...register("amount")}
-              type="number"
-              placeholder="مبلغ"
-              className="w-full px-3 py-2 border rounded-md"
+            <Controller
+              name="amount"
+              control={control}
+              render={({
+                field,
+              }: {
+                field: ControllerRenderProps<chequeNewSchemaType, "amount">;
+              }) => {
+                const rawForDisplay =
+                  field.value === "" || field.value == null
+                    ? ""
+                    : String(field.value).replace(/,/g, "").replace(/\s/g, "").replace(/\u200E/g, "");
+                const formatted =
+                  rawForDisplay === ""
+                    ? ""
+                    : formatPrice(rawForDisplay);
+                const displayValue = formatted === "—" ? rawForDisplay : formatted;
+                return (
+                  <input
+                    id="amount"
+                    type="text"
+                    inputMode="numeric"
+                    value={displayValue}
+                    onChange={(e) => {
+                      let raw = e.target.value
+                        .replace(/,/g, "")
+                        .replace(/\s/g, "")
+                        .replace(/\u200E/g, "")
+                        .replace(/[^0-9۰-۹]/g, "");
+                      raw = raw.replace(/[۰-۹]/g, (d) =>
+                        "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString()
+                      );
+                      field.onChange(raw === "" ? "" : raw);
+                    }}
+                    placeholder="مبلغ"
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                );
+              }}
             />
             {errors.amount && (
               <p className="text-red-500 text-xs">{errors.amount.message}</p>
@@ -296,7 +359,10 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">تاریخ صدور *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              تاریخ صدور <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="issueDate"
               control={control}
@@ -314,7 +380,10 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium">تاریخ سررسید *</label>
+            <label className="block text-sm font-medium">
+              {" "}
+              تاریخ سررسید <span className="text-red-600">*</span>
+            </label>
             <Controller
               name="dueDate"
               control={control}

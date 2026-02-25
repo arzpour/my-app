@@ -140,7 +140,9 @@ const DealExpensesForm: React.FC<DealExpensesFormProps> = ({
         type: `هزینه خودرو ${data.expenseType || ""}`,
         description: data.description || "هزینه خودرو",
       };
-      updateWalletHandler(data.providerPersonId ?? "", walletData);
+      if (data.providerPersonId) {
+        updateWalletHandler(data.providerPersonId, walletData);
+      }
     } catch (error: any) {
       console.error("Error adding expense:", error);
       toast.error(error?.response?.data?.message || "خطا در ثبت هزینه");

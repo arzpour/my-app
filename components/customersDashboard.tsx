@@ -1097,6 +1097,16 @@ const CustomersDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allDeals]);
 
+
+  const transactionsWithoutCheques = transactions?.filter((t) => {
+    if (t.paymentMethod !== "چک") return true;
+    const relatedCheque = allPersonCheques.find(
+      (c) => c.relatedTransactionId?.toString() === t._id?.toString()
+    );
+    return relatedCheque?.status === "وصول شده";
+  });
+
+
   const displayedCheques = React.useMemo(() => {
     if (!selectedNationalId) return [];
 
@@ -1535,7 +1545,7 @@ const CustomersDashboard = () => {
                   <TableHead className="w-[70%] text-center">وضعیت</TableHead>
                   <TableHead className="w-[70%] text-center">
                     تراز مالی
-                  </TableHead> 
+                  </TableHead>
 
                 </TableRow>
               </TableHeader>
@@ -1795,8 +1805,8 @@ const CustomersDashboard = () => {
                 </TableHeader>
 
                 <TableBody>
-                  {transactions && transactions.length > 0
-                    ? transactions.map((item, index) => {
+                  {transactionsWithoutCheques && transactionsWithoutCheques.length > 0
+                    ? transactionsWithoutCheques.map((item, index) => {
                       let customerReason;
                       let customerType;
 

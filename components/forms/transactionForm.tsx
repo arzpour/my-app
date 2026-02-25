@@ -97,6 +97,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         chequeRelatedDealId: "",
         brokerPersonId: "",
         providerPersonId: "",
+        partnerPersonId: "",
       }
       : {
         type:
@@ -129,6 +130,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         chequeRelatedDealId: "",
         brokerPersonId: "",
         providerPersonId: "",
+        partnerPersonId:
+          (transactionDataById as { partnerPersonId?: string })?.partnerPersonId ??
+          transactionDataById?.personId ??
+          "",
       };
   const {
     control,
@@ -164,6 +169,18 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const showChequeFields = paymentMethod === "چک";
   const showPayer = showChequeFields && chequeType === "دریافتی";
   const showPayee = showChequeFields && chequeType === "پرداختی";
+
+  React.useEffect(() => {
+    if (!showChequeFields) return;
+
+    if (transactionType === "پرداخت") {
+      setValue("chequeType", "پرداختی");
+    } else if (transactionType === "دریافت") {
+      setValue("chequeType", "دریافتی");
+    }
+  }, [showChequeFields, transactionType, setValue]);
+
+
   const employees = (peopleForDeal ?? allPeople)?.filter((p) =>
     p.roles.includes("employee"),
   );
@@ -221,12 +238,22 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
   const onSubmit: SubmitHandler<transactionChequeSchemaType> = async (data: transactionChequeSchemaType) => {
     try {
+      const isPartnershipReason =
+        (data.type === "دریافت" && data.reason === "سرمایه گذاری") ||
+        (data.type === "پرداخت" &&
+          (data.reason === "اصل سرمایه" || data.reason === "سود سرمایه"));
+
+      const effectivePersonId =
+        isPartnershipReason && data.partnerPersonId
+          ? data.partnerPersonId
+          : data.personId;
+
       const transactionData = {
         type: data.type,
         reason: data.reason,
         transactionDate: data.transactionDate,
         amount: parseFloat(data.amount),
-        personId: data.personId,
+        personId: effectivePersonId,
         bussinessAccountId: data.bussinessAccountId,
         paymentMethod: data.paymentMethod,
         dealId: data.dealId || undefined,
@@ -349,6 +376,57 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       });
 
       if (mode === "edit") {
+        if (transactionDataById) {
+          const oldPrice = Number(transactionDataById.amount ?? 0);
+          const oldIsPartnershipReason =
+            (transactionDataById.type === "دریافت" &&
+              transactionDataById.reason === "سرمایه گذاری") ||
+            (transactionDataById.type === "پرداخت" &&
+              (transactionDataById.reason === "اصل سرمایه" ||
+                transactionDataById.reason === "سود سرمایه"));
+          const oldSigned = oldIsPartnershipReason
+            ? (transactionDataById.type === "دریافت" ? oldPrice : -oldPrice)
+            : (transactionDataById.type === "پرداخت" ? oldPrice : -oldPrice);
+
+          const newPrice = Number(data.amount);
+          const newSigned = isPartnershipReason
+            ? (data.type === "دریافت" ? newPrice : -newPrice)
+            : (data.type === "پرداخت" ? newPrice : -newPrice);
+
+          const oldWalletPersonId = oldIsPartnershipReason
+            ? (transactionDataById as any).partnerPersonId ||
+            transactionDataById.personId
+            : transactionDataById.personId;
+
+          const newWalletPersonId = effectivePersonId;
+
+          if (
+            newWalletPersonId &&
+            oldWalletPersonId &&
+            newWalletPersonId !== oldWalletPersonId
+          ) {
+            updateWalletHandler(oldWalletPersonId, {
+              amount: -oldSigned,
+              type: data.type,
+              description: data.description || transactionDataById.description,
+            });
+            updateWalletHandler(newWalletPersonId, {
+              amount: newSigned,
+              type: data.type,
+              description: data.description,
+            });
+          } else if (newWalletPersonId) {
+            const delta = newSigned - oldSigned;
+            if (delta !== 0) {
+              updateWalletHandler(newWalletPersonId, {
+                amount: delta,
+                type: data.type,
+                description: data.description,
+              });
+            }
+          }
+        }
+
         toast.success("تراکنش با موفقیت به‌روزرسانی شد");
       } else {
         toast.success("تراکنش با موفقیت ثبت شد");
@@ -358,14 +436,20 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           transactionDate: "",
         });
         const price = Number(data.amount);
+        const walletAmount = isPartnershipReason
+          ? (data.type === "دریافت" ? price : -price)
+          : (data.type === "پرداخت" ? price : -price);
         const walletData = {
-          amount: data.type === "دریافت" ? price : -price,
-          type: data.type,
+          amount: walletAmount,
+          type: data.type === "دریافت" ? "دریافت سرمایه" : data.type === "پرداخت" ? "پرداخت سرمایه" : data.type,
           description: data.description,
         };
-        updateWalletHandler(data.personId ?? "", walletData);
+        if (effectivePersonId) {
+          updateWalletHandler(effectivePersonId, walletData);
+        }
       }
 
+      queryClient.invalidateQueries({ queryKey: ["get-all-people"] });
       onSuccess?.();
     } catch (error: any) {
       console.error("Error creating transaction:", error);
@@ -677,11 +761,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                     />
                   )}
                 />
-                {errors.personId && (
-                  <p className="text-red-500 text-xs">
-                    {errors.personId.message}
-                  </p>
-                )}
+                {(() => {
+                  const err = errors.partnerPersonId ?? errors.personId;
+                  const msg = err?.message;
+                  return msg ? (
+                    <p className="text-red-500 text-xs">{msg}</p>
+                  ) : null;
+                })()}
               </div>
               {/* <div className="space-y-2">
                 <label className="block text-sm font-medium">
