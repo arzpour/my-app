@@ -32,6 +32,7 @@
 import { urls } from "@/utils/urls";
 import { axiosInstance } from "./instance";
 import type { ITransactionNew } from "@/types/new-backend-types";
+import { formatPrice } from "@/utils/systemConstants";
 
 /**
  * MIGRATION: Replace with GET /transactions
@@ -125,7 +126,7 @@ function mapTransactionToOldFormat(newData: ITransactionNew): ITransactionRes {
     TransactionMethod: newData.paymentMethod,
     ShowroomCard: newData.bussinessAccountId,
     CustomerNationalID: newData.personId,
-    TransactionAmount: newData.amount,
+    TransactionAmount: Number(formatPrice(newData.amount.toString())),
     TransactionDate: newData.transactionDate,
     Notes: newData.description,
     BankDocument: "",
