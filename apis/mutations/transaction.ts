@@ -8,7 +8,6 @@ import {
   createTransaction,
 } from "../client/transaction";
 
-
 export const useGetTransactionsByDealId = () => {
   return useMutation({
     mutationKey: ["get-transactions-by-deal-id"],
@@ -57,9 +56,8 @@ export const useDeleteTransaction = () => {
   return useMutation({
     mutationFn: (id: string) => deleteTransaction(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["get-transactions-by-deal-id"],
-      });
+      queryClient.invalidateQueries({ queryKey: ["get-transaction-by-id"] });
+      queryClient.invalidateQueries({ queryKey: ["get-all-transaction"] });
       toast.success("تراکنش با موفقیت حذف شد");
     },
     onError: (error: any) => {

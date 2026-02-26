@@ -498,7 +498,6 @@ const VehicleDashboard = () => {
                                 setDealId((item as ITransactionNew)?.dealId);
                               }}
                             />
-
                             <Trash
                               className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
                               onClick={() =>
@@ -737,6 +736,9 @@ const VehicleDashboard = () => {
                     <TableHead className="w-[80%] text-center">
                       حساب مبدا
                     </TableHead>
+                    <TableHead className="w-[70%] text-center">
+                      عملیات
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -788,6 +790,22 @@ const VehicleDashboard = () => {
                                 ? accountNameMap.get(tx.bussinessAccountId) ||
                                   tx.bussinessAccountId
                                 : "-"}
+                            </TableCell>
+                            <TableCell className="text-center flex gap-3 justify-center items-center">
+                              <Pencil
+                                className="w-4 h-4 cursor-pointer hover:text-indigo-500"
+                                onClick={() => {
+                                  setIsOpenEditModal(true);
+                                  setTransactionId(tx._id?.toString());
+                                  setDealId((tx as ITransactionNew)?.dealId);
+                                }}
+                              />
+                              <Trash
+                                className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
+                                onClick={() =>
+                                  handleDeleteClick(tx._id?.toString() || "")
+                                }
+                              />
                             </TableCell>
                           </TableRow>
                         );

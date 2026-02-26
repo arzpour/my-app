@@ -2,17 +2,23 @@
 
 import React from "react";
 // @ts-ignore - react-hook-form useForm: types sometimes not resolved (e.g. Next build); runtime is fine. Use @ts-ignore so Ubuntu build does not report "Unused directive".
-import { Controller, useForm, type SubmitHandler, ControllerRenderProps } from "react-hook-form";
+import {
+  Controller,
+  useForm,
+  type SubmitHandler,
+  ControllerRenderProps,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   transactionChequeSchema,
   transactionChequeSchemaType,
 } from "@/validations/transactionCheque";
 import { toast } from "sonner";
+import { getTransactionById } from "@/apis/client/transaction";
 import {
-  getTransactionById,
-} from "@/apis/client/transaction";
-import { useCreateTransaction, useUpdateTransaction } from "@/apis/mutations/transaction";
+  useCreateTransaction,
+  useUpdateTransaction,
+} from "@/apis/mutations/transaction";
 import { createCheque, updateCheque } from "@/apis/client/chequesNew";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import { getAllBusinessAccounts } from "@/apis/client/businessAccounts";
@@ -72,69 +78,90 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     (el) => el.relatedTransactionId === transactionId,
   )[0];
 
+  const partnerShip = allPeople?.find(
+    (el) => el._id === transactionDataById?.partnerPersonId,
+  );
+
+  const providerPerson = allPeople?.find(
+    (el) => el._id === transactionDataById?.providerPersonId,
+  );
+
+  const brokerPerson = allPeople?.find(
+    (el) => el._id === transactionDataById?.brokerPersonId,
+  );
+
   const defaultValuesOfForm =
     mode === "add"
       ? {
-        type: "پرداخت" as const,
-        reason: "",
-        transactionDate: "",
-        amount: "",
-        personId: "",
-        bussinessAccountId: "",
-        paymentMethod: "نقد" as const,
-        dealId: "",
-        description: "",
-        chequeDescription: "",
-        chequeNumber: "",
-        chequeBankName: "",
-        chequeBranchName: "",
-        chequeIssueDate: "",
-        chequeDueDate: "",
-        chequeType: "دریافتی" as const,
-        chequeStatus: "در جریان",
-        chequePayerPersonId: "",
-        chequePayeePersonId: "",
-        chequeRelatedDealId: "",
-        brokerPersonId: "",
-        providerPersonId: "",
-        partnerPersonId: "",
-      }
+          type: "پرداخت" as const,
+          reason: "",
+          transactionDate: "",
+          amount: "",
+          personId: "",
+          bussinessAccountId: "",
+          paymentMethod: "نقد" as const,
+          dealId: "",
+          description: "",
+          chequeDescription: "",
+          chequeNumber: "",
+          chequeBankName: "",
+          chequeBranchName: "",
+          chequeIssueDate: "",
+          chequeDueDate: "",
+          chequeType: "دریافتی" as const,
+          chequeStatus: "در جریان",
+          chequePayerPersonId: "",
+          chequePayeePersonId: "",
+          chequeRelatedDealId: "",
+          brokerPersonId: "",
+          providerPersonId: "",
+          partnerPersonId: "",
+        }
       : {
-        type:
-          (transactionDataById?.type as "پرداخت" | "دریافت") ??
-          ("پرداخت" as const),
-        reason: transactionDataById?.reason ?? "",
-        transactionDate: transactionDataById?.transactionDate ?? "",
-        amount: transactionDataById?.amount?.toString() ?? "",
-        personId: transactionDataById?.personId ?? "",
-        bussinessAccountId: transactionDataById?.bussinessAccountId ?? "",
-        paymentMethod:
-          (transactionDataById?.paymentMethod as
-            | "نقد"
-            | "کارت به کارت"
-            | "چک"
-            | "شبا"
-            | "مشتری به مشتری") ?? ("نقد" as const),
-        dealId: transactionDataById?.dealId ?? "",
-        description: transactionDataById?.description ?? "",
-        chequeDescription: "",
-        chequeNumber: "",
-        chequeBankName: "",
-        chequeBranchName: "",
-        chequeIssueDate: "",
-        chequeDueDate: "",
-        chequeType: undefined as "دریافتی" | "پرداختی" | undefined,
-        chequeStatus: "",
-        chequePayerPersonId: "",
-        chequePayeePersonId: "",
-        chequeRelatedDealId: "",
-        brokerPersonId: "",
-        providerPersonId: "",
-        partnerPersonId:
-          (transactionDataById as { partnerPersonId?: string })?.partnerPersonId ??
-          transactionDataById?.personId ??
-          "",
-      };
+          type:
+            (transactionDataById?.type as "پرداخت" | "دریافت") ??
+            ("پرداخت" as const),
+          reason: transactionDataById?.reason ?? "",
+          transactionDate: transactionDataById?.transactionDate ?? "",
+          amount: transactionDataById?.amount?.toString() ?? "",
+          personId: transactionDataById?.personId ?? "",
+          bussinessAccountId: transactionDataById?.bussinessAccountId ?? "",
+          paymentMethod:
+            (transactionDataById?.paymentMethod as
+              | "نقد"
+              | "کارت به کارت"
+              | "چک"
+              | "شبا"
+              | "مشتری به مشتری") ?? ("نقد" as const),
+          dealId: transactionDataById?.dealId ?? "",
+          description: transactionDataById?.description ?? "",
+          chequeDescription: selectedTransactionChequeInfo?.description ?? "",
+          chequeNumber: selectedTransactionChequeInfo?.chequeNumber ?? "",
+          chequeSer: selectedTransactionChequeInfo?.chequeNumber ?? "",
+          chequeBankName: selectedTransactionChequeInfo?.bankName ?? "",
+          chequeBranchName: selectedTransactionChequeInfo?.branchName ?? "",
+          chequeIssueDate: selectedTransactionChequeInfo?.issueDate ?? "",
+          chequeDueDate: selectedTransactionChequeInfo?.dueDate ?? "",
+          chequeType:
+            selectedTransactionChequeInfo?.type === "received"
+              ? ("دریافتی" as const)
+              : ("پرداختی" as const),
+          chequeStatus: selectedTransactionChequeInfo?.status ?? "",
+          chequePayerPersonId:
+            selectedTransactionChequeInfo?.payer.personId ?? "",
+          chequePayeePersonId:
+            selectedTransactionChequeInfo?.payee.personId ?? "",
+          chequeRelatedDealId:
+            selectedTransactionChequeInfo?.relatedDealId ?? "",
+          chequeCustomerPersonId:
+            selectedTransactionChequeInfo?.customer.personId ?? "",
+          chequeSerial: selectedTransactionChequeInfo?.chequeSerial ?? "",
+          sayadiID: selectedTransactionChequeInfo?.sayadiID ?? "",
+          brokerPersonId: `${brokerPerson?.firstName} ${brokerPerson?.lastName}` || "",
+          providerPersonId: `${providerPerson?.firstName} ${providerPerson?.lastName}` || "",
+          partnerPersonId:
+            `${partnerShip?.firstName} ${partnerShip?.lastName}` || "",
+        };
   const {
     control,
     register,
@@ -179,7 +206,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       setValue("chequeType", "دریافتی");
     }
   }, [showChequeFields, transactionType, setValue]);
-
 
   const employees = (peopleForDeal ?? allPeople)?.filter((p) =>
     p.roles.includes("employee"),
@@ -230,13 +256,17 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           selectedTransactionChequeInfo?.customer.personId ?? "",
         chequeSerial: selectedTransactionChequeInfo?.chequeSerial ?? "",
         sayadiID: selectedTransactionChequeInfo?.sayadiID ?? "",
-        brokerPersonId: selectedTransactionChequeInfo?.brokerPersonId?.personId ?? "",
-        providerPersonId: selectedTransactionChequeInfo?.providerPersonId?.personId ?? "",
+        brokerPersonId:
+          selectedTransactionChequeInfo?.brokerPersonId?.personId ?? "",
+        providerPersonId:
+          selectedTransactionChequeInfo?.providerPersonId?.personId ?? "",
       });
     }
   }, [transactionDataById, mode, reset, selectedTransactionChequeInfo]);
 
-  const onSubmit: SubmitHandler<transactionChequeSchemaType> = async (data: transactionChequeSchemaType) => {
+  const onSubmit: SubmitHandler<transactionChequeSchemaType> = async (
+    data: transactionChequeSchemaType,
+  ) => {
     try {
       const isPartnershipReason =
         (data.type === "دریافت" && data.reason === "سرمایه گذاری") ||
@@ -248,7 +278,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           ? data.partnerPersonId
           : data.personId;
 
-      const partnerShip = allPeople?.find(el=> el._id === data.partnerPersonId)
+      const partnerShip = allPeople?.find(
+        (el) => el._id === data.partnerPersonId,
+      );
 
       const transactionData = {
         type: data.type,
@@ -263,9 +295,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         description: data.description || "",
         brokerPersonId: data.brokerPersonId || "",
         providerPersonId: data.providerPersonId || "",
-        partnerPersonId:data.partnerPersonId || "",
+        partnerPersonId: data.partnerPersonId || "",
         partnerShipProfit: `${partnerShip?.firstName} ${partnerShip?.lastName}`,
-        partnershipProfitSharePercentage: data.partnershipProfitSharePercentage || "",
+        partnershipProfitSharePercentage:
+          data.partnershipProfitSharePercentage || "",
       };
       if (data.brokerPersonId) {
         transactionData.brokerPersonId = data.brokerPersonId;
@@ -291,22 +324,22 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         const payer =
           showPayer && data.chequePayerPersonId
             ? allPeople?.find(
-              (p) => p._id?.toString() === data.chequePayerPersonId,
-            )
+                (p) => p._id?.toString() === data.chequePayerPersonId,
+              )
             : null;
 
         const payee =
           showPayee && data.chequePayeePersonId
             ? allPeople?.find(
-              (p) => p._id?.toString() === data.chequePayeePersonId,
-            )
+                (p) => p._id?.toString() === data.chequePayeePersonId,
+              )
             : null;
 
         const customer =
           showPayer && data.chequeCustomerPersonId
             ? allPeople?.find(
-              (p) => p._id?.toString() === data.chequeCustomerPersonId,
-            )
+                (p) => p._id?.toString() === data.chequeCustomerPersonId,
+              )
             : null;
 
         const chequeData = {
@@ -324,37 +357,37 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           description: data.chequeDescription,
           customer: customer
             ? {
-              personId: customer._id?.toString() || "",
-              fullName: `${customer} ${customer.lastName}`,
-              nationalId: customer.nationalId?.toString() || "",
-            }
+                personId: customer._id?.toString() || "",
+                fullName: `${customer} ${customer.lastName}`,
+                nationalId: customer.nationalId?.toString() || "",
+              }
             : {
-              personId: "",
-              fullName: "",
-              nationalId: "",
-            },
+                personId: "",
+                fullName: "",
+                nationalId: "",
+              },
           payer: payer
             ? {
-              personId: payer._id?.toString() || "",
-              fullName: `${payer.firstName} ${payer.lastName}`,
-              nationalId: payer.nationalId?.toString() || "",
-            }
+                personId: payer._id?.toString() || "",
+                fullName: `${payer.firstName} ${payer.lastName}`,
+                nationalId: payer.nationalId?.toString() || "",
+              }
             : {
-              personId: "",
-              fullName: "",
-              nationalId: "",
-            },
+                personId: "",
+                fullName: "",
+                nationalId: "",
+              },
           payee: payee
             ? {
-              personId: payee._id?.toString() || "",
-              fullName: `${payee.firstName} ${payee.lastName}`,
-              nationalId: payee.nationalId?.toString() || "",
-            }
+                personId: payee._id?.toString() || "",
+                fullName: `${payee.firstName} ${payee.lastName}`,
+                nationalId: payee.nationalId?.toString() || "",
+              }
             : {
-              personId: "",
-              fullName: "",
-              nationalId: "",
-            },
+                personId: "",
+                fullName: "",
+                nationalId: "",
+              },
           relatedDealId: transaction.dealId || data.chequeRelatedDealId || "",
           relatedTransactionId: transaction._id || "",
           actions: [
@@ -391,17 +424,25 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               (transactionDataById.reason === "اصل سرمایه" ||
                 transactionDataById.reason === "سود سرمایه"));
           const oldSigned = oldIsPartnershipReason
-            ? (transactionDataById.type === "دریافت" ? oldPrice : -oldPrice)
-            : (transactionDataById.type === "پرداخت" ? oldPrice : -oldPrice);
+            ? transactionDataById.type === "دریافت"
+              ? oldPrice
+              : -oldPrice
+            : transactionDataById.type === "پرداخت"
+              ? oldPrice
+              : -oldPrice;
 
           const newPrice = Number(data.amount);
           const newSigned = isPartnershipReason
-            ? (data.type === "دریافت" ? newPrice : -newPrice)
-            : (data.type === "پرداخت" ? newPrice : -newPrice);
+            ? data.type === "دریافت"
+              ? newPrice
+              : -newPrice
+            : data.type === "پرداخت"
+              ? newPrice
+              : -newPrice;
 
           const oldWalletPersonId = oldIsPartnershipReason
             ? (transactionDataById as any).partnerPersonId ||
-            transactionDataById.personId
+              transactionDataById.personId
             : transactionDataById.personId;
 
           const newWalletPersonId = effectivePersonId;
@@ -443,11 +484,20 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         });
         const price = Number(data.amount);
         const walletAmount = isPartnershipReason
-          ? (data.type === "دریافت" ? price : -price)
-          : (data.type === "پرداخت" ? price : -price);
+          ? data.type === "دریافت"
+            ? price
+            : -price
+          : data.type === "پرداخت"
+            ? price
+            : -price;
         const walletData = {
           amount: walletAmount,
-          type: data.type === "دریافت" ? "دریافت سرمایه" : data.type === "پرداخت" ? "پرداخت سرمایه" : data.type,
+          type:
+            data.type === "دریافت"
+              ? "دریافت سرمایه"
+              : data.type === "پرداخت"
+                ? "پرداخت سرمایه"
+                : data.type,
           description: data.description,
         };
         if (effectivePersonId) {
@@ -532,7 +582,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             <Controller
               name="transactionDate"
               control={control}
-              render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "transactionDate"> }) => (
+              render={({
+                field,
+              }: {
+                field: ControllerRenderProps<
+                  transactionChequeSchemaType,
+                  "transactionDate"
+                >;
+              }) => (
                 <PersianDatePicker
                   value={field.value}
                   onChange={field.onChange}
@@ -563,7 +620,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             <Controller
               name="amount"
               control={control}
-              render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "amount"> }) => {
+              render={({
+                field,
+              }: {
+                field: ControllerRenderProps<
+                  transactionChequeSchemaType,
+                  "amount"
+                >;
+              }) => {
                 const formattedValue = field.value
                   ? Number(field.value).toLocaleString("en-US")
                   : "";
@@ -629,8 +693,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                     "آپشن",
                     "جابجایی(وسیله نقلیه)",
                   ].includes(transactionReason)) ||
-                  (transactionType === "دریافت" &&
-                    ["فروش خودرو"].includes(transactionReason)) ? (
+                (transactionType === "دریافت" &&
+                  ["فروش خودرو"].includes(transactionReason)) ? (
                   <span className="text-red-600">*</span>
                 ) : (
                   ""
@@ -661,8 +725,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                       "آپشن",
                       "جابجایی(وسیله نقلیه)",
                     ].includes(transactionReason)) ||
-                    (transactionType === "دریافت" &&
-                      ["فروش خودرو"].includes(transactionReason)) ? (
+                  (transactionType === "دریافت" &&
+                    ["فروش خودرو"].includes(transactionReason)) ? (
                     <span className="text-red-600">*</span>
                   ) : (
                     ""
@@ -688,7 +752,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="secondPersonId"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "secondPersonId"> }) => (
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    transactionChequeSchemaType,
+                    "secondPersonId"
+                  >;
+                }) => (
                   <PersonSelect
                     value={field.value}
                     onValueChange={(secondPersonId, person) => {
@@ -756,7 +827,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 <Controller
                   name="partnerPersonId"
                   control={control}
-                  render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "partnerPersonId"> }) => (
+                  render={({
+                    field,
+                  }: {
+                    field: ControllerRenderProps<
+                      transactionChequeSchemaType,
+                      "partnerPersonId"
+                    >;
+                  }) => (
                     <PersonSelect
                       value={field.value}
                       onValueChange={(personId, person) => {
@@ -820,7 +898,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="providerPersonId"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "providerPersonId"> }) => (
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    transactionChequeSchemaType,
+                    "providerPersonId"
+                  >;
+                }) => (
                   <PersonSelect
                     value={field.value}
                     onValueChange={field.onChange}
@@ -844,7 +929,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="brokerPersonId"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "brokerPersonId"> }) => (
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    transactionChequeSchemaType,
+                    "brokerPersonId"
+                  >;
+                }) => (
                   <PersonSelect
                     value={field.value}
                     onValueChange={field.onChange}
@@ -874,7 +966,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="personId"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "personId"> }) => (
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    transactionChequeSchemaType,
+                    "personId"
+                  >;
+                }) => (
                   <PersonSelect
                     value={field.value}
                     onValueChange={(personId, person: IPeople) => {
@@ -1087,7 +1186,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="chequeIssueDate"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "chequeIssueDate"> }) => (
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    transactionChequeSchemaType,
+                    "chequeIssueDate"
+                  >;
+                }) => (
                   <PersianDatePicker
                     value={field.value}
                     onChange={field.onChange}
@@ -1111,7 +1217,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="chequeDueDate"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "chequeDueDate"> }) => (
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    transactionChequeSchemaType,
+                    "chequeDueDate"
+                  >;
+                }) => (
                   <PersianDatePicker
                     value={field.value}
                     onChange={field.onChange}
@@ -1136,7 +1249,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 <Controller
                   name="chequeCustomerPersonId"
                   control={control}
-                  render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "chequeCustomerPersonId"> }) => (
+                  render={({
+                    field,
+                  }: {
+                    field: ControllerRenderProps<
+                      transactionChequeSchemaType,
+                      "chequeCustomerPersonId"
+                    >;
+                  }) => (
                     <PersonSelect
                       value={field.value}
                       onValueChange={field.onChange}
@@ -1163,7 +1283,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 <Controller
                   name="chequePayerPersonId"
                   control={control}
-                  render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "chequePayerPersonId"> }) => (
+                  render={({
+                    field,
+                  }: {
+                    field: ControllerRenderProps<
+                      transactionChequeSchemaType,
+                      "chequePayerPersonId"
+                    >;
+                  }) => (
                     <PersonSelect
                       value={field.value}
                       onValueChange={field.onChange}
@@ -1190,7 +1317,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 <Controller
                   name="chequePayeePersonId"
                   control={control}
-                  render={({ field }: { field: ControllerRenderProps<transactionChequeSchemaType, "chequePayeePersonId"> }) => (
+                  render={({
+                    field,
+                  }: {
+                    field: ControllerRenderProps<
+                      transactionChequeSchemaType,
+                      "chequePayeePersonId"
+                    >;
+                  }) => (
                     <PersonSelect
                       value={field.value}
                       onValueChange={field.onChange}
@@ -1229,7 +1363,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       <div className="flex justify-end gap-2 pt-4 border-t">
         <button
           type="submit"
-          disabled={(mode === "edit" && updateTransaction.isPending) || createTransaction.isPending}
+          disabled={
+            (mode === "edit" && updateTransaction.isPending) ||
+            createTransaction.isPending
+          }
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
         >
           {mode === "edit"
@@ -1238,8 +1375,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               : "به‌روزرسانی تراکنش"
             : createTransaction.isPending
               ? "در حال ثبت..."
-              : "ثبت تراکنش"
-          }
+              : "ثبت تراکنش"}
         </button>
       </div>
     </form>

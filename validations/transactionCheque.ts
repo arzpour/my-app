@@ -117,7 +117,6 @@ export const transactionChequeSchema = z
       if (isOptionReason || isPartnershipReason || isCustomerToCustomer) {
         return true;
       }
-
       return !!data.personId;
     },
     {
