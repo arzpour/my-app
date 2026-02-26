@@ -425,20 +425,20 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 transactionDataById.reason === "سود سرمایه"));
           const oldSigned = oldIsPartnershipReason
             ? transactionDataById.type === "دریافت"
-              ? oldPrice
-              : -oldPrice
+              ? -oldPrice
+              : oldPrice
             : transactionDataById.type === "پرداخت"
-              ? oldPrice
-              : -oldPrice;
+              ? -oldPrice
+              : oldPrice;
 
           const newPrice = Number(data.amount);
           const newSigned = isPartnershipReason
             ? data.type === "دریافت"
-              ? newPrice
-              : -newPrice
+              ? -newPrice
+              : newPrice
             : data.type === "پرداخت"
-              ? newPrice
-              : -newPrice;
+              ? -newPrice
+              : newPrice;
 
           const oldWalletPersonId = oldIsPartnershipReason
             ? (transactionDataById as any).partnerPersonId ||
@@ -454,12 +454,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           ) {
             updateWalletHandler(oldWalletPersonId, {
               amount: -oldSigned,
-              type: data.type,
+              type: `${data.type} ${data.reason}` || data.type,
               description: data.description || transactionDataById.description,
             });
             updateWalletHandler(newWalletPersonId, {
               amount: newSigned,
-              type: data.type,
+              type: `${data.type} ${data.reason}` || data.type,
               description: data.description,
             });
           } else if (newWalletPersonId) {
@@ -467,7 +467,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             if (delta !== 0) {
               updateWalletHandler(newWalletPersonId, {
                 amount: delta,
-                type: data.type,
+                type: `${data.type} ${data.reason}` || data.type,
                 description: data.description,
               });
             }
@@ -485,24 +485,27 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         const price = Number(data.amount);
         const walletAmount = isPartnershipReason
           ? data.type === "دریافت"
-            ? price
-            : -price
+            ? -price
+            : price
           : data.type === "پرداخت"
-            ? price
-            : -price;
+            ? -price
+            : price;
         const walletData = {
           amount: walletAmount,
-          type:
-            data.type === "دریافت"
-              ? "دریافت سرمایه"
-              : data.type === "پرداخت"
-                ? "پرداخت سرمایه"
-                : data.type,
+          type: `${data.type} ${data.reason}`,
+          // type:
+          //   data.type === "دریافت"
+          //     ? "دریافت سرمایه"
+          //     : data.type === "پرداخت"
+          //       ? "پرداخت سرمایه"
+          //       : data.type,
           description: data.description,
         };
+
+
         if (effectivePersonId) {
           updateWalletHandler(effectivePersonId, walletData);
-        }
+        };
       }
 
       queryClient.invalidateQueries({ queryKey: ["get-all-people"] });
