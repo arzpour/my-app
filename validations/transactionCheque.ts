@@ -113,8 +113,14 @@ export const transactionChequeSchema = z
           (data.reason === "اصل سرمایه" || data.reason === "سود سرمایه"));
 
       const isCustomerToCustomer = data.paymentMethod === "مشتری به مشتری";
+      const notRequiredReasons = ["سایر هزینه‌ها", "درصد کارگزار"].includes(data.reason);
 
-      if (isOptionReason || isPartnershipReason || isCustomerToCustomer) {
+      if (
+        isOptionReason ||
+        isPartnershipReason ||
+        isCustomerToCustomer ||
+        notRequiredReasons
+      ) {
         return true;
       }
       return !!data.personId;

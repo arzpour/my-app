@@ -39,6 +39,9 @@ export const useUpdateTransaction = () => {
       queryClient.invalidateQueries({
         queryKey: ["get-transactions-by-deal-id"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["get-cheques-by-deal-id"],
+      });
       queryClient.invalidateQueries({ queryKey: ["get-transaction-by-id"] });
       toast.success("تراکنش با موفقیت به‌روزرسانی شد");
     },
