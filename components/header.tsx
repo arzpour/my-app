@@ -80,7 +80,9 @@ const Header = () => {
 
   const getSellerInfoById = async () => {
     try {
-      const res = await getPersonById.mutateAsync(deals?.seller?.personId);
+      const res = await getPersonById.mutateAsync(
+        deals?.seller?.personId ?? "",
+      );
       setSellerInfo(res);
     } catch (error) {
       console.error("error:", error);
@@ -89,7 +91,7 @@ const Header = () => {
 
   const getBuyerInfoById = async () => {
     try {
-      const res = await getPersonById.mutateAsync(deals?.buyer?.personId);
+      const res = await getPersonById.mutateAsync(deals?.buyer?.personId ?? "");
       setBuyerInfo(res);
     } catch (error) {
       console.error("error:", error);
@@ -148,17 +150,41 @@ const Header = () => {
       )
       .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
 
-      const otherOptionsTransaction = transactions.filter(el=> el.reason === "سایر هزینه‌ها").reduce((sum, t)=> sum + (t.amount || 0), 0) || 0
+  const otherOptionsTransaction =
+    transactions
+      .filter((el) => el.reason === "سایر هزینه‌ها")
+      .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
   const totalOtherCosts =
-    otherCostsFromDirectCosts + otherCostsFromTransactions + otherOptionsTransaction
+    otherCostsFromDirectCosts +
+    otherCostsFromTransactions +
+    otherOptionsTransaction;
+
+  let lastGrossProfit: number | null = null;
+  if (deals?.purchasePrice && deals?.salePrice) {
+    lastGrossProfit = (deals?.salePrice ?? 0) - (deals?.purchasePrice ?? 0);
+  }
 
   let grossProfit: number | null = null;
-  if (deals?.purchasePrice && deals?.salePrice) {
-    grossProfit = deals.salePrice - deals.purchasePrice;
+  if (deals?.purchasePrice || deals?.salePrice) {
+    grossProfit = (deals.salePrice ?? 0) - (deals.purchasePrice ?? 0);
   }
 
   let buyAmountWithPercent: number | null = null;
   let sellAmountWithPercent: number | null = null;
+
+  const buyAmountWithoutPercent = (deals?.purchasePrice ?? 0) - totalOtherCosts;
+  const sellAmountWithoutPercent = (deals?.salePrice ?? 0) - totalOtherCosts;
+
+  buyAmountWithPercent =
+    (buyAmountWithoutPercent *
+      parseFloat(String(deals?.purchaseBroker?.commissionPercent || 0))) /
+    100;
+
+  sellAmountWithPercent =
+    (sellAmountWithoutPercent *
+      parseFloat(String(deals?.saleBroker?.commissionPercent || 0))) /
+    100;
+
   // const buyPercent = deals?.purchaseBroker?.commissionPercent
   //   ? parseFloat(String(deals.purchaseBroker.commissionPercent)) * 100
   //   : 0;
@@ -167,18 +193,24 @@ const Header = () => {
   //   ? parseFloat(String(deals.saleBroker.commissionPercent)) * 100
   //   : 0;
 
-  if (grossProfit !== null) {
-    const amountWithoutPercent = grossProfit - totalOtherCosts;
+  // console.log("🚀 ~ Header ~ grossProfit:", grossProfit)
+  // if (grossProfit !== null) {
+  //   const amountWithoutPercent = grossProfit - totalOtherCosts;
+  //   buyAmountWithPercent =
+  //     (amountWithoutPercent *
+  //       parseFloat(String(deals?.purchaseBroker?.commissionPercent || 0))) /
+  //     100;
+  //   sellAmountWithPercent =
+  //     (amountWithoutPercent *
+  //       parseFloat(String(deals?.saleBroker?.commissionPercent || 0))) /
+  //     100;
+  // }
+  if (deals?.salePrice == null) {
+    const amountWithoutPercent = (deals?.purchasePrice ?? 0) - totalOtherCosts;
     buyAmountWithPercent =
-      amountWithoutPercent *
-      parseFloat(
-        String(deals?.purchaseBroker?.commissionPercent / 100 || 0),
-      )
-    sellAmountWithPercent =
-      amountWithoutPercent *
-      parseFloat(
-        String(deals?.saleBroker?.commissionPercent / 100 || 0),
-      );
+      (amountWithoutPercent *
+        parseFloat(String(deals?.purchaseBroker?.commissionPercent || 0))) /
+      100;
   }
 
   let netProfit: number | null = null;
@@ -186,6 +218,22 @@ const Header = () => {
     const totalBrokerCommissions =
       (buyAmountWithPercent || 0) + (sellAmountWithPercent || 0);
     netProfit = grossProfit - (totalOtherCosts + totalBrokerCommissions);
+  }
+
+  let lastNetProfit: number | null = null;
+  // if (lastGrossProfit !== null && deals?.salePrice) {
+  //   const totalBrokerCommissions =
+  //     (buyAmountWithPercent || 0) + (sellAmountWithPercent || 0);
+  //   lastNetProfit =
+  //     lastGrossProfit - (totalOtherCosts + totalBrokerCommissions);
+  // }
+
+  if (lastGrossProfit !== null && deals?.salePrice) {
+    lastNetProfit =
+      lastGrossProfit -
+      totalOtherCosts -
+      sellAmountWithPercent -
+      buyAmountWithPercent;
   }
 
   const isChequePaid = (cheque: IChequeNew): boolean => {
@@ -391,14 +439,18 @@ const Header = () => {
             طرف اول: <span></span>
           </h3>
           <p className="text-sm">
-            {sellerInfo?.firstName || sellerInfo?.lastName
-              ? `${sellerInfo?.firstName} ${sellerInfo?.lastName}`
-              : (sellerInfo?.fullName ?? deals?.seller?.fullName ?? "-")}
+            {deals?.seller?.personId
+              ? sellerInfo?.firstName || sellerInfo?.lastName
+                ? `${sellerInfo?.firstName} ${sellerInfo?.lastName}`
+                : (sellerInfo?.fullName ?? deals?.seller?.fullName ?? "-")
+              : "—"}
           </p>
           <p className="text-sm text-orange-500">
-            {sellerInfo?.phoneNumbers?.map((el) => el) ??
-              deals?.seller?.mobile ??
-              "-"}
+            {deals?.seller?.personId
+              ? (sellerInfo?.phoneNumbers?.map((el) => el) ??
+                deals?.seller?.mobile ??
+                "-")
+              : "—"}
           </p>
         </div>
         <div className="flex flex-col justify-between h-full space-y-1">
@@ -406,14 +458,18 @@ const Header = () => {
             طرف دوم: <span></span>
           </h3>
           <p className="text-sm">
-            {buyerInfo?.firstName || buyerInfo?.lastName
-              ? `${buyerInfo?.firstName} ${buyerInfo?.lastName}`
-              : (buyerInfo?.fullName ?? deals?.buyer?.fullName ?? "-")}
+            {deals?.buyer?.personId
+              ? buyerInfo?.firstName || buyerInfo?.lastName
+                ? `${buyerInfo?.firstName} ${buyerInfo?.lastName}`
+                : (buyerInfo?.fullName ?? deals?.buyer?.fullName ?? "-")
+              : "—"}
           </p>
           <p className="text-sm text-orange-500">
-            {buyerInfo?.phoneNumbers?.map((el) => el) ??
-              deals?.buyer?.mobile ??
-              "-"}
+            {deals?.buyer?.personId
+              ? (buyerInfo?.phoneNumbers?.map((el) => el) ??
+                deals?.buyer?.mobile ??
+                "-")
+              : "—"}
           </p>
         </div>
       </div>
@@ -461,14 +517,14 @@ const Header = () => {
           سود ناخالص:{" "}
           <strong dir="ltr" className="line-through text-black text-sm">
             {/* {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"} */}
-            {formatPrice(grossProfit?.toLocaleString("en-US")) ?? "—"}
+            {formatPrice(lastGrossProfit?.toLocaleString("en-US")) ?? "—"}
           </strong>
         </p>
         <p className="text-sm text-green-700">
           سود خالص:{" "}
           <strong dir="ltr" className="text-black text-sm">
             {/* {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"} */}
-            {formatPrice(netProfit?.toLocaleString("en-US")) ?? "—"}
+            {formatPrice(lastNetProfit?.toLocaleString("en-US")) ?? "—"}
           </strong>
         </p>
         {/* </div> */}

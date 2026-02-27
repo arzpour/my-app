@@ -31,16 +31,16 @@ import { Pencil, Trash } from "lucide-react";
 import TransactionForm from "./forms/transactionForm";
 import { formatPrice } from "@/utils/systemConstants";
 import DeleteModal from "./modals/deleteModal";
-import useGetAllTransactions from "@/hooks/useGetAllTransaction";
-import useGetAllCheques from "@/hooks/useGetAllCheques";
+// import useGetAllTransactions from "@/hooks/useGetAllTransaction";
+// import useGetAllCheques from "@/hooks/useGetAllCheques";
 
 const VehicleDashboard = () => {
   const { chassisNo, selectedDealId } = useSelector(
     (state: RootState) => state.cars,
   );
   const [deal, setDeal] = React.useState<IDeal>();
-  // const [transactions, setTransactions] = React.useState<ITransactionNew[]>([]);
-  // const [cheques, setCheques] = React.useState<IChequeNew[] | null>(null);
+  const [transactions, setTransactions] = React.useState<ITransactionNew[]>([]);
+  const [cheques, setCheques] = React.useState<IChequeNew[] | null>(null);
   const [isOpenEditModal, setIsOpenEditModal] = React.useState<boolean>(false);
   const [transactionId, setTransactionId] = React.useState<string | undefined>(
     undefined,
@@ -57,10 +57,10 @@ const VehicleDashboard = () => {
   const getDealByVin = useGetDealsByVin(chassisNo);
   const dealsData = getDealByVin.data;
 
-  // const getTransactionsByDealId = useGetTransactionsByDealId();
-  const { data: transactions } = useGetAllTransactions();
-  const { data: cheques } = useGetAllCheques();
-  // const getChequesByDealId = useGetChequesByDealId();
+  const getTransactionsByDealId = useGetTransactionsByDealId();
+  // const { data: transactions } = useGetAllTransactions();
+  // const { data: cheques } = useGetAllCheques();
+  const getChequesByDealId = useGetChequesByDealId();
   const deleteTransaction = useDeleteTransaction();
 
   const { data: businessAccounts } = useQuery({
@@ -84,29 +84,29 @@ const VehicleDashboard = () => {
     return map;
   }, [businessAccounts]);
 
-  // const getTransactionsByDealIdHandler = async () => {
-  //   if (!deal?._id) return;
-  //   try {
-  //     const transactions = await getTransactionsByDealId.mutateAsync(
-  //       deal?._id.toString() ?? selectedDealId ?? "",
-  //     );
-  //     setTransactions(transactions);
-  //   } catch (error) {
-  //     console.log("🚀 ~ getTransactionsByDealIdHandler ~ error:", error);
-  //   }
-  // };
+  const getTransactionsByDealIdHandler = async () => {
+    if (!deal?._id) return;
+    try {
+      const transactions = await getTransactionsByDealId.mutateAsync(
+        deal?._id.toString() ?? selectedDealId ?? "",
+      );
+      setTransactions(transactions);
+    } catch (error) {
+      console.log("🚀 ~ getTransactionsByDealIdHandler ~ error:", error);
+    }
+  };
 
-  // const getChequesByDealIdHandler = async () => {
-  //   if (!deal?._id) return;
-  //   try {
-  //     const cheques = await getChequesByDealId.mutateAsync(
-  //       deal?._id.toString() ?? selectedDealId ?? "",
-  //     );
-  //     setCheques(cheques);
-  //   } catch (error) {
-  //     console.log("🚀 ~ getChequesByDealIdHandler ~ error:", error);
-  //   }
-  // };
+  const getChequesByDealIdHandler = async () => {
+    if (!deal?._id) return;
+    try {
+      const cheques = await getChequesByDealId.mutateAsync(
+        deal?._id.toString() ?? selectedDealId ?? "",
+      );
+      setCheques(cheques);
+    } catch (error) {
+      console.log("🚀 ~ getChequesByDealIdHandler ~ error:", error);
+    }
+  };
 
   const isChequePaid = (cheque: IChequeNew): boolean => {
     const paidStatuses = ["paid", "پاس شده", "وصول شده", "پاس شده است"];
@@ -133,66 +133,66 @@ const VehicleDashboard = () => {
     );
   };
 
-  const isTransactionFromUnpaidCheque = (
-    transaction: ITransactionNew,
-  ): boolean => {
-    if (!cheques || !deal?._id || transaction.paymentMethod !== "چک") {
-      return false;
-    }
+  // const isTransactionFromUnpaidCheque = (
+  //   transaction: ITransactionNew,
+  // ): boolean => {
+  //   if (!cheques || !deal?._id || transaction.paymentMethod !== "چک") {
+  //     return false;
+  //   }
 
-    const dealIdStr = deal._id.toString();
+  //   const dealIdStr = deal._id.toString();
 
-    const relatedCheques = cheques.filter((c) => {
-      const chequeDealIdMatch =
-        c.relatedDealId?.toString() === dealIdStr ||
-        (typeof c.relatedDealId === "number" &&
-          dealIdStr.includes(c.relatedDealId));
+  //   const relatedCheques = cheques.filter((c) => {
+  //     const chequeDealIdMatch =
+  //       c.relatedDealId?.toString() === dealIdStr ||
+  //       (typeof c.relatedDealId === "number" &&
+  //         dealIdStr.includes(c.relatedDealId));
 
-      const amountMatch = Math.abs(c.amount - transaction.amount) < 0.01;
+  //     const amountMatch = Math.abs(c.amount - transaction.amount) < 0.01;
 
-      return chequeDealIdMatch && amountMatch;
-    });
+  //     return chequeDealIdMatch && amountMatch;
+  //   });
 
-    return relatedCheques.some((c) => !isChequePaid(c));
-  };
+  //   return relatedCheques.some((c) => !isChequePaid(c));
+  // };
 
-  const isVehicleRelatedTransaction = (
-    transaction: ITransactionNew,
-  ): boolean => {
-    if (
-      transaction.reason?.includes("حقوق") ||
-      transaction.reason?.includes("پرداخت حقوق")
-    ) {
-      return false;
-    }
+  // const isVehicleRelatedTransaction = (
+  //   transaction: ITransactionNew,
+  // ): boolean => {
+  //   if (
+  //     transaction.reason?.includes("حقوق") ||
+  //     transaction.reason?.includes("پرداخت حقوق")
+  //   ) {
+  //     return false;
+  //   }
 
-    if (transaction.type === "پرداخت") {
-      const reasonNormalized = transaction.reason?.replace(/\s/g, "") || "";
-      return (
-        transaction.reason === "خرید خودرو" ||
-        transaction.reason?.includes("خريد") ||
-        transaction.reason?.includes("خرید") ||
-        transaction.reason === "درصد کارگزار" ||
-        reasonNormalized.includes("هزینهوسیله") ||
-        reasonNormalized.includes("هزينهوسیله")
-      );
-    }
+  //   if (transaction.type === "پرداخت") {
+  //     const reasonNormalized = transaction.reason?.replace(/\s/g, "") || "";
+  //     return (
+  //       transaction.reason === "خرید خودرو" ||
+  //       transaction.reason?.includes("خريد") ||
+  //       transaction.reason?.includes("خرید") ||
+  //       transaction.reason === "درصد کارگزار" ||
+  //       reasonNormalized.includes("هزینهوسیله") ||
+  //       reasonNormalized.includes("هزينهوسیله")
+  //     );
+  //   }
 
-    if (transaction.type === "دریافت") {
-      return transaction.reason === "فروش";
-    }
+  //   if (transaction.type === "دریافت") {
+  //     return transaction.reason === "فروش";
+  //   }
 
-    if (
-      transaction.type === "افزایش سرمایه" ||
-      transaction.type === "برداشت سرمایه" ||
-      transaction.reason === "افزایش سرمایه" ||
-      transaction.reason === "کاهش سرمایه"
-    ) {
-      return true;
-    }
+  //   if (
+  //     transaction.type === "افزایش سرمایه" ||
+  //     transaction.type === "برداشت سرمایه" ||
+  //     transaction.reason === "افزایش سرمایه" ||
+  //     transaction.reason === "کاهش سرمایه"
+  //   ) {
+  //     return true;
+  //   }
 
-    return false;
-  };
+  //   return false;
+  // };
 
   // const filteredTransactions = React.useMemo(() => {
   //   if (!transactions || transactions.length === 0) return [];
@@ -242,13 +242,15 @@ const VehicleDashboard = () => {
     transactions?.filter(
       (t) =>
         (t.type === "پرداخت" || t.type === "سایر هزینه‌ها") &&
-        !investmentTransactionConditions(t),
+        !investmentTransactionConditions(t) &&
+        t.paymentMethod !== "چک",
     ) ?? [];
   const receivedTransactions =
     transactions?.filter(
       (t) =>
         (t.type === "دریافت" || t.type === "سایر هزینه‌ها") &&
-        !investmentTransactionConditions(t),
+        !investmentTransactionConditions(t) &&
+        t.paymentMethod !== "چک",
     ) ?? [];
 
   const investmentTransactions =
@@ -257,51 +259,109 @@ const VehicleDashboard = () => {
   ///////////////////////////////////////////////////////////////////////////////
   const today = new Date();
 
-  const receivedCheques =
-    cheques?.filter((c) => {
-      const isReceived = c.type === "received" || c.type === "وارده";
+  // const receivedCheques =
+  //   cheques?.filter((c) => {
+  //     const isReceived = c.type === "received" || c.type === "وارده";
 
-      const isCollected =
-        c.status === "collected" ||
-        c.status === "وصول شده" ||
-        c.status === "پاس شده";
+  //     const isCollected =
+  //       c.status === "collected" ||
+  //       c.status === "وصول شده" ||
+  //       c.status === "پاس شده";
 
-      return isReceived && isCollected;
-    }) || [];
+  //     return isReceived && isCollected;
+  //   }) || [];
 
-  const paidCheques =
-    cheques?.filter((c) => {
-      const isIssued = c.type === "issued" || c.type === "صادره";
+  // const paidCheques =
+  //   cheques?.filter((c) => {
+  //     const isIssued = c.type === "issued" || c.type === "صادره";
 
-      const isDue = c.dueDate && new Date(c.dueDate) <= today;
+  //     const isDue = c.dueDate && new Date(c.dueDate) <= today;
 
-      return isIssued && isDue;
-    }) || [];
+  //     return isIssued && isDue;
+  //   }) || [];
 
-  const chequeToTransaction = (
-    cheque: IChequeNew,
-    type: "پرداخت" | "دریافت",
-  ) => ({
-    _id: cheque._id,
-    transactionDate: cheque.dueDate,
-    amount: cheque.amount,
-    reason: "چک",
-    paymentMethod: "چک",
-    bussinessAccountId: "",
-    type,
+  //  const paidCheques =
+  //   cheques?.filter((c) => {
+  //     const isIssued = c.type === "issued" || c.type === "صادره";
+
+  //     const isDue = c.dueDate && new Date(c.dueDate) <= today;
+
+  //     return isIssued && isDue;
+  //   }) || [];
+
+  // const today = new Date();
+
+  const validChequePaid = cheques?.filter((c) => {
+    const isDuePassed = c.dueDate && new Date(c.dueDate) >= today;
+
+    return isDuePassed;
   });
+  const validChequePaidTransactionIds = (validChequePaid ?? []).map((c) =>
+    c.relatedTransactionId?.toString(),
+  );
+
+  const validChequeRecieved = cheques?.filter((c) => {
+    const isCollected =
+      c.status === "وصول شده" ||
+      c.status === "پاس شده" ||
+      c.status?.toLowerCase() === "collected" ||
+      c.status?.toLowerCase() === "paid";
+
+    return isCollected;
+  });
+
+
+  const validChequeRecievedTransactionIds = (validChequeRecieved ?? []).map(
+    (c) => c.relatedTransactionId?.toString(),
+  );
+
+  const paidTransactionCheques = transactions.filter((t) =>
+    validChequePaidTransactionIds?.includes(t._id?.toString()),
+  );
+  
+  const recievedTransactionCheques = transactions.filter((t) =>
+    validChequeRecievedTransactionIds?.includes(t._id?.toString()),
+  );
+
+
+  // const chequeToTransaction = (
+  //   cheque: IChequeNew,
+  //   type: "پرداخت" | "دریافت",
+  // ) => ({
+  //   _id: cheque._id,
+  //   transactionDate: cheque.dueDate,
+  //   amount: cheque.amount,
+  //   reason: "چک",
+  //   paymentMethod: "چک",
+  //   bussinessAccountId: "",
+  //   type,
+  // });
 
   const finalPaidTransactions = React.useMemo(() => {
     return [
       ...paidTransactions,
-      ...paidCheques.map((c) => chequeToTransaction(c, "پرداخت")),
+      ...paidTransactionCheques,
+      // ...paidCheques.map((c) => chequeToTransaction(c, "پرداخت")),
     ];
-  }, [paidTransactions, paidCheques]);
+  }, [paidTransactions, paidTransactionCheques]);
+  // console.log(
+  //   "🚀 ~ VehicleDashboard ~ finalPaidTransactions:",
+  //   finalPaidTransactions,
+  // );
 
-  const finalReceivedTransactions = [
-    ...receivedTransactions,
-    ...receivedCheques.map((c) => chequeToTransaction(c, "دریافت")),
-  ];
+  // }, [paidTransactions, paidCheques]);
+
+  const finalReceivedTransactions = React.useMemo(() => {
+    return [
+      ...receivedTransactions,
+      ...recievedTransactionCheques,
+      // ...receivedCheques.map((c) => chequeToTransaction(c, "دریافت")),
+    ];
+  }, [receivedTransactions, recievedTransactionCheques]);
+  // console.log(
+  //   "🚀 ~ VehicleDashboard ~ finalReceivedTransactions:",
+  //   finalReceivedTransactions,
+  // );
 
   const totalPaidToSeller =
     finalPaidTransactions
@@ -364,10 +424,10 @@ const VehicleDashboard = () => {
       ?.filter((t) => t.type === "دریافت")
       .reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
 
-  // React.useEffect(() => {
-  //   // getTransactionsByDealIdHandler();
-  //   // getChequesByDealIdHandler();
-  // }, [deal?._id, selectedDealId]);
+  React.useEffect(() => {
+    getTransactionsByDealIdHandler();
+    getChequesByDealIdHandler();
+  }, [deal?._id, selectedDealId]);
 
   React.useEffect(() => {
     if (dealsData?.length === 1) {
@@ -402,7 +462,7 @@ const VehicleDashboard = () => {
   const handleEditSuccess = () => {
     setIsOpenEditModal(false);
     setTransactionId(undefined);
-    // getTransactionsByDealIdHandler();
+    getTransactionsByDealIdHandler();
   };
 
   const totalVehicleCost = React.useMemo(() => {
@@ -884,11 +944,15 @@ const VehicleDashboard = () => {
                                 : "نامعلوم"}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.payer?.fullName ??
-                              item?.payee?.fullName ??
-                              item?.brokerPersonId?.fullName ??
-                              item?.providerPersonId?.fullName ??
-                              ""}
+                            {!!item?.payer?.fullName
+                              ? item?.payer?.fullName
+                              : !!item?.payee?.fullName
+                                ? item?.payee?.fullName
+                                : !!item?.brokerPersonId?.fullName
+                                  ? item?.brokerPersonId?.fullName
+                                  : !!item?.providerPersonId?.fullName
+                                    ? item?.providerPersonId?.fullName
+                                    : ""}
                           </TableCell>
                           <TableCell className="text-center">
                             {formatPrice(
@@ -905,7 +969,7 @@ const VehicleDashboard = () => {
                             {item?.sayadiID ?? ""}
                           </TableCell>
                           <TableCell className="text-center">
-                            {item?.chequeNumber}
+                            {item?.chequeSerial}
                           </TableCell>
                         </TableRow>
                       ))

@@ -157,8 +157,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             selectedTransactionChequeInfo?.customer.personId ?? "",
           chequeSerial: selectedTransactionChequeInfo?.chequeSerial ?? "",
           sayadiID: selectedTransactionChequeInfo?.sayadiID ?? "",
-          brokerPersonId: `${brokerPerson?.firstName} ${brokerPerson?.lastName}` || "",
-          providerPersonId: `${providerPerson?.firstName} ${providerPerson?.lastName}` || "",
+          brokerPersonId:
+            `${brokerPerson?.firstName} ${brokerPerson?.lastName}` || "",
+          providerPersonId:
+            `${providerPerson?.firstName} ${providerPerson?.lastName}` || "",
           partnerPersonId:
             `${partnerShip?.firstName} ${partnerShip?.lastName}` || "",
         };
@@ -181,6 +183,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const transactionReason = watch("reason");
   const chequeType = watch("chequeType");
   const transactionDealId = watch("dealId");
+  const personId = watch("personId");
 
   const selectedDealIdInfo = allDeals?.filter(
     (d) => d._id === transactionDealId,
@@ -196,6 +199,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const showChequeFields = paymentMethod === "چک";
   const showPayer = showChequeFields && chequeType === "دریافتی";
   const showPayee = showChequeFields && chequeType === "پرداختی";
+
+  React.useEffect(() => {
+    if (!showChequeFields) return;
+
+    if (personId) {
+      setValue("chequePayeePersonId", personId);
+    }
+  }, [showChequeFields, personId, setValue]);
 
   React.useEffect(() => {
     if (!showChequeFields) return;
@@ -317,6 +328,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       } else {
         // Create new transaction
         transaction = await createTransaction.mutateAsync(transactionData);
+        queryClient.invalidateQueries({
+          queryKey: ["get-transactions-by-deal-id"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["get-cheques-by-deal-id"],
+        });
+        queryClient.invalidateQueries({ queryKey: ["get-transaction-by-id"] });
       }
 
       // If payment method is cheque, create cheque record
@@ -344,7 +362,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
         const chequeData = {
           chequeNumber: data.chequeNumber?.trim() || "",
-          chequeSerial: data.chequeNumber?.trim() || "",
+          chequeSerial: data.chequeSerial?.trim() || "",
           bankName: data.chequeBankName || "",
           branchName: data.chequeBranchName || "",
           vin: selectedDeal?.vehicleSnapshot?.vin || "",
@@ -402,8 +420,26 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
         if (mode === "add") {
           await createCheque(chequeData);
+          queryClient.invalidateQueries({
+            queryKey: ["get-transactions-by-deal-id"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["get-cheques-by-deal-id"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["get-transaction-by-id"],
+          });
         } else if (mode === "edit") {
           await updateCheque(selectedTransactionChequeInfo?._id, chequeData);
+          queryClient.invalidateQueries({
+            queryKey: ["get-transactions-by-deal-id"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["get-cheques-by-deal-id"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["get-transaction-by-id"],
+          });
         }
       }
 
@@ -502,10 +538,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           description: data.description,
         };
 
-
         if (effectivePersonId) {
           updateWalletHandler(effectivePersonId, walletData);
-        };
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ["get-all-people"] });
@@ -689,6 +724,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             <label className="block text-sm font-medium">
               مرتبط با معامله
               <span>
+                {" "}
                 {(transactionType === "پرداخت" &&
                   [
                     "خرید خودرو",
@@ -720,7 +756,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             >
               <option value="">
                 انتخاب معامله
-                <span>
+                {/* <span>
                   {(transactionType === "پرداخت" &&
                     [
                       "خرید خودرو",
@@ -734,7 +770,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                   ) : (
                     ""
                   )}
-                </span>
+                </span> */}
               </option>
 
               {allDeals?.map((deal) => (
@@ -817,7 +853,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           {partnerFieldIsExist ? (
             <>
               <div className="space-y-2">
-                <label className="block text-sm font-medium">نام شریک</label>
+                <label className="block text-sm font-medium">
+                  {" "}
+                  نام شریک <span className="text-red-600">*</span>
+                </label>
                 {/* <PersonSelect
                 value={partnership.partnerPersonId}
                 onValueChange={(personId) =>
@@ -1076,6 +1115,29 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
             <div className="space-y-2">
               <label
+                htmlFor="chequeSerial"
+                className="block text-sm font-medium"
+              >
+                {" "}
+                سریال چک <span className="text-red-600">*</span>
+              </label>
+              <input
+                id="chequeSerial"
+                {...register("chequeSerial")}
+                type="text"
+                inputMode="numeric"
+                placeholder="سریال چک"
+                className="w-full px-3 py-2 border border-gray-600 rounded-md"
+              />
+              {errors.chequeSerial && (
+                <p className="text-red-500 text-xs">
+                  {errors.chequeSerial.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label
                 htmlFor="chequeNumber"
                 className="block text-sm font-medium"
               >
@@ -1112,29 +1174,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               {errors.sayadiID && (
                 <p className="text-red-500 text-xs">
                   {errors.sayadiID.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label
-                htmlFor="chequeSerial"
-                className="block text-sm font-medium"
-              >
-                {" "}
-                سریال چک <span className="text-red-600">*</span>
-              </label>
-              <input
-                id="chequeSerial"
-                {...register("chequeSerial")}
-                type="text"
-                inputMode="numeric"
-                placeholder="سریال چک"
-                className="w-full px-3 py-2 border border-gray-600 rounded-md"
-              />
-              {errors.chequeSerial && (
-                <p className="text-red-500 text-xs">
-                  {errors.chequeSerial.message}
                 </p>
               )}
             </div>

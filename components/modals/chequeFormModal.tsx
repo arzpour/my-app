@@ -2,7 +2,12 @@
 
 import React from "react";
 // @ts-ignore - react-hook-form useForm: types sometimes not resolved (e.g. Next build); runtime is fine. Use @ts-ignore so Ubuntu build does not report "Unused directive".
-import { Controller, useForm, type SubmitHandler, ControllerRenderProps } from "react-hook-form";
+import {
+  Controller,
+  useForm,
+  type SubmitHandler,
+  ControllerRenderProps,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { chequeNewSchema, chequeNewSchemaType } from "@/validations/chequeNew";
 import { toast } from "sonner";
@@ -10,11 +15,15 @@ import { toast } from "sonner";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
-import { BANK_NAMES, CHEQUE_STATUSES, formatPrice } from "@/utils/systemConstants";
+import {
+  BANK_NAMES,
+  CHEQUE_STATUSES,
+  formatPrice,
+} from "@/utils/systemConstants";
 import type { IPeople, IDeal, IChequeNew } from "@/types/new-backend-types";
 import useGetChequeById from "@/hooks/useGetChequeById";
 import { useUpdateCheque } from "@/apis/mutations/cheques";
-import { useGetAllDeals } from "@/apis/mutations/deals";
+import useGetAllDeals from "@/hooks/useGetAllDeals";
 
 interface ChequeFormNewProps {
   onSuccess?: () => void;
@@ -44,6 +53,10 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
   );
   const [selectedDeal, setSelectedDeal] = React.useState<IDeal | null>(null);
 
+  // const relatedDealCheque = allDeals?.filter(
+  //   (d) => d._id === chequeInfoById?.relatedDealId,
+  // )[0];
+
   const {
     control,
     register,
@@ -68,7 +81,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
       payerPersonId: chequeInfoById?.payer.personId ?? "",
       payeePersonId: chequeInfoById?.payee.personId ?? "",
       customerId: chequeInfoById?.customer.personId ?? "",
-      relatedDealId: chequeInfoById?.relatedDealId.toString() ?? "",
+      relatedDealId: chequeInfoById?.relatedDealId,
       relatedTransactionId:
         chequeInfoById?.relatedTransactionId.toString() ?? "",
     },
@@ -78,7 +91,9 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
   const showPayer = chequeType === "دریافتی";
   const showPayee = chequeType === "پرداختی";
 
-  const onSubmit: SubmitHandler<chequeNewSchemaType> = async (data: chequeNewSchemaType) => {
+  const onSubmit: SubmitHandler<chequeNewSchemaType> = async (
+    data: chequeNewSchemaType,
+  ) => {
     try {
       const payer =
         showPayer && data.payerPersonId
@@ -110,37 +125,37 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
         description: data.description ?? "",
         customer: customer
           ? {
-            personId: customer._id?.toString() || "",
-            fullName: `${customer.firstName} ${customer.lastName}`,
-            nationalId: customer.nationalId?.toString() || "",
-          }
+              personId: customer._id?.toString() || "",
+              fullName: `${customer.firstName} ${customer.lastName}`,
+              nationalId: customer.nationalId?.toString() || "",
+            }
           : {
-            personId: "",
-            fullName: "",
-            nationalId: "",
-          },
+              personId: "",
+              fullName: "",
+              nationalId: "",
+            },
         payer: payer
           ? {
-            personId: payer._id?.toString() || "",
-            fullName: `${payer.firstName} ${payer.lastName}`,
-            nationalId: payer.nationalId?.toString() || "",
-          }
+              personId: payer._id?.toString() || "",
+              fullName: `${payer.firstName} ${payer.lastName}`,
+              nationalId: payer.nationalId?.toString() || "",
+            }
           : {
-            personId: "",
-            fullName: "",
-            nationalId: "",
-          },
+              personId: "",
+              fullName: "",
+              nationalId: "",
+            },
         payee: payee
           ? {
-            personId: payee._id?.toString() || "",
-            fullName: `${payee.firstName} ${payee.lastName}`,
-            nationalId: payee.nationalId?.toString() || "",
-          }
+              personId: payee._id?.toString() || "",
+              fullName: `${payee.firstName} ${payee.lastName}`,
+              nationalId: payee.nationalId?.toString() || "",
+            }
           : {
-            personId: "",
-            fullName: "",
-            nationalId: "",
-          },
+              personId: "",
+              fullName: "",
+              nationalId: "",
+            },
         relatedDealId: data.relatedDealId ? data.relatedDealId : "0",
         relatedTransactionId: data.relatedTransactionId
           ? data.relatedTransactionId
@@ -186,7 +201,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
         payerPersonId: chequeInfoById?.payer.personId ?? "",
         payeePersonId: chequeInfoById?.payee.personId ?? "",
         customerId: chequeInfoById?.customer.personId ?? "",
-        relatedDealId: chequeInfoById?.relatedDealId.toString() ?? "",
+        relatedDealId: chequeInfoById?.relatedDealId,
         relatedTransactionId:
           chequeInfoById?.relatedTransactionId.toString() ?? "",
       });
@@ -280,9 +295,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
               className="w-full px-3 py-2 border rounded-md"
             />
             {errors.sayadiID && (
-              <p className="text-red-500 text-xs">
-                {errors.sayadiID.message}
-              </p>
+              <p className="text-red-500 text-xs">{errors.sayadiID.message}</p>
             )}
           </div>
 
@@ -324,12 +337,14 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
                 const rawForDisplay =
                   field.value === "" || field.value == null
                     ? ""
-                    : String(field.value).replace(/,/g, "").replace(/\s/g, "").replace(/\u200E/g, "");
+                    : String(field.value)
+                        .replace(/,/g, "")
+                        .replace(/\s/g, "")
+                        .replace(/\u200E/g, "");
                 const formatted =
-                  rawForDisplay === ""
-                    ? ""
-                    : formatPrice(rawForDisplay);
-                const displayValue = formatted === "—" ? rawForDisplay : formatted;
+                  rawForDisplay === "" ? "" : formatPrice(rawForDisplay);
+                const displayValue =
+                  formatted === "—" ? rawForDisplay : formatted;
                 return (
                   <input
                     id="amount"
@@ -343,7 +358,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
                         .replace(/\u200E/g, "")
                         .replace(/[^0-9۰-۹]/g, "");
                       raw = raw.replace(/[۰-۹]/g, (d) =>
-                        "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString()
+                        "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString(),
                       );
                       field.onChange(raw === "" ? "" : raw);
                     }}
@@ -366,7 +381,11 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
             <Controller
               name="issueDate"
               control={control}
-              render={({ field }: { field: ControllerRenderProps<chequeNewSchemaType, "issueDate"> }) => (
+              render={({
+                field,
+              }: {
+                field: ControllerRenderProps<chequeNewSchemaType, "issueDate">;
+              }) => (
                 <PersianDatePicker
                   value={field.value}
                   onChange={field.onChange}
@@ -387,7 +406,11 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
             <Controller
               name="dueDate"
               control={control}
-              render={({ field }: { field: ControllerRenderProps<chequeNewSchemaType, "dueDate"> }) => (
+              render={({
+                field,
+              }: {
+                field: ControllerRenderProps<chequeNewSchemaType, "dueDate">;
+              }) => (
                 <PersianDatePicker
                   value={field.value}
                   onChange={field.onChange}
@@ -432,7 +455,14 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
               <Controller
                 name="payerPersonId"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<chequeNewSchemaType, "payerPersonId"> }) => (
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    chequeNewSchemaType,
+                    "payerPersonId"
+                  >;
+                }) => (
                   <PersonSelect
                     value={field.value}
                     onValueChange={(personId, person: IPeople) => {
@@ -455,7 +485,14 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
               <Controller
                 name="customerId"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<chequeNewSchemaType, "customerId"> }) => (
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    chequeNewSchemaType,
+                    "customerId"
+                  >;
+                }) => (
                   <PersonSelect
                     value={field.value}
                     onValueChange={(personId, person: IPeople) => {
@@ -478,7 +515,14 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
               <Controller
                 name="payeePersonId"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<chequeNewSchemaType, "payeePersonId"> }) => (
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    chequeNewSchemaType,
+                    "payeePersonId"
+                  >;
+                }) => (
                   <PersonSelect
                     value={field.value}
                     onValueChange={(personId, person: IPeople) => {

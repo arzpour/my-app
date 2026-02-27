@@ -11,8 +11,12 @@ const useUpdateWalletHandler = () => {
         queryKey: ["get-all-people"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["get-all-transaction"],
+        queryKey: ["get-transactions-by-deal-id"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["get-cheques-by-deal-id"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["get-transaction-by-id"] });
     } catch (error) {
       console.log("🚀 ~ addToWalletHandler ~ error:", error);
     }
