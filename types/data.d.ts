@@ -132,4 +132,15 @@ interface IUpdateWalletReq {
   amount: number;
   type: string;
   description: string | undefined;
+  dealID: string;
+  transactionID: string;
+  optionId?: string;
+  chequeId?: string;
+}
+
+interface IDeleteWalletTransactionReq {
+  dealID?: string;
+  transactionID?: string;
+  optionId?: string;
+  chequeId?: string;
 }

@@ -21,12 +21,12 @@ export const peopleSchema = z
           .string()
           .min(11, "شماره موبایل باید 11 رقم باشد")
           .max(11, "شماره موبایل باید 11 رقم باشد")
-          .regex(/^09\d+$/, "شماره موبایل باید با 09 شروع شود")
+          .regex(/^09\d+$/, "شماره موبایل باید با 09 شروع شود"),
       )
       .min(1, "حداقل یک شماره موبایل الزامی است"),
     address: z.string().optional(),
     roles: z
-      .array(z.enum(["customer", "broker", "employee", "provider"]))
+      .array(z.enum(["customer", "broker", "employee", "provider", "financier", "moneyChanger"]))
       .min(1, "حداقل یک نقش باید انتخاب شود"),
 
     purchaseCommissionPercent: z.string().optional(),
@@ -46,7 +46,7 @@ export const peopleSchema = z
     {
       message: "درصد کمیسیون خرید و فروش برای کارگزار الزامی است",
       path: ["purchaseCommissionPercent"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -58,7 +58,7 @@ export const peopleSchema = z
     {
       message: "اطلاعات استخدامی برای کارمند الزامی است",
       path: ["startDate"],
-    }
+    },
   );
 
 export type peopleSchemaType = z.infer<typeof peopleSchema>;

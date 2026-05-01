@@ -1,5 +1,8 @@
 "use client";
-import { useGetChequesByDealId } from "@/apis/mutations/cheques";
+import {
+  useDeleteCheque,
+  useGetChequesByDealId,
+} from "@/apis/mutations/cheques";
 import {
   useGetTransactionsByDealId,
   useDeleteTransaction,
@@ -26,31 +29,65 @@ import { RootState } from "@/redux/store";
 import { IChequeNew, IDeal, ITransactionNew } from "@/types/new-backend-types";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash } from "lucide-react";
 import TransactionForm from "./forms/transactionForm";
 import { formatPrice } from "@/utils/systemConstants";
 import DeleteModal from "./modals/deleteModal";
-// import useGetAllTransactions from "@/hooks/useGetAllTransaction";
-// import useGetAllCheques from "@/hooks/useGetAllCheques";
+import { useDeleteWalletTransaction } from "@/apis/mutations/people";
+import {
+  peopleStatus,
+  setPeopleStatus,
+  setVehicleUpdated,
+} from "@/redux/slices/transactionSlice";
+import { useVehicleFinancialStatus } from "@/hooks/useVehicleFinancialStatus";
 
 const VehicleDashboard = () => {
   const { chassisNo, selectedDealId } = useSelector(
     (state: RootState) => state.cars,
   );
-  const [deal, setDeal] = React.useState<IDeal>();
-  const [transactions, setTransactions] = React.useState<ITransactionNew[]>([]);
-  const [cheques, setCheques] = React.useState<IChequeNew[] | null>(null);
+  const { transactionCreated } = useSelector(
+    (state: RootState) => state.transaction,
+  );
+  // const [deal, setDeal] = React.useState<IDeal>();
+  // const [secondDeal, setSecondDeal] = React.useState<IDeal>();
+
+  // const [transactions, setTransactions] = React.useState<ITransactionNew[]>([]);
+  // const [cheques, setCheques] = React.useState<IChequeNew[] | null>(null);
   const [isOpenEditModal, setIsOpenEditModal] = React.useState<boolean>(false);
   const [transactionId, setTransactionId] = React.useState<string | undefined>(
     undefined,
   );
+  const [isChequeTransaction, setIsChequeTransaction] =
+    React.useState<boolean>(false);
   const [dealId, setDealId] = React.useState<string | undefined>(undefined);
+  // const [secondDealId, setSecondDealId] = React.useState<string | undefined>(undefined);
+  const [isCustomerToCustomer, setIsCustomerToCustomer] =
+    React.useState<boolean>(false);
+
   const [isOpenDeleteModal, setIsOpenDeleteModal] =
     React.useState<boolean>(false);
   const [transactionToDelete, setTransactionToDelete] = React.useState<
     string | undefined
   >(undefined);
+  const [dealToDelete, setDealToDelete] = React.useState<string | undefined>(
+    undefined,
+  );
+  const [personId, setPersonId] = React.useState<string | undefined>(undefined);
+
+  const [secondTransactionToDelete, setSecondTransactionToDelete] =
+    React.useState<string | undefined>(undefined);
+  const [secondDealToDelete, setSecondDealToDelete] = React.useState<
+    string | undefined
+  >(undefined);
+  const [secondPersonId, setSecondPersonId] = React.useState<
+    string | undefined
+  >(undefined);
+
+  // const [brokerPersonId, setBrokerPersonId] = React.useState<
+  //   string | undefined
+  // >(undefined);
+  // console.log("🚀 ~ VehicleDashboard ~ brokerPersonId:", brokerPersonId);
 
   const dispatch = useDispatch();
 
@@ -62,6 +99,24 @@ const VehicleDashboard = () => {
   // const { data: cheques } = useGetAllCheques();
   const getChequesByDealId = useGetChequesByDealId();
   const deleteTransaction = useDeleteTransaction();
+  const deleteWalletTransaction = useDeleteWalletTransaction();
+  const deleteCheque = useDeleteCheque();
+  const queryClient = useQueryClient();
+
+  const {
+    cheques,
+    deal,
+    finalPaidTransactions,
+    finalReceivedTransactions,
+    remainingForBuyer,
+    remainingToSeller,
+    totalPaidToSeller,
+    totalReceived,
+    transactions,
+    getChequesByDealIdHandler,
+    getTransactionsByDealIdHandler,
+    setDeal,
+  } = useVehicleFinancialStatus();
 
   const { data: businessAccounts } = useQuery({
     queryKey: ["get-all-business-accounts"],
@@ -84,29 +139,29 @@ const VehicleDashboard = () => {
     return map;
   }, [businessAccounts]);
 
-  const getTransactionsByDealIdHandler = async () => {
-    if (!deal?._id) return;
-    try {
-      const transactions = await getTransactionsByDealId.mutateAsync(
-        deal?._id.toString() ?? selectedDealId ?? "",
-      );
-      setTransactions(transactions);
-    } catch (error) {
-      console.log("🚀 ~ getTransactionsByDealIdHandler ~ error:", error);
-    }
-  };
+  // const getTransactionsByDealIdHandler = async () => {
+  //   if (!deal?._id) return;
+  //   try {
+  //     const transactions = await getTransactionsByDealId.mutateAsync(
+  //       deal?._id.toString() ?? selectedDealId ?? "",
+  //     );
+  //     setTransactions(transactions);
+  //   } catch (error) {
+  //     console.log("🚀 ~ getTransactionsByDealIdHandler ~ error:", error);
+  //   }
+  // };
 
-  const getChequesByDealIdHandler = async () => {
-    if (!deal?._id) return;
-    try {
-      const cheques = await getChequesByDealId.mutateAsync(
-        deal?._id.toString() ?? selectedDealId ?? "",
-      );
-      setCheques(cheques);
-    } catch (error) {
-      console.log("🚀 ~ getChequesByDealIdHandler ~ error:", error);
-    }
-  };
+  // const getChequesByDealIdHandler = async () => {
+  //   if (!deal?._id) return;
+  //   try {
+  //     const cheques = await getChequesByDealId.mutateAsync(
+  //       deal?._id.toString() ?? selectedDealId ?? "",
+  //     );
+  //     setCheques(cheques);
+  //   } catch (error) {
+  //     console.log("🚀 ~ getChequesByDealIdHandler ~ error:", error);
+  //   }
+  // };
 
   const isChequePaid = (cheque: IChequeNew): boolean => {
     const paidStatuses = ["paid", "پاس شده", "وصول شده", "پاس شده است"];
@@ -238,152 +293,11 @@ const VehicleDashboard = () => {
     );
   };
 
-  const paidTransactions =
-    transactions?.filter(
-      (t) =>
-        (t.type === "پرداخت" || t.type === "سایر هزینه‌ها") &&
-        !investmentTransactionConditions(t) &&
-        t.paymentMethod !== "چک",
-    ) ?? [];
-  const receivedTransactions =
-    transactions?.filter(
-      (t) =>
-        (t.type === "دریافت" || t.type === "سایر هزینه‌ها") &&
-        !investmentTransactionConditions(t) &&
-        t.paymentMethod !== "چک",
-    ) ?? [];
-
   const investmentTransactions =
     transactions?.filter(investmentTransactionConditions) ?? [];
 
-  ///////////////////////////////////////////////////////////////////////////////
-  const today = new Date();
-
-  // const receivedCheques =
-  //   cheques?.filter((c) => {
-  //     const isReceived = c.type === "received" || c.type === "وارده";
-
-  //     const isCollected =
-  //       c.status === "collected" ||
-  //       c.status === "وصول شده" ||
-  //       c.status === "پاس شده";
-
-  //     return isReceived && isCollected;
-  //   }) || [];
-
-  // const paidCheques =
-  //   cheques?.filter((c) => {
-  //     const isIssued = c.type === "issued" || c.type === "صادره";
-
-  //     const isDue = c.dueDate && new Date(c.dueDate) <= today;
-
-  //     return isIssued && isDue;
-  //   }) || [];
-
-  //  const paidCheques =
-  //   cheques?.filter((c) => {
-  //     const isIssued = c.type === "issued" || c.type === "صادره";
-
-  //     const isDue = c.dueDate && new Date(c.dueDate) <= today;
-
-  //     return isIssued && isDue;
-  //   }) || [];
-
-  // const today = new Date();
-
-  const validChequePaid = cheques?.filter((c) => {
-    const isDuePassed = c.dueDate && new Date(c.dueDate) >= today;
-
-    return isDuePassed;
-  });
-  const validChequePaidTransactionIds = (validChequePaid ?? []).map((c) =>
-    c.relatedTransactionId?.toString(),
-  );
-
-  const validChequeRecieved = cheques?.filter((c) => {
-    const isCollected =
-      c.status === "وصول شده" ||
-      c.status === "پاس شده" ||
-      c.status?.toLowerCase() === "collected" ||
-      c.status?.toLowerCase() === "paid";
-
-    return isCollected;
-  });
-
-
-  const validChequeRecievedTransactionIds = (validChequeRecieved ?? []).map(
-    (c) => c.relatedTransactionId?.toString(),
-  );
-
-  const paidTransactionCheques = transactions.filter((t) =>
-    validChequePaidTransactionIds?.includes(t._id?.toString()),
-  );
-  
-  const recievedTransactionCheques = transactions.filter((t) =>
-    validChequeRecievedTransactionIds?.includes(t._id?.toString()),
-  );
-
-
-  // const chequeToTransaction = (
-  //   cheque: IChequeNew,
-  //   type: "پرداخت" | "دریافت",
-  // ) => ({
-  //   _id: cheque._id,
-  //   transactionDate: cheque.dueDate,
-  //   amount: cheque.amount,
-  //   reason: "چک",
-  //   paymentMethod: "چک",
-  //   bussinessAccountId: "",
-  //   type,
-  // });
-
-  const finalPaidTransactions = React.useMemo(() => {
-    return [
-      ...paidTransactions,
-      ...paidTransactionCheques,
-      // ...paidCheques.map((c) => chequeToTransaction(c, "پرداخت")),
-    ];
-  }, [paidTransactions, paidTransactionCheques]);
-  // console.log(
-  //   "🚀 ~ VehicleDashboard ~ finalPaidTransactions:",
-  //   finalPaidTransactions,
-  // );
-
-  // }, [paidTransactions, paidCheques]);
-
-  const finalReceivedTransactions = React.useMemo(() => {
-    return [
-      ...receivedTransactions,
-      ...recievedTransactionCheques,
-      // ...receivedCheques.map((c) => chequeToTransaction(c, "دریافت")),
-    ];
-  }, [receivedTransactions, recievedTransactionCheques]);
-  // console.log(
-  //   "🚀 ~ VehicleDashboard ~ finalReceivedTransactions:",
-  //   finalReceivedTransactions,
-  // );
-
-  const totalPaidToSeller =
-    finalPaidTransactions
-      ?.filter(
-        (t) =>
-          t.reason === "خرید خودرو" ||
-          t.reason?.includes("خريد") ||
-          t.reason?.includes("خرید"),
-      )
-      ?.reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
-
   const totalPaidToSellerWithoutFilter =
     finalPaidTransactions?.reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
-
-  const totalReceived =
-    finalReceivedTransactions?.reduce((sum, t) => sum + (t?.amount || 0), 0) ||
-    0;
-
-  const remainingForBuyer =
-    deal?.salePrice && totalReceived
-      ? deal?.salePrice - totalReceived
-      : deal?.salePrice || 0;
 
   const totalPaidToBroker =
     finalPaidTransactions
@@ -400,19 +314,6 @@ const VehicleDashboard = () => {
         );
       })
       .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
-
-  const remainingToSeller =
-    deal?.purchasePrice && totalPaidToSeller
-      ? deal.purchasePrice - totalPaidToSeller
-      : deal?.purchasePrice || 0;
-
-  // const investmentTransactions = filteredTransactions?.filter(
-  //   (t) =>
-  //     t.reason === "افزایش سرمایه" ||
-  //     t.reason === "کاهش سرمایه" ||
-  //     t.type === "افزایش سرمایه" ||
-  //     t.type === "برداشت سرمایه",
-  // );
 
   const totalPaidForInvestment =
     investmentTransactions
@@ -445,6 +346,28 @@ const VehicleDashboard = () => {
     setIsOpenDeleteModal(true);
   };
 
+  const deleteBrokersWalletHandler = async () => {
+    if (!deal) return;
+    try {
+      await deleteWalletTransaction.mutateAsync({
+        id: deal.purchaseBroker.personId ?? "",
+        data: {
+          dealID: deal._id ?? "",
+          transactionID: transactionToDelete ?? "",
+        },
+      });
+      await deleteWalletTransaction.mutateAsync({
+        id: deal.saleBroker.personId ?? "",
+        data: {
+          dealID: deal._id ?? "",
+          transactionID: transactionToDelete ?? "",
+        },
+      });
+    } catch (error) {
+      console.log("🚀 ~ deleteBrokersWalletHandler ~ error:", error);
+    }
+  };
+
   const handleConfirmDelete = async () => {
     if (transactionToDelete) {
       try {
@@ -452,7 +375,43 @@ const VehicleDashboard = () => {
         setIsOpenDeleteModal(false);
         setTransactionToDelete(undefined);
         // Refresh transactions after delete
-        // await getTransactionsByDealIdHandler();
+        await getTransactionsByDealIdHandler();
+
+        deleteBrokersWalletHandler();
+
+        await deleteWalletTransaction.mutateAsync({
+          id: personId ?? "",
+          data: {
+            dealID: dealToDelete ?? "",
+            transactionID: transactionToDelete ?? "",
+          },
+        });
+
+        if (isCustomerToCustomer) {
+          await deleteWalletTransaction.mutateAsync({
+            id: secondPersonId ?? "",
+            data: {
+              dealID: secondDealToDelete ?? dealToDelete ?? "",
+              transactionID: transactionToDelete ?? "",
+            },
+          });
+        }
+
+        dispatch(setVehicleUpdated(transactionToDelete));
+
+        const chequeId =
+          cheques?.filter(
+            (c) => c.relatedTransactionId === transactionToDelete,
+          )[0]?._id ?? "";
+        queryClient.invalidateQueries({
+          queryKey: ["get-all-people"],
+        });
+
+        if (isChequeTransaction) {
+          await deleteCheque.mutateAsync(chequeId);
+          // toast.success("تراکنش با موفقیت ثبت شد");
+          getChequesByDealIdHandler();
+        }
       } catch (error) {
         console.error("Error deleting transaction:", error);
       }
@@ -463,6 +422,7 @@ const VehicleDashboard = () => {
     setIsOpenEditModal(false);
     setTransactionId(undefined);
     getTransactionsByDealIdHandler();
+    getChequesByDealIdHandler();
   };
 
   const totalVehicleCost = React.useMemo(() => {
@@ -478,6 +438,16 @@ const VehicleDashboard = () => {
   React.useEffect(() => {
     dispatch(setTotalVehicleCost(totalVehicleCost));
   }, [totalVehicleCost]);
+
+  React.useEffect(() => {
+    const transactionExist = transactions.find(
+      (t) => t._id === transactionCreated,
+    )?._id;
+    if (!transactionExist) {
+      getTransactionsByDealIdHandler();
+      getChequesByDealIdHandler();
+    }
+  }, [transactionCreated]);
 
   return (
     <>
@@ -556,13 +526,35 @@ const VehicleDashboard = () => {
                                 setIsOpenEditModal(true);
                                 setTransactionId(item._id?.toString());
                                 setDealId((item as ITransactionNew)?.dealId);
+                                // setSecondDealId(item?.secondDealId ?? "");
                               }}
                             />
                             <Trash
                               className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
-                              onClick={() =>
-                                handleDeleteClick(item._id?.toString() || "")
-                              }
+                              onClick={() => {
+                                handleDeleteClick(item._id?.toString() || "");
+                                setDealToDelete(item?.dealId?.toString() || "");
+                                setPersonId(
+                                  item.personId ||
+                                    item.brokerPersonId ||
+                                    item.partnerPersonId ||
+                                    item.providerPersonId ||
+                                    "",
+                                );
+                             
+                                setIsCustomerToCustomer(
+                                  item.paymentMethod === "مشتری به مشتری"
+                                    ? true
+                                    : false,
+                                );
+                                // setBrokerPersonId(item.brokerPersonId);
+                                setIsChequeTransaction(
+                                  item.paymentMethod === "چک" ? true : false,
+                                );
+                                // setSecondTransactionToDelete(item.secondDealId)
+                                setSecondDealToDelete(item.secondDealId ?? "");
+                                setSecondPersonId(item.secondPersonId ?? "");
+                              }}
                             />
                           </TableCell>
                         </TableRow>
@@ -729,13 +721,37 @@ const VehicleDashboard = () => {
                                 setIsOpenEditModal(true);
                                 setTransactionId(item._id?.toString());
                                 setDealId((item as ITransactionNew)?.dealId);
+                                // setSecondDealId(item?.secondDealId ?? "");
                               }}
                             />
                             <Trash
                               className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
-                              onClick={() =>
-                                handleDeleteClick(item._id?.toString() || "")
-                              }
+                              onClick={() => {
+                                handleDeleteClick(item._id?.toString() || "");
+                                setDealToDelete(item?.dealId?.toString() || "");
+                                setPersonId(
+                                  item.personId ||
+                                    item.brokerPersonId ||
+                                    item.partnerPersonId ||
+                                    item.providerPersonId ||
+                                    "",
+                                );
+                              
+                                setIsCustomerToCustomer(
+                                  item.paymentMethod === "مشتری به مشتری"
+                                    ? true
+                                    : false,
+                                );
+                                setSecondDealToDelete(item.secondDealId ?? "");
+                                setSecondPersonId(item.secondPersonId ?? "");
+
+                                // setBrokerPersonId(item.brokerPersonId);
+
+                                setIsChequeTransaction(
+                                  item.paymentMethod === "چک" ? true : false,
+                                );
+                                // setRelatedTransactionIdForCheque(item.)
+                              }}
                             />
                           </TableCell>
                         </TableRow>
@@ -806,7 +822,9 @@ const VehicleDashboard = () => {
                   {investmentTransactions && investmentTransactions.length > 0
                     ? investmentTransactions.map((tx, index) => {
                         const relatedPartnership = deal?.partnerships?.find(
-                          (p) => p.partner.personId === tx.personId,
+                          (p) => {
+                            return p.partner.personId === tx.personId;
+                          },
                         );
 
                         return (
@@ -845,7 +863,15 @@ const VehicleDashboard = () => {
                             <TableCell className="text-center">
                               {tx.paymentMethod || "-"}
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell
+                              title={
+                                tx?.bussinessAccountId
+                                  ? accountNameMap.get(tx.bussinessAccountId) ||
+                                    tx.bussinessAccountId
+                                  : ""
+                              }
+                              className="text-center truncate cursor-pointer"
+                            >
                               {tx.bussinessAccountId
                                 ? accountNameMap.get(tx.bussinessAccountId) ||
                                   tx.bussinessAccountId
@@ -858,13 +884,37 @@ const VehicleDashboard = () => {
                                   setIsOpenEditModal(true);
                                   setTransactionId(tx._id?.toString());
                                   setDealId((tx as ITransactionNew)?.dealId);
+                                  // setSecondDealId(tx?.secondDealId ?? "");
                                 }}
                               />
                               <Trash
                                 className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
-                                onClick={() =>
-                                  handleDeleteClick(tx._id?.toString() || "")
-                                }
+                                onClick={() => {
+                                  handleDeleteClick(tx._id?.toString() || "");
+                                  setDealToDelete(tx?.dealId?.toString() || "");
+                                  setPersonId(
+                                    tx.partnerPersonId ||
+                                      relatedPartnership?.partner.personId ||
+                                      tx.personId ||
+                                      tx.brokerPersonId ||
+                                      tx.partnerPersonId ||
+                                      tx.providerPersonId ||
+                                      "",
+                                  );
+                                  
+                                  setIsCustomerToCustomer(
+                                    tx.paymentMethod === "مشتری به مشتری"
+                                      ? true
+                                      : false,
+                                  );
+
+                                  setSecondDealToDelete(tx.secondDealId ?? "");
+                                  setSecondPersonId(tx.secondPersonId ?? "");
+                                  // setBrokerPersonId(tx.brokerPersonId);
+                                  setIsChequeTransaction(
+                                    tx.paymentMethod === "چک" ? true : false,
+                                  );
+                                }}
                               />
                             </TableCell>
                           </TableRow>
@@ -941,7 +991,7 @@ const VehicleDashboard = () => {
                               ? "صادره"
                               : item?.type === "received"
                                 ? "وارده"
-                                : "نامعلوم"}
+                                : "-"}
                           </TableCell>
                           <TableCell className="text-center">
                             {!!item?.payer?.fullName
@@ -1048,7 +1098,7 @@ const VehicleDashboard = () => {
         <Dialog open={isOpenEditModal} onOpenChange={setIsOpenEditModal}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>ویرایش تراکنش</DialogTitle>
+              <DialogTitle className="mb-9">ویرایش تراکنش</DialogTitle>
               <DialogClose
                 onClose={() => {
                   setIsOpenEditModal(false);
@@ -1061,6 +1111,7 @@ const VehicleDashboard = () => {
               transactionId={transactionId}
               onSuccess={handleEditSuccess}
               dealId={dealId}
+              getTransactionsHandler={getTransactionsByDealIdHandler}
             />
           </DialogContent>
         </Dialog>

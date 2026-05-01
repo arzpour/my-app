@@ -1,3 +1,6 @@
+import { PeopleRole } from "@/types/new-backend-types";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
 import { DateObject } from "react-multi-date-picker";
 
 export const BANK_NAMES = [
@@ -32,8 +35,8 @@ export const CHEQUE_STATUSES = [
   "خرج شده",
   "عودت داده شده",
   "وصول شده",
-  "وصول نشده",
-  "ثبت شده",
+  // "وصول نشده",
+  // "ثبت شده",
 ];
 
 export const documents = [
@@ -50,7 +53,7 @@ export const PAYMENT_METHODS = [
   "کارت به کارت",
   "چک",
   "شبا",
-  "مشتری به مشتری",
+  // "مشتری به مشتری",
 ];
 
 export const TRANSACTION_REASONS_FOR_PAYMENT = [
@@ -65,6 +68,7 @@ export const TRANSACTION_REASONS_FOR_PAYMENT = [
   "سود سرمایه",
   "درصد کارگزار",
   "سایر هزینه‌ها",
+  "خرید خودروـ صراف",
   // "جابجایی(وسیله نقلیه)",
 ];
 
@@ -72,15 +76,25 @@ export const TRANSACTION_REASONS_FOR_RECEIPT = [
   "فروش خودرو",
   "سرمایه گذاری",
   // "اقساط وام",
+  "فروش خودروـ صراف",
 ];
 
-export const PERSON_ROLES = ["customer", "broker", "employee", "provider"];
+export const PERSON_ROLES: PeopleRole[] = [
+  "customer",
+  "broker",
+  "employee",
+  "provider",
+  "financier",
+  "moneyChanger",
+];
 
 export const PERSON_ROLES_DISPLAY = {
   customer: "مشتری",
   broker: "کارگزار",
   employee: "کارمند",
   provider: "تامین کننده",
+  financier: "سرمایه گذار",
+  moneyChanger: "صراف",
 };
 
 export const roleMap: Record<string, string> = {
@@ -88,6 +102,8 @@ export const roleMap: Record<string, string> = {
   broker: "کارگزار",
   employee: "کارمند",
   provider: "تامین کننده",
+  financier: "سرمایه گذار",
+  moneyChanger: "صراف",
 };
 
 export const CONTRACT_TYPES = [
@@ -171,56 +187,6 @@ export const persianToEnglish = (
   return value.toString().replace(/[۰-۹]/g, persianToEnglishDigit);
 };
 
-// export const formatNumberWithTrailingMinus = (num?: number) => {
-//   if (num == null) return "—";
-//   if (num < 0) return `${Math.abs(num).toLocaleString("en-US")}-`;
-//   return num.toLocaleString("en-US");
-// };
-
-// export const formatPrice = (price?: string | number) => {
-//   console.log("🚀 ~ formatPrice ~ price:", price)
-//   if (price == null) return "—";
-
-//   const value = Number(price);
-//   console.log("🚀 ~ formatPrice ~ value:", value)
-//   if (isNaN(value)) return "—";
-
-//   return value < 0
-//     ? `${Math.abs(value).toLocaleString("en-US")}-`
-//     : value.toLocaleString("en-US");
-// };
-
-// export const formatPrice = (price?: string | number) => {
-//   if (price == null) return "—";
-
-//   // اگر عدد بود مستقیم هندل کن
-//   if (typeof price === "number") {
-//     return price < 0
-//       ? `${Math.abs(price).toLocaleString("en-US")}-`
-//       : price.toLocaleString("en-US");
-//   }
-
-//   let normalized = price.replace(/,/g, "").trim();
-
-//   // اگر منفی آخر عدد بود (مثلا 3000-)
-//   let isNegative = false;
-
-//   if (normalized.endsWith("-")) {
-//     isNegative = true;
-//     normalized = normalized.slice(0, -1);
-//   }
-
-//   const value = Number(normalized);
-
-//   if (isNaN(value)) return "—";
-
-//   const finalValue = isNegative ? -value : value;
-
-//   return finalValue < 0
-//     ? `${Math.abs(finalValue).toLocaleString("en-US")}-`
-//     : finalValue.toLocaleString("en-US");
-// };
-
 export const formatPrice = (price?: string | number) => {
   if (price == null) return "—";
 
@@ -251,4 +217,25 @@ export const parsePriceToNumber = (value?: string | number): number => {
     .replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString());
   const num = Number(normalized);
   return isNaN(num) ? 0 : num;
+};
+
+const faToEn = (str: string): string =>
+  str.replace(/[۰-۹]/g, (d) => "0123456789"["۰۱۲۳۴۵۶۷۸۹".indexOf(d)]);
+
+export const toTimestamp = (str: string) => {
+  if (!str) return null;
+
+  const clean = faToEn(str);
+
+  const [y, m, d] = clean.split("/").map(Number);
+
+  const obj = new DateObject({
+    calendar: persian,
+    locale: persian_fa,
+    year: y,
+    month: m,
+    day: d,
+  });
+
+  return obj.toUnix();
 };

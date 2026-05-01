@@ -1,5 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createPerson, getPersonById, updatePerson, updateWallet } from "../client/people";
+import {
+  createPerson,
+  deletePerson,
+  deleteWalletTransaction,
+  getPersonById,
+  updatePerson,
+  updateWallet,
+} from "../client/people";
 import { toast } from "sonner";
 
 export const useCreatePerson = () => {
@@ -46,4 +53,19 @@ export const useUpdateWallet = () => {
     mutationFn: updateWallet,
   });
 };
+
+export const useDeleteWalletTransaction = () => {
+  return useMutation({
+    mutationKey: ["delete-wallet-transaction"],
+    mutationFn: deleteWalletTransaction,
+  });
+};
+
+export const useDeletePerson = () => {
+  return useMutation({
+    mutationKey: ["delete-person"],
+    mutationFn: deletePerson,
+  });
+};
+
 

@@ -2,7 +2,13 @@
 
 import React from "react";
 // @ts-ignore - react-hook-form useForm: types sometimes not resolved (e.g. Next build); runtime is fine. Use @ts-ignore so Ubuntu build does not report "Unused directive".
-import { useForm, type SubmitHandler, Controller, useFieldArray, ControllerRenderProps } from "react-hook-form";
+import {
+  useForm,
+  type SubmitHandler,
+  Controller,
+  useFieldArray,
+  ControllerRenderProps,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { peopleSchema, peopleSchemaType } from "@/validations/people";
 import { toast } from "sonner";
@@ -13,7 +19,7 @@ import {
   PERSON_ROLES_DISPLAY,
   CONTRACT_TYPES,
 } from "@/utils/systemConstants";
-import type { IPeople } from "@/types/new-backend-types";
+import type { IPeople, PeopleRole } from "@/types/new-backend-types";
 import {
   Dialog,
   DialogContent,
@@ -132,7 +138,9 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
     }
   }, [personData, mode, reset]);
 
-  const onSubmit: SubmitHandler<peopleSchemaType> = async (data: peopleSchemaType) => {
+  const onSubmit: SubmitHandler<peopleSchemaType> = async (
+    data: peopleSchemaType,
+  ) => {
     try {
       const fullName = `${data.firstName} ${data.lastName}`.trim();
 
@@ -173,7 +181,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
           (personData.brokerDetails.currentRates.purchaseCommissionPercent !==
             data.purchaseCommissionPercent ||
             personData.brokerDetails.currentRates.saleCommissionPercent !==
-            data.saleCommissionPercent)
+              data.saleCommissionPercent)
         ) {
           payload.brokerDetails.rateHistory = [
             ...(personData.brokerDetails.rateHistory || []),
@@ -221,10 +229,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
     }
   };
 
-  const handleRoleChange = (
-    role: "customer" | "broker" | "employee" | "provider",
-    checked: boolean,
-  ) => {
+  const handleRoleChange = (role: PeopleRole, checked: boolean) => {
     const currentRoles = watch("roles");
     if (checked) {
       setValue("roles", [...currentRoles, role]);
@@ -413,7 +418,7 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
           </label>
           <div className="flex gap-4 flex-wrap">
             {PERSON_ROLES.map((role) => {
-              const roleKey = role as keyof typeof PERSON_ROLES_DISPLAY;
+              const roleKey = role as PeopleRole;
               const isSecretary = currentUserRole === "secretary";
               const isCustomerRole = role === "customer";
               const isDisabled =
@@ -424,20 +429,20 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
                   <input
                     type="checkbox"
                     id={`role-${role}`}
-                    checked={selectedRoles.includes(
-                      role as "customer" | "broker" | "employee" | "provider",
-                    )}
+                    checked={selectedRoles.includes(role as PeopleRole)}
                     onChange={(e) =>
                       handleRoleChange(roleKey, e.target.checked)
                     }
                     disabled={isDisabled}
-                    className={`w-4 h-4 disabled:opacity-50 disabled:cursor-not-allowed ${isDisabled ? "hidden" : ""
-                      }`}
+                    className={`w-4 h-4 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isDisabled ? "hidden" : ""
+                    }`}
                   />
                   <label
                     htmlFor={`role-${role}`}
-                    className={`cursor-pointer text-sm ${isDisabled ? "hidden" : ""
-                      }`}
+                    className={`cursor-pointer text-sm ${
+                      isDisabled ? "hidden" : ""
+                    }`}
                   >
                     {PERSON_ROLES_DISPLAY[roleKey]}
                   </label>
@@ -552,7 +557,11 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
               <Controller
                 name="startDate"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<peopleSchemaType, "startDate"> }) => (
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<peopleSchemaType, "startDate">;
+                }) => (
                   <PersianDatePicker
                     value={field.value}
                     onChange={field.onChange}
@@ -578,7 +587,14 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
               <Controller
                 name="contractType"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<peopleSchemaType, "contractType"> }) => (
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    peopleSchemaType,
+                    "contractType"
+                  >;
+                }) => (
                   <select
                     {...field}
                     className="w-full px-3 py-2 border rounded-md"
@@ -615,7 +631,11 @@ const PeopleForm: React.FC<PeopleFormProps> = ({
               <Controller
                 name="baseSalary"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<peopleSchemaType, "baseSalary"> }) => {
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<peopleSchemaType, "baseSalary">;
+                }) => {
                   const formattedValue = field.value
                     ? Number(field.value).toLocaleString("en-US")
                     : "";

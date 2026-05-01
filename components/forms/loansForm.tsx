@@ -2,7 +2,12 @@
 
 import React from "react";
 // @ts-ignore - react-hook-form useForm: types sometimes not resolved (e.g. Next build); runtime is fine. Use @ts-ignore so Ubuntu build does not report "Unused directive".
-import { useForm, Controller, SubmitHandler, ControllerRenderProps } from "react-hook-form";
+import {
+  useForm,
+  Controller,
+  SubmitHandler,
+  ControllerRenderProps,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loansSchema, loansSchemaType } from "@/validations/loans";
 import { toast } from "sonner";
@@ -63,7 +68,9 @@ const LoansForm: React.FC<LoansFormProps> = ({
     }
   }, [totalAmount, numberOfInstallments, setValue]);
 
-  const onSubmit: SubmitHandler<loansSchemaType> = async (data: loansSchemaType) => {
+  const onSubmit: SubmitHandler<loansSchemaType> = async (
+    data: loansSchemaType,
+  ) => {
     try {
       const borrower = allPeople?.find(
         (p) => p._id?.toString() === data.borrowerPersonId,
@@ -137,6 +144,8 @@ const LoansForm: React.FC<LoansFormProps> = ({
         amount: Number(data.totalAmount),
         type: data.status,
         description: data.description,
+        dealID: "",
+        transactionID: "",
       };
       updateWalletHandler(data.borrowerPersonId, walletData);
     } catch (error: any) {
@@ -160,7 +169,14 @@ const LoansForm: React.FC<LoansFormProps> = ({
             <Controller
               name="borrowerPersonId"
               control={control}
-              render={({ field }: { field: ControllerRenderProps<loansSchemaType, "borrowerPersonId"> }) => (
+              render={({
+                field,
+              }: {
+                field: ControllerRenderProps<
+                  loansSchemaType,
+                  "borrowerPersonId"
+                >;
+              }) => (
                 <PersonSelect
                   value={field.value}
                   onValueChange={field.onChange}
@@ -195,7 +211,11 @@ const LoansForm: React.FC<LoansFormProps> = ({
             <Controller
               name="totalAmount"
               control={control}
-              render={({ field }: { field: ControllerRenderProps<loansSchemaType, "totalAmount"> }) => {
+              render={({
+                field,
+              }: {
+                field: ControllerRenderProps<loansSchemaType, "totalAmount">;
+              }) => {
                 const formattedValue = field.value
                   ? Number(field.value).toLocaleString("en-US")
                   : "";
@@ -233,7 +253,11 @@ const LoansForm: React.FC<LoansFormProps> = ({
             <Controller
               name="loanDate"
               control={control}
-              render={({ field }: { field: ControllerRenderProps<loansSchemaType, "loanDate"> }) => (
+              render={({
+                field,
+              }: {
+                field: ControllerRenderProps<loansSchemaType, "loanDate">;
+              }) => (
                 <PersianDatePicker
                   value={field.value}
                   onChange={field.onChange}
@@ -285,7 +309,14 @@ const LoansForm: React.FC<LoansFormProps> = ({
             <Controller
               name="installmentAmount"
               control={control}
-              render={({ field }: { field: ControllerRenderProps<loansSchemaType, "installmentAmount"> }) => {
+              render={({
+                field,
+              }: {
+                field: ControllerRenderProps<
+                  loansSchemaType,
+                  "installmentAmount"
+                >;
+              }) => {
                 const formattedValue = field.value
                   ? Number(field.value).toLocaleString("en-US")
                   : "";

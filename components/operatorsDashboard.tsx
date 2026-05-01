@@ -1,14 +1,6 @@
 "use client";
 import React from "react";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -18,16 +10,15 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import useGetAllCategoryWithOptionSettings from "@/hooks/useGetCategoriesSetting";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
-import { getAllDeals } from "@/apis/client/deals";
-import { getAllTransactions } from "@/apis/client/transaction";
-import { useQuery } from "@tanstack/react-query";
-import type {
-  IDeal,
-  ITransactionNew,
-  IPeople,
-} from "@/types/new-backend-types";
+import type { ITransactionNew } from "@/types/new-backend-types";
+import SelectForFilterCheques from "./selectForFilterCheques";
+import useGetAllTransactions from "@/hooks/useGetAllTransaction";
+import useGetAllDeals from "@/hooks/useGetAllDeals";
+import useGetTransactionByDealId from "@/hooks/useGetTransactionByDealId";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { formatPrice } from "@/utils/systemConstants";
 
 // Persian month names
 const persianMonths = [
@@ -72,14 +63,143 @@ const OperatorsDashboard = () => {
   // const { data: getAllCategoryWithOptionSettings } =
   //   useGetAllCategoryWithOptionSettings();
   const { data: allPeople } = useGetAllPeople();
-  const { data: allDeals } = useQuery({
-    queryKey: ["get-all-deals"],
-    queryFn: getAllDeals,
-  });
-  const { data: allTransactions } = useQuery({
-    queryKey: ["get-all-transactions"],
-    queryFn: getAllTransactions,
-  });
+  // const { data: allDeals } = useQuery({
+  //   queryKey: ["get-all-deals"],
+  //   queryFn: getAllDeals,
+  // });
+  const { data: allDeals } = useGetAllDeals();
+  const { data: allTransactions } = useGetAllTransactions();
+  // const getTransactionByDealId = useGetTransactionByDealId(dealId);
+  // const otherOptionsTransaction =
+  //   allTransactions
+  //     ?.filter((t) => t.brokerPersonId === selectedOperator)
+  //     ?.filter((el) => el.reason === "سایر هزینه‌ها")
+  //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+  // const otherOptionsTransaction =
+  //   allTransactions
+  //     ?.filter((t) => t.brokerPersonId === selectedOperator)
+  //     ?.filter((el) => el.reason === "سایر هزینه‌ها")
+  //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+  // console.log(
+  //   "🚀 ~ OperatorsDashboard ~ transactions:",
+  //   otherOptionsTransaction,
+  // );
+  //  getTransactionByDealId.data || [];
+
+  // const transactions =
+  //   allTransactions?.filter((t) => {
+  //     return t.brokerPersonId === selectedOperatorPersonId;
+  //   }) ?? [];
+
+  // const otherOptionsTransaction =
+  //   transactions
+  //     ?.filter((el) => el.reason === "سایر هزینه‌ها")
+  //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+
+  // const purchaseBrokerOtherCostCategories =
+  //   allDeals
+  //     ?.filter((d) => d?.saleBroker?.personId === selectedOperatorPersonId)
+  //     .flatMap((pd) => pd.directCosts.otherCost.map((cost) => cost.category)) ??
+  //   [];
+
+  // const saleBrokerOtherCostCategories =
+  //   allDeals
+  //     ?.filter((d) => d?.saleBroker?.personId === selectedOperatorPersonId)
+  //     .flatMap((pd) => pd.directCosts.otherCost.map((cost) => cost.category)) ??
+  //   [];
+
+  // const purchaseOtherCostsFromTransactions =
+  //   transactions
+  //     ?.filter(
+  //       (t) =>
+  //         t.type === "پرداخت" &&
+  //         purchaseBrokerOtherCostCategories?.some(
+  //           (category) => t.reason === category,
+  //         ),
+  //     )
+  //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+
+  // const saleOtherCostsFromTransactions =
+  //   transactions
+  //     ?.filter(
+  //       (t) =>
+  //         t.type === "پرداخت" &&
+  //         saleBrokerOtherCostCategories?.some(
+  //           (category) => t.reason === category,
+  //         ),
+  //     )
+  //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+
+  // const purchaseBrokerOtherCostsFromDirectCosts =
+  //   allDeals
+  //     ?.filter((d) => d.purchaseBroker?.personId === selectedOperatorPersonId)
+  //     .map(
+  //       (pd) =>
+  //         pd.directCosts.otherCost.reduce(
+  //           (sum, cost) => sum + (cost.cost || 0),
+  //           0,
+  //         ) || 0,
+  //     )
+  //     ?.reduce((a, b) => a + b, 0) ?? 0;
+
+  // const saleBrokerOtherCostsFromDirectCosts =
+  //   allDeals
+  //     ?.filter((d) => d.saleBroker?.personId === selectedOperatorPersonId)
+  //     .map(
+  //       (pd) =>
+  //         pd.directCosts.otherCost.reduce(
+  //           (sum, cost) => sum + (cost.cost || 0),
+  //           0,
+  //         ) || 0,
+  //     )
+  //     ?.reduce((a, b) => a + b, 0) ?? 0;
+
+  // const directCostsSum =
+  //   saleBrokerOtherCostsFromDirectCosts?.reduce((a, b) => a + b, 0) ?? 0;
+
+  // const totalSaleBrokerOtherCosts =
+  //   saleBrokerOtherCostsFromDirectCosts +
+  //   saleOtherCostsFromTransactions +
+  //   otherOptionsTransaction;
+
+  // const totalPurchaseBrokerOtherCosts =
+  //   (purchaseBrokerOtherCostsFromDirectCosts ?? 0) +
+  //   (purchaseOtherCostsFromTransactions ?? 0) +
+  //   (otherOptionsTransaction || 0);
+
+  // const otherCostCategories =
+  //   deals?.directCosts?.otherCost?.map((cost) => cost.category) || [];
+  // const otherCostsFromDirectCosts =
+  //   deals?.directCosts?.otherCost?.reduce(
+  //     (sum, cost) => sum + (cost.cost || 0),
+  //     0,
+  //   ) || 0;
+  // const otherCostsFromTransactions =
+  //   transactions
+  //     ?.filter(
+  //       (t) =>
+  //         t.type === "پرداخت" &&
+  //         otherCostCategories.some((category) => t.reason === category),
+  //     )
+  //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+
+  // const otherOptionsTransaction =
+  //   transactions
+  //     ?.filter((el) => el.reason === "سایر هزینه‌ها")
+  //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+  // const totalOtherCosts =
+  //   otherCostsFromDirectCosts +
+  //   otherCostsFromTransactions +
+  //   otherOptionsTransaction;
+
+  // const { purchaseBroker, saleBroker } = useSelector(
+  //   (state: RootState) => state.transaction,
+  // );
+
+  // const { data: allTransactions } = useQuery({
+  //   queryKey: ["get-all-transactions"],
+  //   queryFn: getAllTransactions,
+  // });
 
   // Get operators from settings or people with broker role
   // const operatorsNameOptions =
@@ -97,20 +217,112 @@ const OperatorsDashboard = () => {
   // Combine both sources, prefer people if available
   const operatorOptions = React.useMemo(() => {
     const fromPeople = brokerPeople.map((p) => `${p.firstName} ${p.lastName}`);
-    const combined = [
-      ...new Set([...fromPeople]),
-    ];
+    const combined = [...new Set([...fromPeople])];
     return combined;
   }, [brokerPeople]);
+
+  const brokerCommissions = React.useMemo(() => {
+    if (!selectedOperatorPersonId || !allDeals) {
+      return {
+        totalPurchaseCommission: 0,
+        totalSaleCommission: 0,
+        purchaseCommissionPercent: 0,
+        saleCommissionPercent: 0,
+      };
+    }
+
+    let totalPurchaseCommission = 0;
+    let totalSaleCommission = 0;
+    let purchaseCount = 0;
+    let saleCount = 0;
+    let totalPurchasePercent = 0;
+    let totalSalePercent = 0;
+
+    const purchaseDealsForThisOperator = allDeals?.filter(
+      (d) => d?.purchaseBroker?.fullName.trim() === selectedOperator.trim(),
+    );
+
+    const saleDealsForThisOperator = allDeals?.filter(
+      (d) => d?.saleBroker?.fullName.trim() === selectedOperator.trim(),
+    );
+
+    const purchaseAllTransactionAboutRelatedDeal = allTransactions
+      ?.filter((t) =>
+        purchaseDealsForThisOperator.some((d) => d._id === t.dealId),
+      )
+      .filter((st) => st.reason === "سایر هزینه‌ها");
+
+    const saleAllTransactionAboutRelatedDeal = allTransactions
+      ?.filter((t) => saleDealsForThisOperator.some((d) => d._id === t.dealId))
+      .filter((st) => st.reason === "سایر هزینه‌ها");
+
+    const purchaseOtherCosts =
+      purchaseAllTransactionAboutRelatedDeal?.reduce(
+        (sum, t) => sum + (t.amount || 0),
+        0,
+      ) || 0;
+    const saleOtherCosts =
+      saleAllTransactionAboutRelatedDeal?.reduce(
+        (sum, t) => sum + (t.amount || 0),
+        0,
+      ) || 0;
+
+    allDeals.forEach((deal) => {
+      const isPurchaseBroker =
+        deal.purchaseBroker?.fullName.trim() === selectedOperator.trim();
+
+      const isSaleBroker =
+        deal.saleBroker?.fullName.trim() === selectedOperator.trim();
+
+      const otherCosts =
+        deal.directCosts?.otherCost?.reduce(
+          (sum, c) => sum + (c.cost || 0),
+          0,
+        ) || 0;
+
+      const buyAmountWithoutPercent =
+        (deal.purchasePrice ?? 0) - otherCosts - purchaseOtherCosts;
+
+      const sellAmountWithoutPercent =
+        (deal.salePrice ?? 0) - otherCosts - saleOtherCosts;
+
+      if (isPurchaseBroker && deal.purchaseBroker?.commissionPercent) {
+        const commissionPercent =
+          parseFloat(String(deal.purchaseBroker.commissionPercent)) || 0;
+        const commission = (buyAmountWithoutPercent * commissionPercent) / 100;
+        totalPurchaseCommission += commission;
+        totalPurchasePercent += commissionPercent;
+        purchaseCount++;
+      }
+
+      if (isSaleBroker && deal.saleBroker?.commissionPercent) {
+        const commissionPercent =
+          parseFloat(String(deal.saleBroker.commissionPercent)) || 0;
+        const commission = (sellAmountWithoutPercent * commissionPercent) / 100;
+        totalSaleCommission += commission;
+        totalSalePercent += commissionPercent;
+        saleCount++;
+      }
+    });
+
+    return {
+      totalPurchaseCommission,
+      totalSaleCommission,
+      purchaseCommissionPercent:
+        purchaseCount > 0 ? totalPurchasePercent / purchaseCount : 0,
+      saleCommissionPercent: saleCount > 0 ? totalSalePercent / saleCount : 0,
+    };
+  }, [selectedOperatorPersonId, allDeals]);
 
   // Find selected operator person ID
   React.useEffect(() => {
     if (selectedOperator) {
-      const broker = brokerPeople.find(
-        (p) =>
+      const broker = brokerPeople.find((p) => {
+        return (
           normalize(`${p.firstName} ${p.lastName}`) ===
-          normalize(selectedOperator),
-      );
+          normalize(selectedOperator)
+        );
+      });
       setSelectedOperatorPersonId(broker?._id?.toString() || "");
     } else {
       setSelectedOperatorPersonId("");
@@ -128,121 +340,6 @@ const OperatorsDashboard = () => {
       return isPurchaseBroker || isSaleBroker;
     });
   }, [selectedOperatorPersonId, allDeals]);
-
-  // Calculate statistics
-  const stats = React.useMemo(() => {
-    if (!filteredDeals.length || !selectedOperatorPersonId) {
-      return {
-        totalPurchase: 0,
-        totalSale: 0,
-        totalProfitPurchase: 0,
-        totalProfitSale: 0,
-        totalCommissionPurchase: 0,
-        totalCommissionSale: 0,
-        totalCommission: 0,
-        avgPercentPurchase: 0,
-        avgPercentSale: 0,
-        totalPaidToOperator: 0,
-        remainingCommission: 0,
-      };
-    }
-
-    let totalPurchase = 0;
-    let totalSale = 0;
-    let totalProfitPurchase = 0;
-    let totalProfitSale = 0;
-    let totalCommissionPurchase = 0;
-    let totalCommissionSale = 0;
-    let purchaseCount = 0;
-    let saleCount = 0;
-    let totalPercentPurchase = 0;
-    let totalPercentSale = 0;
-
-    filteredDeals.forEach((deal) => {
-      const isPurchaseBroker =
-        deal.purchaseBroker?.personId === selectedOperatorPersonId;
-      const isSaleBroker =
-        deal.saleBroker?.personId === selectedOperatorPersonId;
-
-      // Sum purchase amounts only for deals where operator is PurchaseBroker
-      if (isPurchaseBroker && deal.purchasePrice) {
-        totalPurchase += deal.purchasePrice || 0;
-        if (deal.purchaseBroker?.commissionPercent) {
-          totalPercentPurchase += deal.purchaseBroker.commissionPercent;
-          purchaseCount++;
-        }
-      }
-
-      // Sum sale amounts only for deals where operator is SaleBroker
-      if (isSaleBroker && deal.salePrice) {
-        totalSale += deal.salePrice || 0;
-        if (deal.saleBroker?.commissionPercent) {
-          totalPercentSale += deal.saleBroker.commissionPercent;
-          saleCount++;
-        }
-      }
-
-      // Calculate profits and commissions
-      if (deal.purchasePrice && deal.salePrice) {
-        const profit = deal.salePrice - deal.purchasePrice;
-
-        if (isPurchaseBroker && deal.purchaseBroker?.commissionAmount) {
-          totalProfitPurchase += profit;
-          totalCommissionPurchase += deal.purchaseBroker.commissionAmount;
-        }
-
-        if (isSaleBroker && deal.saleBroker?.commissionAmount) {
-          totalProfitSale += profit;
-          totalCommissionSale += deal.saleBroker.commissionAmount;
-        }
-      } else {
-        // If deal is not sold yet, use commission from purchase price
-        if (isPurchaseBroker && deal.purchaseBroker?.commissionAmount) {
-          totalCommissionPurchase += deal.purchaseBroker.commissionAmount;
-        }
-      }
-    });
-
-    const totalCommission = totalCommissionPurchase + totalCommissionSale;
-    const avgPercentPurchase =
-      purchaseCount > 0 ? totalPercentPurchase / purchaseCount : 0;
-    const avgPercentSale = saleCount > 0 ? totalPercentSale / saleCount : 0;
-
-    // Get transactions where reason is "درصد کارگزار" and related to filtered deals
-    const filteredDealIds = new Set(
-      filteredDeals.map((deal) => deal._id?.toString()).filter(Boolean),
-    );
-
-    const operatorTransactions =
-      (allTransactions as unknown as ITransactionNew[])?.filter(
-        (t) =>
-          t.reason === "درصد کارگزار" &&
-          t.personId === selectedOperatorPersonId &&
-          t.dealId &&
-          filteredDealIds.has(t.dealId),
-      ) || [];
-
-    const totalPaidToOperator = operatorTransactions.reduce(
-      (sum, t) => sum + (t.amount || 0),
-      0,
-    );
-
-    const remainingCommission = totalCommission - totalPaidToOperator;
-
-    return {
-      totalPurchase,
-      totalSale,
-      totalProfitPurchase,
-      totalProfitSale,
-      totalCommissionPurchase,
-      totalCommissionSale,
-      totalCommission,
-      avgPercentPurchase,
-      avgPercentSale,
-      totalPaidToOperator,
-      remainingCommission,
-    };
-  }, [filteredDeals, selectedOperatorPersonId, allTransactions]);
 
   // Calculate monthly breakdown
   const monthlyData = React.useMemo(() => {
@@ -286,18 +383,32 @@ const OperatorsDashboard = () => {
   const operatorTransactionsForDisplay = React.useMemo(() => {
     if (!selectedOperatorPersonId || !allTransactions || !filteredDeals.length)
       return [];
-
     const filteredDealIds = new Set(
       filteredDeals.map((deal) => deal._id?.toString()).filter(Boolean),
     );
-
     return (
       (allTransactions as unknown as ITransactionNew[])
-        ?.filter((t) => t.dealId && filteredDealIds.has(t.dealId))
+        ?.filter((t) => {
+          return (
+            t.dealId &&
+            filteredDealIds.has(t.dealId) &&
+            t.brokerPersonId === selectedOperatorPersonId
+          );
+        })
         .map((t, index) => {
           const deal = filteredDeals.find(
             (d) => d._id?.toString() === t.dealId,
           );
+          if (!deal) return null;
+
+          const isPurchaseBroker =
+            deal.purchaseBroker?.personId === selectedOperatorPersonId;
+          const isSaleBroker =
+            deal.saleBroker?.personId === selectedOperatorPersonId;
+
+          if (!isPurchaseBroker && !isSaleBroker) {
+            return null;
+          }
           return {
             id: (index + 1).toString(),
             price: t.amount?.toLocaleString("en-US") || "0",
@@ -309,40 +420,50 @@ const OperatorsDashboard = () => {
             transactionType: t.type || "",
             transactionReason: t.reason || "",
             model: deal?.vehicleSnapshot?.model || "",
+            role: isPurchaseBroker ? "خریدار" : "فروشنده",
+            brokerPercentage: isPurchaseBroker
+              ? deal.purchaseBroker.commissionPercent
+              : deal.saleBroker.commissionPercent,
           };
-        }) || []
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null) || []
     );
   }, [selectedOperatorPersonId, allTransactions, filteredDeals]);
 
-  // Get operator performance report (deals with details)
   const operatorPerformanceReport = React.useMemo(() => {
     if (!selectedOperatorPersonId || !filteredDeals.length) return [];
 
-    return filteredDeals.map((deal, index) => {
-      const isPurchaseBroker =
-        deal.purchaseBroker?.personId === selectedOperatorPersonId;
-      const isSaleBroker =
-        deal.saleBroker?.personId === selectedOperatorPersonId;
-
-      let dateStr = "";
-      let amount = 0;
-
-      if (reportType === "buy" && isPurchaseBroker) {
-        dateStr = deal.purchaseDate || "";
-        amount = deal.purchasePrice || 0;
-      } else if (reportType === "sell" && isSaleBroker) {
-        dateStr = deal.saleDate || "";
-        amount = deal.salePrice || 0;
-      }
-
-      return {
-        id: (index + 1).toString(),
-        chassisNo: deal.vehicleSnapshot?.vin || "",
-        date: dateStr,
-        price: amount.toLocaleString("en-US"),
-        transactionReason: reportType === "buy" ? "خرید" : "فروش",
-      };
-    });
+    return filteredDeals
+      .map((deal, index) => {
+        const isPurchaseBroker =
+          deal.purchaseBroker?.personId === selectedOperatorPersonId;
+        const isSaleBroker =
+          deal.saleBroker?.personId === selectedOperatorPersonId;
+        let dateStr = "";
+        let amount = 0;
+        let brokerPercentage = 0;
+        if (reportType === "buy" && isPurchaseBroker) {
+          dateStr = deal.purchaseDate || "";
+          amount = deal.purchasePrice || 0;
+          brokerPercentage = deal.purchaseBroker.commissionPercent;
+        } else if (reportType === "sell" && isSaleBroker) {
+          dateStr = deal.saleDate || "";
+          amount = deal.salePrice || 0;
+          brokerPercentage = deal.saleBroker.commissionPercent;
+        }
+        if (dateStr && amount) {
+          return {
+            id: (index + 1).toString(),
+            chassisNo: deal.vehicleSnapshot?.vin || "",
+            date: dateStr,
+            price: amount.toLocaleString("en-US"),
+            transactionReason: reportType === "buy" ? "خرید" : "فروش",
+            brokerPercentage: brokerPercentage,
+          };
+        }
+        return null;
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
   }, [filteredDeals, selectedOperatorPersonId, reportType]);
 
   const TabsTableOperationTransactionComponent = () => {
@@ -355,29 +476,39 @@ const OperatorsDashboard = () => {
                 <TableHead className="w-12 text-center">ردیف</TableHead>
                 <TableHead className="w-32 text-center">شاسی</TableHead>
                 <TableHead className="w-32 text-center">تاریخ</TableHead>
-                <TableHead className="w-32 text-center">قیمت</TableHead>
+                <TableHead className="w-32 text-center">مبلغ</TableHead>
                 <TableHead className="w-32 text-center">دلیل تراکنش</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
               {operatorTransactionsForDisplay.length > 0 ? (
-                operatorTransactionsForDisplay.map((item, index) => (
-                  <TableRow
-                    key={`${item.id}-${index}`}
-                    className="hover:bg-gray-50"
-                  >
-                    <TableCell className="text-center">{item.id}</TableCell>
-                    <TableCell className="text-center">
-                      {item.chassisNo}
-                    </TableCell>
-                    <TableCell className="text-center">{item.date}</TableCell>
-                    <TableCell className="text-center">{item.price}</TableCell>
-                    <TableCell className="text-center">
-                      {item.transactionReason}
-                    </TableCell>
-                  </TableRow>
-                ))
+                operatorTransactionsForDisplay
+                  .filter(Boolean)
+                  .map((item, index) => {
+                    return (
+                      <TableRow
+                        key={`${item?.id}-${index}`}
+                        className="hover:bg-gray-50"
+                      >
+                        <TableCell className="text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.chassisNo}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.date}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.price}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.transactionReason}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
               ) : (
                 <TableRow>
                   <TableCell
@@ -406,28 +537,34 @@ const OperatorsDashboard = () => {
                 <TableHead className="w-32 text-center">شاسی</TableHead>
                 <TableHead className="w-32 text-center">تاریخ</TableHead>
                 <TableHead className="w-32 text-center">قیمت</TableHead>
-                <TableHead className="w-32 text-center">دلیل تراکنش</TableHead>
+                <TableHead className="w-32 text-center">درصد کارگزار</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
               {operatorPerformanceReport.length > 0 ? (
-                operatorPerformanceReport.map((item, index) => (
-                  <TableRow
-                    key={`${item.id}-${index}`}
-                    className="hover:bg-gray-50"
-                  >
-                    <TableCell className="text-center">{item.id}</TableCell>
-                    <TableCell className="text-center">
-                      {item.chassisNo}
-                    </TableCell>
-                    <TableCell className="text-center">{item.date}</TableCell>
-                    <TableCell className="text-center">{item.price}</TableCell>
-                    <TableCell className="text-center">
-                      {item.transactionReason}
-                    </TableCell>
-                  </TableRow>
-                ))
+                operatorPerformanceReport.filter(Boolean).map((item, index) => {
+                  return (
+                    <TableRow
+                      key={`${item?.id}-${index}`}
+                      className="hover:bg-gray-50"
+                    >
+                      <TableCell className="text-center">{index + 1}</TableCell>
+                      <TableCell className="text-center">
+                        {item?.chassisNo}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {item?.date}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {item?.price}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {item?.brokerPercentage}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell
@@ -458,6 +595,144 @@ const OperatorsDashboard = () => {
     },
   ];
 
+  // Calculate statistics
+  const stats = React.useMemo(() => {
+    if (!filteredDeals.length || !selectedOperatorPersonId) {
+      return {
+        totalPurchase: 0,
+        totalSale: 0,
+        totalProfitPurchase: 0,
+        totalProfitSale: 0,
+        // totalCommissionPurchase: 0,
+        // totalCommissionSale: 0,
+        totalCommission: 0,
+        // avgPercentPurchase: 0,
+        // avgPercentSale: 0,
+        totalPaidToOperator: 0,
+        remainingCommission: 0,
+      };
+    }
+
+    let totalPurchase = 0;
+    let totalSale = 0;
+    let totalProfitPurchase = 0;
+    let totalProfitSale = 0;
+    // let totalCommissionPurchase = 0;
+    // let totalCommissionSale = 0;
+    let purchaseCount = 0;
+    let saleCount = 0;
+    let totalPercentPurchase = 0;
+    let totalPercentSale = 0;
+
+    filteredDeals.forEach((deal) => {
+      const isPurchaseBroker =
+        deal.purchaseBroker?.personId === selectedOperatorPersonId;
+      const isSaleBroker =
+        deal.saleBroker?.personId === selectedOperatorPersonId;
+
+      // Sum purchase amounts only for deals where operator is PurchaseBroker
+      if (isPurchaseBroker && deal.purchasePrice) {
+        totalPurchase += deal.purchasePrice || 0;
+        if (deal.purchaseBroker?.commissionPercent) {
+          totalPercentPurchase += deal.purchaseBroker.commissionPercent;
+          purchaseCount++;
+        }
+      }
+
+      // Sum sale amounts only for deals where operator is SaleBroker
+      if (isSaleBroker && deal.salePrice) {
+        totalSale += deal.salePrice || 0;
+        if (deal.saleBroker?.commissionPercent) {
+          totalPercentSale += deal.saleBroker.commissionPercent;
+          saleCount++;
+        }
+      }
+
+      //       let buyAmountWithPercent: number | null = null;
+      // let sellAmountWithPercent: number | null = null;
+      // Calculate profits and commissions
+      if (deal.purchasePrice && deal.salePrice) {
+        const profit = deal.salePrice - deal.purchasePrice;
+
+        if (isPurchaseBroker && deal.purchaseBroker?.commissionAmount) {
+          totalProfitPurchase += profit;
+          // totalCommissionPurchase += deal.purchaseBroker.commissionAmount;
+
+          //          const otherCostCategories =
+          //   deals?.directCosts?.otherCost?.map((cost) => cost.category) || [];
+          // const otherCostsFromDirectCosts =
+          //   deals?.directCosts?.otherCost?.reduce(
+          //     (sum, cost) => sum + (cost.cost || 0),
+          //     0,
+          //   ) || 0;
+          // const otherCostsFromTransactions =
+          //   transactions
+          //     ?.filter(
+          //       (t) =>
+          //         t.type === "پرداخت" &&
+          //         otherCostCategories.some((category) => t.reason === category),
+          //     )
+          //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+
+          // const otherOptionsTransaction =
+          //   transactions
+          //     .filter((el) => el.reason === "سایر هزینه‌ها")
+          //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+          // const totalOtherCosts =
+          //   otherCostsFromDirectCosts +
+          //   otherCostsFromTransactions +
+          //   otherOptionsTransaction;
+
+          // const buyAmountWithoutPercent = (deal?.purchasePrice ?? 0) - totalOtherCosts;
+          // const sellAmountWithoutPercent = (deal?.salePrice ?? 0) - totalOtherCosts;
+        }
+
+        if (isSaleBroker && deal.saleBroker?.commissionAmount) {
+          totalProfitSale += profit;
+          // totalCommissionSale += deal.saleBroker.commissionAmount;
+        }
+      } else {
+        // If deal is not sold yet, use commission from purchase price
+        // if (isPurchaseBroker && deal.purchaseBroker?.commissionAmount) {
+        //   totalCommissionPurchase += deal.purchaseBroker.commissionAmount;
+        // }
+      }
+    });
+    // const totalCommissionPurchase = 0
+
+    const totalCommission =
+      brokerCommissions.totalPurchaseCommission +
+      brokerCommissions.totalSaleCommission;
+    // const avgPercentPurchase =
+    //   purchaseCount > 0 ? totalPercentPurchase / purchaseCount : 0;
+    // const avgPercentSale = saleCount > 0 ? totalPercentSale / saleCount : 0;
+
+    const totalPaidToOperator = operatorTransactionsForDisplay.reduce(
+      (sum, t) => {
+        const price = parseFloat(t.price.toString().replace(/,/g, ""));
+        return sum + (price || 0);
+      },
+      0,
+    );
+
+    const remainingCommission = totalCommission - totalPaidToOperator;
+
+    return {
+      totalPurchase,
+      totalSale,
+      totalProfitPurchase,
+      totalProfitSale,
+      // purchaseBroker,
+      // saleBroker,
+      brokerCommissions,
+      totalCommission,
+      // avgPercentPurchase,
+      // avgPercentSale,
+      totalPaidToOperator,
+      remainingCommission,
+    };
+  }, [filteredDeals, selectedOperatorPersonId, allTransactions]);
+
   // Calculate total count and amount for year
   const yearlyTotal = React.useMemo(() => {
     let totalCount = 0;
@@ -475,12 +750,29 @@ const OperatorsDashboard = () => {
         <span className="p-2 bg-gray-200 rounded-t-md text-xs">1404</span>
       </div>
       <div className="border p-4">
-        <div className="grid grid-cols-[1fr_1fr_1.5fr_1fr_1fr] gap-6 items-start">
-          <div className="space-y-1">
-            <h3 className="text-var(--title) text-sm font-semibold mb-2 text-blue-900">
+        <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr_1fr] gap-6 items-start mb-14 mt-5">
+          <div className="space-y-3 flex flex-col gap-4">
+            {/* <h3 className="text-var(--title) text-sm font-semibold mb-2 text-blue-900">
               انتخاب کارگزار:
-            </h3>
-            <Select
+            </h3> */}
+            {/* <SearchableSelect
+              value={selectedOperator}
+              onValueChange={(financier) => {
+                setSelectedOperator(financier);
+              }}
+              options={operatorOptions ?? []}
+              placeholder="انتخاب کارگزار"
+              className="w-[120px] text-sm"
+              searchPlaceholder="جستجوی کارگزار..."
+            /> */}
+            <SelectForFilterCheques
+              data={["همه", ...operatorOptions]}
+              title="انتخاب کارگزار"
+              setSelectedSubject={setSelectedOperator}
+              selectedValue={selectedOperator}
+              className="!w-[300px] font-medium"
+            />
+            {/* <Select
               value={selectedOperator}
               onValueChange={setSelectedOperator}
             >
@@ -496,98 +788,116 @@ const OperatorsDashboard = () => {
                   ))}
                 </SelectGroup>
               </SelectContent>
-            </Select>
+            </Select> */}
           </div>
-          <div>
+          <div className="flex flex-col gap-4">
             <div className="space-y-1 flex items-center gap-4">
-              <h3 className="text-sm text-blue-900 font-semibold">مجموع خرید:</h3>
+              <h3 className="text-sm text-blue-900 font-medium">مجموع خرید:</h3>
               <p className="text-sm font-medium">
-                {stats.totalPurchase.toLocaleString("en-US")}
+                {formatPrice(stats.totalPurchase.toLocaleString("en-US"))}
               </p>
             </div>
             <div className="space-y-1 flex items-center gap-4">
-              <h3 className="text-sm text-blue-900 font-semibold">مجموع فروش:</h3>
+              <h3 className="text-sm text-blue-900 font-medium">مجموع فروش:</h3>
               <p className="text-sm font-medium">
-                {stats.totalSale.toLocaleString("en-US")}
+                {formatPrice(stats.totalSale.toLocaleString("en-US"))}
               </p>
             </div>
           </div>
           <div className="flex justify-between items-start">
-            <div>
+            <div className="flex flex-col gap-4">
               <div className="space-y-1 flex items-center gap-4">
-                <h3 className="text-sm text-blue-900 font-semibold">
+                <h3 className="text-sm text-blue-900 font-medium">
                   مجموع سود خرید:
                 </h3>
                 <p className="text-sm font-medium">
-                  {stats.totalProfitPurchase.toLocaleString("en-US")}
+                  {formatPrice(
+                    stats.totalProfitPurchase.toLocaleString("en-US"),
+                  )}
                 </p>
               </div>
               <div>
                 <div className="space-y-1 flex items-center gap-4">
-                  <h3 className="text-sm text-blue-900 font-semibold">
+                  <h3 className="text-sm text-blue-900 font-medium">
                     مجموع سود فروش:
                   </h3>
                   <p className="text-sm font-medium">
-                    {stats.totalProfitSale.toLocaleString("en-US")}
+                    {formatPrice(stats.totalProfitSale.toLocaleString("en-US"))}
                   </p>
                 </div>
               </div>
             </div>
-            <div>
+            {/* <div>
               <p className="text-sm text-purple-500">
                 میانگین درصد کارمزد خرید: {stats.avgPercentPurchase.toFixed(2)}%
               </p>
               <p className="text-sm text-purple-500">
                 میانگین درصد کارمزد فروش: {stats.avgPercentSale.toFixed(2)}%
               </p>
-            </div>
+            </div> */}
           </div>
           <div className="flex justify-between items-start">
-            <div>
+            <div className="flex flex-col gap-4">
               <div className="space-y-1 flex items-center gap-4">
-                <h3 className="text-sm text-blue-900 font-semibold">
+                <h3 className="text-sm text-blue-900 font-medium">
                   مجموع کارمزد خرید:
                 </h3>
                 <p className="text-sm font-medium">
-                  {stats.totalCommissionPurchase.toLocaleString("en-US")}
+                  {/* {purchaseBroker.totalCommissionPurchase?.toLocaleString(
+                    "en-US",
+                  )} */}
+                  {formatPrice(
+                    brokerCommissions.totalPurchaseCommission.toLocaleString(
+                      "en-US",
+                    ),
+                  )}
                 </p>
               </div>
               <div>
                 <div className="space-y-1 flex items-center gap-4">
-                  <h3 className="text-sm text-blue-900 font-semibold">
+                  <h3 className="text-sm text-blue-900 font-medium">
                     مجموع کارمزد فروش:
                   </h3>
                   <p className="text-sm font-medium">
-                    {stats.totalCommissionSale.toLocaleString("en-US")}
+                    {/* {saleBroker.totalCommissionSale?.toLocaleString("en-US")} */}
+                    {formatPrice(
+                      brokerCommissions.totalSaleCommission.toLocaleString(
+                        "en-US",
+                      ),
+                    )}
                   </p>
                 </div>
               </div>
             </div>
-            <div>
+            <div className="flex flex-col gap-4">
               <p className="text-xs text-green-700">
-                ({stats.avgPercentPurchase.toFixed(2)}%)
+                {/* ({purchaseBroker?.totalCommissionPurchasePercent?.toFixed(2)}%) */}
+                {brokerCommissions.purchaseCommissionPercent.toFixed(2)}%
               </p>
               <p className="text-xs text-green-700">
-                ({stats.avgPercentSale.toFixed(2)}%)
+                {/* ({saleBroker?.totalCommissionSalePercent?.toFixed(2)}%) */}
+                {brokerCommissions.saleCommissionPercent.toFixed(2)}%
               </p>
             </div>
           </div>
-          <div>
+          <div className="flex flex-col gap-4">
             <div className="space-y-1 flex items-center gap-4">
-              <h3 className="text-sm text-blue-900 font-semibold">
+              <h3 className="text-sm text-blue-900 font-medium">
                 مجموع کل کارمزد:
               </h3>
               <p className="text-sm font-medium text-purple-600">
-                {stats.totalCommission.toLocaleString("en-US")}
+                {formatPrice(stats.totalCommission.toLocaleString("en-US"))}
               </p>
             </div>
             <div>
               <div className="space-y-1 flex items-center gap-4">
-                <h3 className="text-sm text-blue-900 font-semibold">
+                <h3 className="text-sm text-blue-900 font-medium">
                   مانده کارمزد:
                 </h3>
                 <p className="text-sm font-medium text-red-500">
-                  {stats.remainingCommission.toLocaleString("en-US")}
+                  {formatPrice(
+                    stats.remainingCommission.toLocaleString("en-US"),
+                  )}
                 </p>
               </div>
             </div>
@@ -595,7 +905,7 @@ const OperatorsDashboard = () => {
         </div>
         <div className="grid grid-cols-[2fr_1fr] gap-6 items-start mt-7">
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4 font-semibold">
+            <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4 font-medium">
               گزارش انفرادی کارگزاران
             </p>
             <div className="grid grid-cols-2 gap-4 items-start mt-5">
@@ -622,7 +932,7 @@ const OperatorsDashboard = () => {
                   </div>
                 </RadioGroup>
                 <div className="border border-gray-300 p-4 rounded-md relative w-full">
-                  <p className="absolute left-2 -top-5 bg-white py-2 px-4 font-semibold">
+                  <p className="absolute right-2 -top-5 bg-white py-2 px-4 font-medium">
                     گزارش خلاصه عملکرد
                   </p>
                   <div className="max-h-[28rem] overflow-y-auto rounded-md w-full grid grid-cols-2 gap-6 items-start p-4">
@@ -666,7 +976,7 @@ const OperatorsDashboard = () => {
                     </div>
                   </div>
                   <hr />
-                  <h4 className="text-green-700 flex justify-end font-semibold text-base my-2">
+                  <h4 className="text-green-700 flex justify-end font-medium text-base my-2">
                     اطلاعات کل سال
                   </h4>
                   <div className="space-y-3">
@@ -690,7 +1000,7 @@ const OperatorsDashboard = () => {
                 <Tabs
                   defaultValue="operationTransaction"
                   orientation="vertical"
-                  className="h-full w-full flex justify-end items-end"
+                  className="h-full w-full flex justify-end items-start"
                   dir="rtl"
                 >
                   <TabsList>
@@ -716,10 +1026,10 @@ const OperatorsDashboard = () => {
                   ))}
                 </Tabs>
                 <div className="flex justify-between items-center mt-4">
-                  <p className="text-blue-700 font-semibold">
+                  <p className="text-blue-700 font-medium">
                     مجموع مبالغ پرداخت شده به کارگزار
                   </p>
-                  <p className="text-green-700 font-semibold text-sm">
+                  <p className="text-green-700 font-medium text-sm">
                     {stats.totalPaidToOperator.toLocaleString("en-US")}
                   </p>
                 </div>
@@ -727,7 +1037,7 @@ const OperatorsDashboard = () => {
             </div>
           </div>
           <div className="border border-gray-300 p-4 rounded-md relative w-full">
-            <p className="text-blue-500 absolute left-2 -top-5 bg-white py-2 px-4">
+            <p className="text-blue-500 absolute right-2 -top-5 bg-white py-2 px-4">
               کارگزاران برتر
             </p>
             <RadioGroup
@@ -757,9 +1067,7 @@ const OperatorsDashboard = () => {
               </p>
 
               <div className="w-full">
-                <p className="text-green-600 font-semibold">
-                  نمایش لیست سالانه
-                </p>
+                <p className="text-green-600 font-medium">نمایش لیست سالانه</p>
                 <div className="grid grid-cols-4 space-y-5 mt-2">
                   <div>
                     {persianMonths.slice(0, 3).map((month) => (

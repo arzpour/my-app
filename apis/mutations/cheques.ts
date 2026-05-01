@@ -1,11 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  deleteCheque,
   getChequesByDeal,
   getChequesByPersonId,
   getChequesByVin,
+  updateCheque,
 } from "../client/cheques";
 import { toast } from "sonner";
-import { deleteCheque, updateCheque } from "../client/chequesNew";
 import { IChequeNew } from "@/types/new-backend-types";
 
 export const useGetChequesByDealId = () => {

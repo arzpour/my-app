@@ -299,7 +299,7 @@
 // //               </p>
 // //               <div className="flex gap-4 items-center overflow-auto min-w-[140px] scrollbar-hide">
 // //                 <div className="space-y-1">
-// //                   <h3 className="text-sm font-bold mb-2 text-blue-900">
+// //                   <h3 className="text-sm font-medium mb-2 text-blue-900">
 // //                     حداکثر مبلغ:
 // //                   </h3>
 // //                   <input type="text" className="border rounded w-[130px]" />
@@ -1297,6 +1297,8 @@ import { DateObject } from "react-multi-date-picker";
 import ChequeFormModal from "./modals/chequeFormModal";
 import DeleteModal from "./modals/deleteModal";
 import { useDeleteCheque } from "@/apis/mutations/cheques";
+import { useDeleteWalletTransaction } from "@/apis/mutations/people";
+import { useQueryClient } from "@tanstack/react-query";
 
 // const parsePersianDate = (date: string) => {
 //   if (!date) return 0;
@@ -1343,6 +1345,13 @@ const CheckDashboard = () => {
   const [chequeToDelete, setChequeToDelete] = React.useState<
     string | undefined
   >(undefined);
+  const [
+    transactionIdToDeleteWalletTransaction,
+    setTransactionIdToDeleteWalletTransaction,
+  ] = React.useState<string | undefined>(undefined);
+  const [dealIdToDeleteWalletTransaction, setDealIdToDeleteWalletTransaction] =
+    React.useState<string | undefined>(undefined);
+  const [personId, setPersonId] = React.useState<string | undefined>(undefined);
 
   // const [selectedChequeStatus, setSelectedChequeStatus] = React.useState("همه");
   // const [selectedOperationType, setSelectedOperationType] =
@@ -1357,6 +1366,8 @@ const CheckDashboard = () => {
   const { data: allCheques } = useGetAllCheques();
   const { data: allPeople } = useGetAllPeople();
   const deleteCheque = useDeleteCheque();
+  const deleteWalletTransaction = useDeleteWalletTransaction();
+  const queryClient = useQueryClient();
 
   const peopleList = allPeople?.map((el) => `${el.firstName} ${el.lastName}`);
 
@@ -1379,11 +1390,7 @@ const CheckDashboard = () => {
   };
 
   const isImportedCheque = (cheque: IChequeNew) => {
-    return (
-      cheque.type === "وارده" ||
-      cheque.type === "incoming" ||
-      cheque.type === "received"
-    );
+    return cheque.type === "وارده" || cheque.type === "received";
   };
 
   // const issuedCheques = cheques?.filter((cheque) => isIssuedCheque(cheque));
@@ -1538,16 +1545,8 @@ const CheckDashboard = () => {
   const filteredIssuedCheques = filteredData?.filter((cheque) =>
     isIssuedCheque(cheque),
   );
-  console.log(
-    "🚀 ~ CheckDashboard ~ filteredIssuedCheques:",
-    filteredIssuedCheques,
-  );
   const filteredImportedCheques = filteredData?.filter((cheque) =>
     isImportedCheque(cheque),
-  );
-  console.log(
-    "🚀 ~ CheckDashboard ~ filteredImportedCheques:",
-    filteredImportedCheques,
   );
 
   const handleDeleteClick = (transactionId: string) => {
@@ -1733,7 +1732,10 @@ const CheckDashboard = () => {
       filteredData?.filter((i) => {
         const status = i.status || "";
         return (
-          status !== "وصول شده" && status !== "وصول شد" && status !== "پاس شده"
+          status !== "وصول شده" &&
+          status !== "وصول شد" &&
+          status !== "خرج شده" &&
+          status !== "پاس شده"
         );
       })?.length || 0;
     const returned =
@@ -1757,16 +1759,17 @@ const CheckDashboard = () => {
         const status = i.status || "";
         return (
           isIssuedCheque(i) &&
-          (status === "وصول نشده" ||
-            status === "خرج شده" ||
-            !["وصول شده", "پاس شده"].includes(i.status))
+          (status === "عودت داده شده" || status === "در جریان")
+          // status === "خرج شده" ||
+          // !["وصول شده", "پاس شده", "خرج شده"].includes(i.status))
         );
       })
       ?.reduce((sum, t) => sum + t.amount, 0);
     const totalIssuedPaidAmount = filteredData
       ?.filter(
         (i) =>
-          (isIssuedCheque(i) && i.status === "وصول شده") ||
+          (isIssuedCheque(i) &&
+            (i.status === "وصول شده" || i.status === "خرج شده")) ||
           i.status === "پاس شده",
       )
       ?.reduce((sum, t) => sum + t.amount, 0);
@@ -1778,14 +1781,17 @@ const CheckDashboard = () => {
     const totalImportedPendingAmount = filteredData
       ?.filter(
         (i) =>
-          (isImportedCheque(i) && i.status === "وصول نشده") ||
-          !["وصول شده", "پاس شده"].includes(i.status),
+          isImportedCheque(i) &&
+          (i.status === "عودت داده شده" || i.status === "در جریان"),
+        // (isImportedCheque(i) && i.status === "وصول نشده") ||
+        // !["وصول شده", "پاس شده", "خرج شده"].includes(i.status),
       )
       ?.reduce((sum, t) => sum + t.amount, 0);
     const totalImportedPaidAmount = filteredData
       ?.filter(
         (i) =>
-          (isImportedCheque(i) && i.status === "وصول شده") ||
+          (isImportedCheque(i) &&
+            (i.status === "وصول شده" || i.status === "خرج شده")) ||
           i.status === "پاس شده",
       )
       ?.reduce((sum, t) => sum + t.amount, 0);
@@ -1822,7 +1828,18 @@ const CheckDashboard = () => {
       try {
         await deleteCheque.mutateAsync(chequeToDelete);
         setIsOpenDeleteModal(false);
-        setChequeToDelete(undefined);
+        // setChequeToDelete(undefined);
+
+        await deleteWalletTransaction.mutateAsync({
+          id: personId ?? "",
+          data: {
+            dealID: dealIdToDeleteWalletTransaction ?? "",
+            transactionID: transactionIdToDeleteWalletTransaction ?? "",
+          },
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["get-all-people"],
+        });
       } catch (error) {
         console.error("Error deleting cheque:", error);
       }
@@ -1894,7 +1911,7 @@ const CheckDashboard = () => {
               </p> */}
                 <div className="flex gap-4 overflow-auto min-w-[140px]">
                   <div className="space-y-1">
-                    <h3 className="text-sm font-bold mb-2 text-purple-700">
+                    <h3 className="text-sm font-medium mb-2 text-purple-700">
                       تاریخ اقدام:
                     </h3>
 
@@ -1966,7 +1983,7 @@ const CheckDashboard = () => {
 
                 {selectedChequeType === "وارده" ? (
                   <div className="space-y-1">
-                    <h3 className="text-sm font-bold mb-2 text-blue-900">
+                    <h3 className="text-sm font-medium mb-2 text-blue-900">
                       گیرنده چک:
                     </h3>
                     <input
@@ -1987,7 +2004,7 @@ const CheckDashboard = () => {
 
                 {selectedChequeType === "صادره" ? (
                   <div className="space-y-1">
-                    <h3 className="text-sm font-bold mb-2 text-blue-900">
+                    <h3 className="text-sm font-medium mb-2 text-blue-900">
                       صادرکننده چک:
                     </h3>
                     <input
@@ -2008,7 +2025,7 @@ const CheckDashboard = () => {
 
                 {selectedChequeType === "مشتری" ? (
                   <div className="space-y-1">
-                    <h3 className="text-sm font-bold mb-2 text-blue-900">
+                    <h3 className="text-sm font-medium mb-2 text-blue-900">
                       مشتری:
                     </h3>
                     <input
@@ -2028,13 +2045,13 @@ const CheckDashboard = () => {
                 )}
 
                 <div className="space-y-1">
-                  <h3 className="text-sm font-bold mb-2 text-purple-700">
+                  <h3 className="text-sm font-medium mb-2 text-purple-700">
                     تاریخ سررسید چک:
                   </h3>
                   <RangeDatePicker dates={dueDates} setDates={setDueDates} />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-bold mb-2 text-blue-900">
+                  <h3 className="text-sm font-medium mb-2 text-blue-900">
                     حداقل مبلغ چک:
                   </h3>
                   <input
@@ -2045,7 +2062,7 @@ const CheckDashboard = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-bold mb-2 text-blue-900">
+                  <h3 className="text-sm font-medium mb-2 text-blue-900">
                     حداکثر مبلغ چک:
                   </h3>
                   <input
@@ -2056,7 +2073,7 @@ const CheckDashboard = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-bold mb-2 text-purple-700">
+                  <h3 className="text-sm font-medium mb-2 text-purple-700">
                     تاریخ صدور چک:
                   </h3>
                   <RangeDatePicker
@@ -2219,7 +2236,9 @@ const CheckDashboard = () => {
                     >
                       <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell className="text-center">
-                        {item.payee?.fullName ?? item.payer?.fullName ??  item.customer?.fullName}
+                        {item.payee?.fullName ??
+                          item.payer?.fullName ??
+                          item.customer?.fullName}
                       </TableCell>
                       <TableCell className="text-center">
                         {formatPrice(item.amount?.toLocaleString("en-US"))}
@@ -2234,7 +2253,7 @@ const CheckDashboard = () => {
                         {item.sayadiID}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.chequeNumber}
+                        {item.chequeSerial}
                       </TableCell>
                       <TableCell className="text-center flex gap-3 items-center justify-center">
                         <Pencil
@@ -2246,9 +2265,23 @@ const CheckDashboard = () => {
                         />
                         <Trash
                           className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
-                          onClick={() =>
-                            handleDeleteClick(item._id?.toString() || "")
-                          }
+                          onClick={() => {
+                            handleDeleteClick(item._id?.toString() || "");
+                            setTransactionIdToDeleteWalletTransaction(
+                              item.relatedTransactionId ?? "",
+                            );
+                            setDealIdToDeleteWalletTransaction(
+                              item.relatedDealId ?? "",
+                            );
+                            setPersonId(
+                              item.payee?.personId ||
+                                item.payer?.personId ||
+                                item.customer?.personId ||
+                                item.brokerPersonId.personId ||
+                                item.providerPersonId.personId ||
+                                "",
+                            );
+                          }}
                         />
                       </TableCell>
                     </TableRow>
@@ -2258,11 +2291,11 @@ const CheckDashboard = () => {
             </div>
           </div>
           {/* {totalIssuedAmount && (
-            <p className="text-green-400 font-bold text-sm mt-3 text-left">
+            <p className="text-green-400 font-medium text-sm mt-3 text-left">
               {totalIssuedAmount?.toLocaleString("en-US")}
             </p>
           )} */}
-          <div className="grid grid-cols-3 gap-2 mt-3">
+          <div className="flex justify-between items-center gap-2 my-3 mb-5 mx-3">
             {/* <div className="flex items-center gap-2">
               <p className="text-sm">مجموع:</p>
               <span className="text-sm">
@@ -2270,7 +2303,7 @@ const CheckDashboard = () => {
               </span>
             </div> */}
             <div className="flex items-center gap-2">
-              <p className="text-sm">صادره وصول نشده:</p>
+              <p className="text-sm">صادره جاری/عودت شده:</p>
               <span className="text-sm">
                 {formatPrice(
                   stats.totalIssuedPendingAmount?.toLocaleString("en-US"),
@@ -2278,7 +2311,7 @@ const CheckDashboard = () => {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <p className="text-sm">صادره وصول شده:</p>
+              <p className="text-sm">صادره وصول/خرج شده:</p>
               <span className="text-sm">
                 {formatPrice(
                   stats.totalIssuedPaidAmount?.toLocaleString("en-US"),
@@ -2350,7 +2383,7 @@ const CheckDashboard = () => {
                         {item.sayadiID}
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.chequeNumber}
+                        {item.chequeSerial}
                       </TableCell>
                       <TableCell className="text-center flex gap-3 items-center justify-center">
                         <Pencil
@@ -2362,9 +2395,23 @@ const CheckDashboard = () => {
                         />
                         <Trash
                           className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
-                          onClick={() =>
-                            handleDeleteClick(item._id?.toString() || "")
-                          }
+                          onClick={() => {
+                            handleDeleteClick(item._id?.toString() || "");
+                            setTransactionIdToDeleteWalletTransaction(
+                              item.relatedTransactionId ?? "",
+                            );
+                            setDealIdToDeleteWalletTransaction(
+                              item.relatedDealId ?? "",
+                            );
+                            setPersonId(
+                              item.payer?.personId ||
+                                item.payee?.personId ||
+                                item.customer?.personId ||
+                                item.brokerPersonId.personId ||
+                                item.providerPersonId.personId ||
+                                "",
+                            );
+                          }}
                         />
                       </TableCell>
                     </TableRow>
@@ -2375,11 +2422,11 @@ const CheckDashboard = () => {
           </div>
           {/* {totalImportedAmount && ( */}
           {/* //{" "}
-          <p className="text-red-400 font-bold text-sm mt-3 text-left">
+          <p className="text-red-400 font-medium text-sm mt-3 text-left">
             // {totalImportedAmount?.toLocaleString("en-US")}
             //{" "}
           </p> */}
-          <div className="grid grid-cols-3 gap-2 mt-3">
+          <div className="flex justify-between items-center gap-2 my-3 mb-5 mx-3">
             {/* <div className="flex items-center gap-2">
               <p className="text-sm">مجموع:</p>
               <span className="text-sm">
@@ -2387,7 +2434,7 @@ const CheckDashboard = () => {
               </span>
             </div> */}
             <div className="flex items-center gap-2">
-              <p className="text-sm">وارده وصول نشده:</p>
+              <p className="text-sm">وارده جاری/عودت شده:</p>
               <span className="text-sm">
                 {formatPrice(
                   stats.totalImportedPendingAmount?.toLocaleString("en-US"),
@@ -2395,7 +2442,7 @@ const CheckDashboard = () => {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <p className="text-sm">وارده وصول شده:</p>
+              <p className="text-sm">وارده وصول/خرج شده:</p>
               <span className="text-sm">
                 {formatPrice(
                   stats.totalImportedPaidAmount?.toLocaleString("en-US"),
@@ -2418,7 +2465,7 @@ const CheckDashboard = () => {
         <Dialog open={isOpenEditModal} onOpenChange={setIsOpenEditModal}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>ویرایش تراکنش</DialogTitle>
+              <DialogTitle className="mb-6 text-lg">ویرایش تراکنش</DialogTitle>
               <DialogClose
                 onClose={() => {
                   setIsOpenEditModal(false);

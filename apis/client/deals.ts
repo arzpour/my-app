@@ -1,6 +1,10 @@
 import { urls } from "@/utils/urls";
 import { axiosInstance } from "./instance";
-import type { IDeal, IDealsByPersonResponse } from "@/types/new-backend-types";
+import type {
+  IDeal,
+  IDealsByPersonResponse,
+  IOptions,
+} from "@/types/new-backend-types";
 
 // Get all deals
 type getAllDealsType = () => Promise<IDeal[]>;
@@ -26,7 +30,7 @@ export const getDealByVin: getDealByVinType = async (vin) => {
 // Get deals by vehicle ID
 type getDealsByVehicleIdType = (vehicleId: string) => Promise<IDeal[]>;
 export const getDealsByVehicleId: getDealsByVehicleIdType = async (
-  vehicleId
+  vehicleId,
 ) => {
   const response = await axiosInstance.get(urls.deals.byVehicleId(vehicleId));
   return response.data;
@@ -34,7 +38,7 @@ export const getDealsByVehicleId: getDealsByVehicleIdType = async (
 
 // Get deals by person ID (replaces getFilterByUserData)
 type getDealsByPersonType = (
-  personId: string
+  personId: string,
 ) => Promise<IDealsByPersonResponse>;
 export const getDealsByPerson: getDealsByPersonType = async (personId) => {
   const response = await axiosInstance.get(urls.deals.byPerson(personId));
@@ -62,8 +66,34 @@ export const updateDeal: updateDealType = async (id, data) => {
   return response.data;
 };
 
+// Update deal option
+type editDealOptionType = (_: {
+  dealId: string;
+  optionId: string;
+  data: Partial<IOptions>;
+}) => Promise<void>;
+export const editDealOption: editDealOptionType = async ({
+  dealId,
+  optionId,
+  data,
+}) => {
+  await axiosInstance.put(urls.deals.option(dealId, optionId), data);
+};
+
 // Delete deal
 type deleteDealType = (id: string) => Promise<void>;
 export const deleteDeal: deleteDealType = async (id) => {
   await axiosInstance.delete(urls.deals.delete(id));
+};
+
+// Delete deal option
+type deleteDealOptionType = (_: {
+  dealId: string;
+  optionId: string;
+}) => Promise<void>;
+export const deleteDealOption: deleteDealOptionType = async ({
+  dealId,
+  optionId,
+}) => {
+  await axiosInstance.delete(urls.deals.option(dealId, optionId));
 };

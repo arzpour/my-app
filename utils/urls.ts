@@ -154,12 +154,15 @@ export const urls = {
     create: "/deals",
     update: (id: string) => `/deals/id/${id}`,
     delete: (id: string) => `/deals/id/${id}`,
+    option: (dealId: string, optionId: string) =>
+      `/deals/${dealId}/option/${optionId}`,
   },
   transactionsNew: {
     list: "/transactions",
     byId: (id: string) => `/transactions/id/${id}`,
     byDeal: (dealId: string) => `/transactions/deal/${dealId}`,
     byPerson: (personId: string) => `/transactions/person/${personId}`,
+    byProvider: (providerId: string) => `/transactions/person/${providerId}`,
     byAccount: (accountId: string) => `/transactions/account/${accountId}`,
     byType: (type: string) => `/transactions/type/${type}`,
     byDateRange: "/transactions/date-range",
@@ -189,7 +192,14 @@ export const urls = {
     create: "/people",
     update: (id: string) => `/people/id/${id}`,
     updateWallet: (id: string) => `/people/id/${id}/wallet`,
+    deleteWalletTransaction: (id: string) => `/people/id/${id}/wallet/delete`,
     delete: (id: string) => `/people/id/${id}`,
+  },
+  wallet: {
+    updateWalletTransfer: "/wallet/update-wallet-transfer",
+  },
+  report:{
+   generatePersonReport: "/exportToExcel/generate-person-report",
   },
   users: {
     list: "/users",

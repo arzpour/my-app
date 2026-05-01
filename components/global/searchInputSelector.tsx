@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 import { SearchIcon } from "lucide-react";
 import {
@@ -11,9 +10,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface ISelectForFilterCheques {
-  setSelectedSubject?: (value: string) => void;
-  data: string[];
+interface ISelectOption {
+  id: string;
+  label: string;
+}
+
+interface ISearchInputSelector {
+  setSelectedSubject?: (value: string | undefined) => void;
+  data: ISelectOption[];
   title: string;
   selectedValue: string;
   className?: string;
@@ -21,11 +25,11 @@ interface ISelectForFilterCheques {
   searchPlaceholder?: string;
 }
 
-const SelectForFilterCheques: React.FC<ISelectForFilterCheques> = ({
+const SearchInputSelector: React.FC<ISearchInputSelector> = ({
   data,
   setSelectedSubject,
   title,
-  selectedValue = "همه",
+  selectedValue = "",
   className,
   disabled = false,
   searchPlaceholder = "جستجو...",
@@ -40,7 +44,7 @@ const SelectForFilterCheques: React.FC<ISelectForFilterCheques> = ({
       data
         ?.filter(Boolean)
         ?.filter((item) =>
-          item.toLowerCase().includes(searchTerm.toLowerCase()),
+          item.label.toLowerCase().includes(searchTerm.toLowerCase()),
         ) || []
     );
   }, [data, searchTerm]);
@@ -56,16 +60,24 @@ const SelectForFilterCheques: React.FC<ISelectForFilterCheques> = ({
   }, [isOpen]);
 
   const handleValueChange = (value: string) => {
-    setSelectedSubject?.(value);
+    if (value === "all") {
+      setSelectedSubject?.(undefined);
+    } else {
+      setSelectedSubject?.(value);
+    }
     setIsOpen(false);
     setSearchTerm("");
   };
 
+  const selectedLabel = React.useMemo(() => {
+    const found = data.find((item) => item.id === selectedValue);
+    return found ? found.label : "انتخاب کنید";
+  }, [selectedValue, data]);
+
   return (
     <div className="space-y-1">
       <h3
-        // className={`text-sm font-bold mb-2 ${
-        className={`text-sm font-medium mb-2 ${
+        className={`text-sm font-bold mb-2 ${
           disabled ? "text-gray-400" : "text-blue-900"
         }`}
       >
@@ -86,7 +98,7 @@ const SelectForFilterCheques: React.FC<ISelectForFilterCheques> = ({
               : ""
           }`}
         >
-          <SelectValue placeholder="انتخاب کنید">{selectedValue}</SelectValue>
+          <SelectValue placeholder="انتخاب کنید">{selectedLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {/* Search Input */}
@@ -106,20 +118,19 @@ const SelectForFilterCheques: React.FC<ISelectForFilterCheques> = ({
                   if (e.key === "Enter") {
                     e.preventDefault();
                     if (filteredData.length === 1) {
-                      handleValueChange(filteredData[0]);
+                      handleValueChange(filteredData[0].id);
                     }
                   }
                 }}
               />
             </div>
           </div>
-
           {/* Options List */}
           <SelectGroup>
             {filteredData.length > 0 ? (
-              filteredData.map((item, index) => (
-                <SelectItem key={`${item}-${index}`} value={item}>
-                  {item}
+              [{ id: "all", label: "همه" }, ...filteredData].map((item) => (
+                <SelectItem key={item.id} value={item.id}>
+                  {item.label}
                 </SelectItem>
               ))
             ) : (
@@ -133,5 +144,4 @@ const SelectForFilterCheques: React.FC<ISelectForFilterCheques> = ({
     </div>
   );
 };
-
-export default SelectForFilterCheques;
+export default SearchInputSelector;

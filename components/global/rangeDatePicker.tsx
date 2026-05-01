@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import DatePicker, { DateObject } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+import { XCircle } from "lucide-react";
 
 interface IRangeDatePicker {
   dates: DateObject[];
@@ -15,21 +16,27 @@ const RangeDatePicker: React.FC<IRangeDatePicker> = ({ dates, setDates }) => {
   const handleChange = (value: DateObject | DateObject[] | null) => {
     if (!value || !Array.isArray(value)) {
       setDates([]);
-      setError("لطفاً بازه تاریخ را انتخاب کنید");
+      // setError("لطفاً بازه تاریخ را انتخاب کنید");
       return;
     }
 
     setDates(value);
 
-    if (value.length === 1) {
-      setError("لطفاً تاریخ شروع و پایان را انتخاب کنید");
-    } else if (value.length === 2) {
-      setError("");
-    }
+    // if (value.length === 1) {
+    //   setError("لطفاً تاریخ شروع و پایان را انتخاب کنید");
+    // } else if (value.length === 2) {
+    //   setError("");
+    // }
+  };
+
+  const handleClear = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setDates([]);
+    // onChange?.("");
   };
 
   return (
-    <div className="flex flex-col gap-2 w-fit">
+    <div className="flex flex-col gap-2 w-fit relative">
       <DatePicker
         value={dates}
         onChange={handleChange}
@@ -39,9 +46,21 @@ const RangeDatePicker: React.FC<IRangeDatePicker> = ({ dates, setDates }) => {
         calendarPosition="bottom-right"
         inputClass="border rounded-lg px-3 py-2 text-sm text-center"
         placeholder="از تاریخ — تا تاریخ"
+        portal
+        portalTarget={document.body}
       />
 
       {error && <span className="text-red-500 text-xs">{error}</span>}
+      {dates.length > 0 && (
+        <button
+          type="button"
+          onClick={handleClear}
+          className="absolute left-2 top-2.5 text-gray-400 hover:text-red-500 transition-colors"
+          title="پاک کردن"
+        >
+          <XCircle size={18} />
+        </button>
+      )}
     </div>
   );
 };

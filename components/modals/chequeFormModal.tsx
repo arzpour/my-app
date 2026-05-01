@@ -20,10 +20,19 @@ import {
   CHEQUE_STATUSES,
   formatPrice,
 } from "@/utils/systemConstants";
-import type { IPeople, IDeal, IChequeNew } from "@/types/new-backend-types";
+import type {
+  IPeople,
+  IDeal,
+  IChequeNew,
+  ITransactionNew,
+} from "@/types/new-backend-types";
 import useGetChequeById from "@/hooks/useGetChequeById";
 import { useUpdateCheque } from "@/apis/mutations/cheques";
 import useGetAllDeals from "@/hooks/useGetAllDeals";
+import { useUpdateTransaction } from "@/apis/mutations/transaction";
+import useUpdateWalletHandler from "@/hooks/useUpdateWalletHandler";
+import { useDeleteWalletTransaction } from "@/apis/mutations/people";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ChequeFormNewProps {
   onSuccess?: () => void;
@@ -44,6 +53,9 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
   const { data: allDeals } = useGetAllDeals();
   const { data: chequeInfoById } = useGetChequeById(chequeId);
   const updateCheque = useUpdateCheque();
+  const { updateWalletHandler } = useUpdateWalletHandler();
+  const updateTransaction = useUpdateTransaction();
+  const deleteWalletTransaction = useDeleteWalletTransaction();
 
   const [selectedPayer, setSelectedPayer] = React.useState<IPeople | null>(
     null,
@@ -52,6 +64,8 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
     null,
   );
   const [selectedDeal, setSelectedDeal] = React.useState<IDeal | null>(null);
+
+  const queryClient = useQueryClient();
 
   // const relatedDealCheque = allDeals?.filter(
   //   (d) => d._id === chequeInfoById?.relatedDealId,
@@ -91,6 +105,74 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
   const showPayer = chequeType === "دریافتی";
   const showPayee = chequeType === "پرداختی";
 
+  const updatePeopleWalletHandler = async (
+    data: chequeNewSchemaType,
+    res: ITransactionNew,
+  ) => {
+    const price = parseFloat(data.amount);
+
+    if (
+      (chequeInfoById?.status === "وصول شده" ||
+        chequeInfoById?.status === "خرج شده") &&
+      (data.status === "در جریان" ||
+        data.status === "برگشتی" ||
+        data.status === "عودت داده شده")
+    ) {
+      await deleteWalletTransaction.mutateAsync({
+        id: data.payeePersonId || data.payerPersonId || "",
+        data: {
+          dealID: chequeInfoById?.relatedDealId ?? "",
+          transactionID: chequeInfoById?.relatedTransactionId ?? "",
+          chequeId: chequeInfoById?._id,
+        },
+      });
+    }
+
+    try {
+      if (
+        (chequeInfoById?.status === "در جریان" ||
+          chequeInfoById?.status === "برگشتی" ||
+          chequeInfoById?.status === "عودت داده شده") &&
+        (data?.status === "وصول شده" || data?.status === "خرج شده")
+      ) {
+        await updateWalletHandler(
+          data.payeePersonId || data.payerPersonId || "",
+          {
+            amount: -price,
+            type:
+              `${data.type} ${data.status}-چک-${res.reason} ${res.type}` ||
+              data.type,
+            description: data.description,
+            dealID: chequeInfoById?.relatedDealId ?? "",
+            transactionID: chequeInfoById?.relatedTransactionId ?? "",
+            chequeId: chequeInfoById?._id,
+          },
+        );
+      }
+    } catch (error) {
+      console.log("🚀 ~ updatePeopleWalletHandler ~ error:", error);
+    }
+  };
+
+  const updateTransactionHandler = async (data: chequeNewSchemaType) => {
+    try {
+      const transactionData = {
+        amount: data.amount,
+      };
+
+      const res = await updateTransaction.mutateAsync({
+        id: chequeInfoById?.relatedTransactionId ?? "",
+        data: transactionData,
+      });
+
+      if (res) {
+        await updatePeopleWalletHandler(data, res);
+      }
+    } catch (error) {
+      console.log("🚀 ~ updateTransactionHandler ~ error:", error);
+    }
+  };
+
   const onSubmit: SubmitHandler<chequeNewSchemaType> = async (
     data: chequeNewSchemaType,
   ) => {
@@ -122,6 +204,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
         amount: parseFloat(data.amount),
         type: data.type === "دریافتی" ? "received" : "issued",
         status: data.status,
+        reason: chequeInfoById?.reason ?? selectedDeal?.status ?? "",
         description: data.description ?? "",
         customer: customer
           ? {
@@ -172,6 +255,12 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
 
       await updateCheque.mutateAsync({ id: chequeId, data: chequeData });
       toast.success("چک با موفقیت ویرایش شد");
+
+      updateTransactionHandler(data);
+
+      queryClient.invalidateQueries({
+        queryKey: ["get-all-people"],
+      });
       setIsOpenEditModal(false);
       onSuccess?.();
     } catch (error: any) {
@@ -211,11 +300,11 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
   const formContent = (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-4">
-        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
+        <h3 className="text-sm text-gray-800 font-semibold border-b pb-2">
           اطلاعات چک
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <label className="block text-sm font-medium">
               {" "}
               نوع چک <span className="text-red-600">*</span>
@@ -242,6 +331,40 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
             </div>
             {errors.type && (
               <p className="text-red-500 text-xs">{errors.type.message}</p>
+            )}
+          </div> */}
+
+          <div className="space-y-2">
+            <label htmlFor="status" className="block text-sm font-medium">
+              وضعیت چک <span className="text-red-600">*</span>{" "}
+            </label>
+            <select
+              id="status"
+              {...register("status")}
+              className="w-full px-3 py-2 border rounded-md"
+            >
+              {CHEQUE_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="sayadiID" className="block text-sm font-medium">
+              {" "}
+              شناسه صیادی <span className="text-red-600">*</span>
+            </label>
+            <input
+              id="sayadiID"
+              {...register("sayadiID")}
+              type="number"
+              placeholder="شناسه صیادی"
+              className="w-full px-3 py-2 border rounded-md"
+            />
+            {errors.sayadiID && (
+              <p className="text-red-500 text-xs">{errors.sayadiID.message}</p>
             )}
           </div>
 
@@ -279,23 +402,6 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
               <p className="text-red-500 text-xs">
                 {errors.chequeSerial.message}
               </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="sayadiID" className="block text-sm font-medium">
-              {" "}
-              شناسه صیادی <span className="text-red-600">*</span>
-            </label>
-            <input
-              id="sayadiID"
-              {...register("sayadiID")}
-              type="number"
-              placeholder="شناسه صیادی"
-              className="w-full px-3 py-2 border rounded-md"
-            />
-            {errors.sayadiID && (
-              <p className="text-red-500 text-xs">{errors.sayadiID.message}</p>
             )}
           </div>
 
@@ -422,35 +528,18 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
               <p className="text-red-500 text-xs">{errors.dueDate.message}</p>
             )}
           </div>
-
-          <div className="space-y-2">
-            <label htmlFor="status" className="block text-sm font-medium">
-              وضعیت فعلی
-            </label>
-            <select
-              id="status"
-              {...register("status")}
-              className="w-full px-3 py-2 border rounded-md"
-            >
-              {CHEQUE_STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
+        <h3 className="text-sm text-gray-800 font-semibold border-b pb-2">
           طرفین چک
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {showPayer && (
             <div className="space-y-2">
               <label className="block text-sm font-medium">
-                صادرکننده (Payer)
+                صادرکننده <span className="text-red-600">*</span>
               </label>
               <Controller
                 name="payerPersonId"
@@ -480,7 +569,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
           {showPayer && (
             <div className="space-y-2">
               <label className="block text-sm font-medium">
-                مشتری (Customer)
+                مشتری <span className="text-red-600">*</span>
               </label>
               <Controller
                 name="customerId"
@@ -540,7 +629,7 @@ const ChequeFormModal: React.FC<ChequeFormNewProps> = ({
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-base text-gray-800 font-semibold border-b pb-2">
+        <h3 className="text-sm text-gray-800 font-semibold border-b pb-2">
           ارتباطات
         </h3>
         <div className="space-y-2">

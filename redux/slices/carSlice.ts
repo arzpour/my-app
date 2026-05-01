@@ -33,6 +33,10 @@ const carSlice = createSlice({
   },
 });
 
-export const { setChassisNo, setRole, setTotalVehicleCost, setSelectedDealId } =
-  carSlice.actions;
+export const {
+  setChassisNo,
+  setRole,
+  setTotalVehicleCost,
+  setSelectedDealId,
+} = carSlice.actions;
 export default carSlice.reducer;

@@ -6,9 +6,11 @@ import VehicleDashboard from "@/components/vehicleDashboard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import FormSelectorModal from "./forms/formSelectorModal";
 import React from "react";
-import VehicleList from "./lists/vehicleList";
+import VehicleList from "./vehicles/vehicleList";
 import FinanciersDashboard from "./financiersDashboard";
 import TransactionDashboard from "./transactionDashboard";
+import ProvidersDashboard from "./providersDashboard";
+import { useVehicleFinancialStatus } from "@/hooks/useVehicleFinancialStatus";
 
 const tabs = [
   {
@@ -25,6 +27,11 @@ const tabs = [
     id: "checkDashboard",
     title: "داشبورد چک",
     content: <CheckDashboard />,
+  },
+  {
+    id: "providersDashboard",
+    title: "داشبورد تامین کنندگان",
+    content: <ProvidersDashboard />,
   },
   {
     id: "operatorsDashboard",
@@ -51,6 +58,10 @@ const tabs = [
 const TabsComponent = () => {
   const [activeTab, setActiveTab] = React.useState<string>("vehicleDashboard");
   const [formModalOpen, setFormModalOpen] = React.useState(false);
+
+  // const { remainingForBuyer, remainingToSeller } = useVehicleFinancialStatus();
+  // console.log("🚀 ~ Header ~ remainingToSeller:", remainingToSeller);
+  // console.log("🚀 ~ Header ~ remainingForBuyer:", remainingForBuyer);
 
   return (
     <div suppressHydrationWarning className="relative">

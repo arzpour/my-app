@@ -2,7 +2,12 @@
 
 import React from "react";
 // @ts-ignore - react-hook-form useForm: types sometimes not resolved (e.g. Next build); runtime is fine. Use @ts-ignore so Ubuntu build does not report "Unused directive".
-import { Controller, useForm, type SubmitHandler, ControllerRenderProps } from "react-hook-form";
+import {
+  Controller,
+  useForm,
+  type SubmitHandler,
+  ControllerRenderProps,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   purchaseDealSchema,
@@ -10,7 +15,6 @@ import {
 } from "@/validations/purchaseDeal";
 import { toast } from "sonner";
 import { useCreateDeal } from "@/apis/mutations/deals";
-import { createVehicle } from "@/apis/client/vehicles";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
@@ -21,6 +25,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { resetPlateState } from "@/redux/slices/plateSlice";
 import useUpdateWalletHandler from "@/hooks/useUpdateWalletHandler";
+import { useCreateVehicle } from "@/apis/mutations/vehicle";
+import { setVehicleUpdated } from "@/redux/slices/transactionSlice";
 
 interface PurchaseDealFormProps {
   dealData?: IDeal | null;
@@ -86,6 +92,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
   const brokerCommissionPercent = watch("purchaseBrokerCommissionPercent");
 
   const { updateWalletHandler } = useUpdateWalletHandler();
+  const createVehicle = useCreateVehicle();
 
   // Calculate broker commission
   React.useEffect(() => {
@@ -98,29 +105,31 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
     }
   }, [purchasePrice, brokerCommissionPercent]);
 
-  const addPartnership = () => {
-    setPartnerships([
-      ...partnerships,
-      {
-        partnerPersonId: "",
-        investmentAmount: "",
-        profitSharePercentage: "",
-      },
-    ]);
-  };
+  // const addPartnership = () => {
+  //   setPartnerships([
+  //     ...partnerships,
+  //     {
+  //       partnerPersonId: "",
+  //       investmentAmount: "",
+  //       profitSharePercentage: "",
+  //     },
+  //   ]);
+  // };
 
-  const removePartnership = (index: number) => {
-    setPartnerships(partnerships.filter((_, i) => i !== index));
-  };
+  // const removePartnership = (index: number) => {
+  //   setPartnerships(partnerships.filter((_, i) => i !== index));
+  // };
 
-  const updatePartnership = (index: number, field: string, value: string) => {
-    const updated = [...partnerships];
-    updated[index] = { ...updated[index], [field]: value };
-    setPartnerships(updated);
-    setValue("partnerships", updated);
-  };
+  // const updatePartnership = (index: number, field: string, value: string) => {
+  //   const updated = [...partnerships];
+  //   updated[index] = { ...updated[index], [field]: value };
+  //   setPartnerships(updated);
+  //   setValue("partnerships", updated);
+  // };
 
-  const onSubmit: SubmitHandler<purchaseDealSchemaType> = async (data: purchaseDealSchemaType) => {
+  const onSubmit: SubmitHandler<purchaseDealSchemaType> = async (
+    data: purchaseDealSchemaType,
+  ) => {
     const plateData = `${leftDigits} ${centerAlphabet} ${centerDigits} ${ir}`;
     try {
       const vehicleData: Partial<IVehicle> = {
@@ -133,7 +142,7 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
         status: "in_stock",
       };
 
-      const vehicle = await createVehicle(vehicleData);
+      const vehicle = await createVehicle.mutateAsync(vehicleData);
 
       const seller = allPeople?.find(
         (p) => p._id?.toString() === data.sellerPersonId,
@@ -158,25 +167,25 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
         purchasePrice: parseFloat(data.purchasePrice),
         seller: seller
           ? {
-            personId: seller._id?.toString() || "",
-            fullName: `${seller.firstName} ${seller.lastName}`,
-            nationalId: seller.nationalId?.toString() || "",
-            mobile: seller.phoneNumbers?.map((el) => el)?.toString() || "",
-          }
+              personId: seller._id?.toString() || "",
+              fullName: `${seller.firstName} ${seller.lastName}`,
+              nationalId: seller.nationalId?.toString() || "",
+              mobile: seller.phoneNumbers?.map((el) => el)?.toString() || "",
+            }
           : undefined,
         purchaseBroker:
           selectedBroker && data.purchaseBrokerPersonId
             ? {
-              personId: data.purchaseBrokerPersonId,
-              fullName: `${selectedBroker.firstName} ${selectedBroker.lastName}`,
-              commissionPercent: parseFloat(
-                data.purchaseBrokerCommissionPercent || "0",
-              ),
-              commissionAmount:
-                parseFloat(data.purchasePrice) *
-                (parseFloat(data.purchaseBrokerCommissionPercent || "0") /
-                  100),
-            }
+                personId: data.purchaseBrokerPersonId,
+                fullName: `${selectedBroker.firstName} ${selectedBroker.lastName}`,
+                commissionPercent: parseFloat(
+                  data.purchaseBrokerCommissionPercent || "0",
+                ),
+                commissionAmount:
+                  parseFloat(data.purchasePrice) *
+                  (parseFloat(data.purchaseBrokerCommissionPercent || "0") /
+                    100),
+              }
             : undefined,
         partnerships: partnerships.map((p) => {
           const partner = allPeople?.find(
@@ -185,19 +194,19 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
           return {
             partner: partner
               ? {
-                personId: partner._id?.toString() || "",
-                name:
-                  partner.fullName ??
-                  `${partner.firstName} ${partner.lastName}`,
-                nationalID: partner.nationalId?.toString() || "",
-                mobile: partner.phoneNumber?.toString() || "",
-              }
+                  personId: partner._id?.toString() || "",
+                  name:
+                    partner.fullName ??
+                    `${partner.firstName} ${partner.lastName}`,
+                  nationalID: partner.nationalId?.toString() || "",
+                  mobile: partner.phoneNumber?.toString() || "",
+                }
               : {
-                personId: p.partnerPersonId,
-                name: "",
-                nationalID: "",
-                mobile: "",
-              },
+                  personId: p.partnerPersonId,
+                  name: "",
+                  nationalID: "",
+                  mobile: "",
+                },
             investmentAmount: parseFloat(p.investmentAmount),
             profitSharePercentage: parseFloat(p.profitSharePercentage),
             payoutAmount: 0,
@@ -209,30 +218,40 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
         },
       };
 
-      await createDeal.mutateAsync(dealData);
+      const res = await createDeal.mutateAsync(dealData);
       toast.success("خرید خودرو با موفقیت ثبت شد");
       dispatch(resetPlateState());
       onSuccess?.();
 
       const price = Number(data.purchasePrice);
-      const brokerPercent = parseFloat(data.purchaseBrokerCommissionPercent || "0");
+      const brokerPercent = parseFloat(
+        data.purchaseBrokerCommissionPercent || "0",
+      );
       const brokerCommission =
-        !isNaN(price) && !isNaN(brokerPercent) ? (price * brokerPercent) / 100 : 0;
+        !isNaN(price) && !isNaN(brokerPercent)
+          ? (price * brokerPercent) / 100
+          : 0;
 
       if (data.sellerPersonId) {
         const walletDataForSeller = {
           amount: price,
           type: "فروش ماشین",
           description: "فروش ماشین",
+          dealID: res._id ?? "",
+          transactionID: "",
         };
         updateWalletHandler(data.sellerPersonId, walletDataForSeller);
       }
+
+      dispatch(setVehicleUpdated(vehicle?._id));
 
       if (data.purchaseBrokerPersonId && brokerCommission !== 0) {
         const walletDataForPurchaseBroker = {
           amount: brokerCommission,
           type: "کمیسیون خرید",
           description: "کمیسیون خرید خودرو",
+          dealID: res._id ?? "",
+          transactionID: "",
         };
         updateWalletHandler(
           data.purchaseBrokerPersonId,
@@ -354,7 +373,14 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
             <Controller
               name="sellerPersonId"
               control={control}
-              render={({ field }: { field: ControllerRenderProps<purchaseDealSchemaType, "sellerPersonId"> }) => {
+              render={({
+                field,
+              }: {
+                field: ControllerRenderProps<
+                  purchaseDealSchemaType,
+                  "sellerPersonId"
+                >;
+              }) => {
                 return (
                   <PersonSelect
                     value={field.value}
@@ -395,7 +421,14 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
             <Controller
               name="purchasePrice"
               control={control}
-              render={({ field }: { field: ControllerRenderProps<purchaseDealSchemaType, "purchasePrice"> }) => {
+              render={({
+                field,
+              }: {
+                field: ControllerRenderProps<
+                  purchaseDealSchemaType,
+                  "purchasePrice"
+                >;
+              }) => {
                 const formattedValue = field.value
                   ? Number(field.value).toLocaleString("en-US")
                   : "";
@@ -434,7 +467,14 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
             <Controller
               name="purchaseDate"
               control={control}
-              render={({ field }: { field: ControllerRenderProps<purchaseDealSchemaType, "purchaseDate"> }) => (
+              render={({
+                field,
+              }: {
+                field: ControllerRenderProps<
+                  purchaseDealSchemaType,
+                  "purchaseDate"
+                >;
+              }) => (
                 <PersianDatePicker
                   value={field.value}
                   onChange={field.onChange}
@@ -462,7 +502,14 @@ const PurchaseDealForm: React.FC<PurchaseDealFormProps> = ({
             <Controller
               name="purchaseBrokerPersonId"
               control={control}
-              render={({ field }: { field: ControllerRenderProps<purchaseDealSchemaType, "purchaseBrokerPersonId"> }) => (
+              render={({
+                field,
+              }: {
+                field: ControllerRenderProps<
+                  purchaseDealSchemaType,
+                  "purchaseBrokerPersonId"
+                >;
+              }) => (
                 <PersonSelect
                   value={field.value}
                   onValueChange={(personId, person: IPeople) => {

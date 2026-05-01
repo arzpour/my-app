@@ -16,7 +16,17 @@ import {
 } from "@/components/ui/select";
 import { RootState } from "@/redux/store";
 
-const PlateComponent: React.FC = () => {
+interface PlateComponentProps {
+  initialValue?: string;
+  onChange?: (value: string) => void;
+  disabled?: boolean;
+}
+
+const PlateComponent: React.FC<PlateComponentProps> = ({
+  initialValue,
+  onChange,
+  disabled = false,
+}) => {
   const letters: string[] = [
     "الف",
     "ب",
@@ -45,10 +55,12 @@ const PlateComponent: React.FC = () => {
   const { leftDigits, centerDigits, ir, centerAlphabet } = useSelector(
     (state: RootState) => state.plate,
   );
+  const [isAlphabetOpen, setIsAlphabetOpen] = React.useState(false);
 
   const leftDigitsRef = useRef<HTMLInputElement>(null);
   const centerDigitsRef = useRef<HTMLInputElement>(null);
   const irRef = useRef<HTMLInputElement>(null);
+  const centerAlphabetRef = useRef<HTMLButtonElement | null>(null);
 
   const digitsArToEn = (value: string) => {
     const persianNumbers = "۰۱۲۳۴۵۶۷۸۹";
@@ -76,7 +88,12 @@ const PlateComponent: React.FC = () => {
     dispatch(setLeftDigits(value ? Number(value) : null));
 
     if (currentInputLength === 2) {
-      centerDigitsRef.current?.focus();
+      setIsAlphabetOpen(true);
+      requestAnimationFrame(() => {
+        centerAlphabetRef.current?.focus();
+      });
+    } else {
+      setIsAlphabetOpen(false);
     }
   };
 
@@ -113,6 +130,25 @@ const PlateComponent: React.FC = () => {
     dispatch(setCenterAlphabet(value));
   };
 
+  React.useEffect(() => {
+    if (initialValue) {
+      const parts = initialValue.split(" ");
+      if (parts.length === 4) {
+        dispatch(setLeftDigits(Number(parts[0]) || null));
+        dispatch(setCenterAlphabet(parts[1]));
+        dispatch(setCenterDigits(Number(parts[2]) || null));
+        dispatch(setIr(Number(parts[3]) || null));
+      }
+    }
+  }, [initialValue]);
+
+  React.useEffect(() => {
+    if (onChange && leftDigits && centerDigits && ir && centerAlphabet) {
+      const plateString = `${leftDigits} ${centerAlphabet} ${centerDigits} ${ir}`;
+      onChange(plateString);
+    }
+  }, [leftDigits, centerDigits, ir, centerAlphabet, onChange]);
+
   return (
     <>
       <div className="flex items-center justify-center w-full rounded-lg border text-sm border-grayD">
@@ -135,12 +171,25 @@ const PlateComponent: React.FC = () => {
               className="w-10 focus:outline-none ml-1 placeholder:text-base text-base"
               value={leftDigits?.toString() ?? ""}
               onChange={handleLeftDigitsChange}
+              disabled={disabled}
             />
           </div>
 
           <div className="flex justify-center space-x-4">
-            <Select onValueChange={handleCenterAlphabetChange}>
-              <SelectTrigger className="text-base">
+            <Select
+              open={isAlphabetOpen}
+              value={centerAlphabet || ""}
+              onOpenChange={setIsAlphabetOpen}
+              onValueChange={(value) => {
+                handleCenterAlphabetChange(value);
+                setIsAlphabetOpen(false);
+                setTimeout(() => {
+                  centerDigitsRef.current?.focus();
+                }, 0);
+              }}
+              disabled={disabled}
+            >
+              <SelectTrigger ref={centerAlphabetRef} className="text-base">
                 <SelectValue placeholder="الف" className="text-base" />
               </SelectTrigger>
               <SelectContent
@@ -148,7 +197,7 @@ const PlateComponent: React.FC = () => {
                 className="font-[MyFont] h-72 overflow-auto"
               >
                 {letters.map((letter) => (
-                  <SelectItem key={letter} value={letter} className="w-12">
+                  <SelectItem key={letter} value={letter}>
                     {letter}
                   </SelectItem>
                 ))}
@@ -173,6 +222,7 @@ const PlateComponent: React.FC = () => {
               }}
               placeholder="۱۱۱"
               value={centerDigits?.toString() ?? ""}
+              disabled={disabled}
             />
           </div>
 
@@ -198,11 +248,12 @@ const PlateComponent: React.FC = () => {
                   centerDigitsRef.current?.focus();
                 }
               }}
+              disabled={disabled}
             />
           </div>
         </div>
       </div>
-      {!ir || !centerDigits || !leftDigits || !centerAlphabet ? (
+      {(!ir || !centerDigits || !leftDigits || !centerAlphabet) && !disabled ? (
         <div className="text-red-600 text-sm leading-5 mt-3 mr-2 flex gap-2 items-center mb-4">
           {/* <Image src={Danger} className="w-5" alt="danger" /> */}
           اطلاعات پلاک الزامی است.

@@ -7,12 +7,12 @@ export const transactionChequeSchema = z
     type: z.enum(["پرداخت", "دریافت"] as const, {
       message: "نوع تراکنش الزامی است",
     }),
-    reason: z.string().min(1, "بابت تراکنش الزامی است"),
+    reason: z.string().min(1, "دلیل تراکنش الزامی است"),
     transactionDate: z.string().min(1, "تاریخ تراکنش الزامی است"),
     amount: z.string().min(1, "مبلغ تراکنش الزامی است"),
     personId: z.string().optional(),
     secondPersonId: z.string().optional(),
-    bussinessAccountId: z.string().min(1, "حساب بانکی الزامی است"),
+    bussinessAccountId: z.string().optional(),
     paymentMethod: z.enum(
       ["نقد", "کارت به کارت", "چک", "شبا", "مشتری به مشتری"] as const,
       {
@@ -43,6 +43,8 @@ export const transactionChequeSchema = z
     partnershipProfitSharePercentage: z.string().optional(),
     providerPersonId: z.string().optional(),
     brokerPersonId: z.string().optional(),
+    secondDealId: z.string().optional(),
+    profitState: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.paymentMethod === "چک") {
@@ -113,7 +115,9 @@ export const transactionChequeSchema = z
           (data.reason === "اصل سرمایه" || data.reason === "سود سرمایه"));
 
       const isCustomerToCustomer = data.paymentMethod === "مشتری به مشتری";
-      const notRequiredReasons = ["سایر هزینه‌ها", "درصد کارگزار"].includes(data.reason);
+      const notRequiredReasons = ["سایر هزینه‌ها", "درصد کارگزار"].includes(
+        data.reason,
+      );
 
       if (
         isOptionReason ||
@@ -128,6 +132,36 @@ export const transactionChequeSchema = z
     {
       message: "طرف حساب الزامی است",
       path: ["personId"],
+    },
+  )
+  .refine(
+    (data) => {
+      const isPartnership =
+        data.type === "دریافت" && data.reason === "سرمایه گذاری";
+
+      if (!isPartnership) {
+        return true;
+      }
+      return !!data.partnershipProfitSharePercentage;
+    },
+    {
+      message: "درصد سود الزامی است",
+      path: ["partnershipProfitSharePercentage"],
+    },
+  )
+  .refine(
+    (data) => {
+      const isPartnership =
+        data.type === "دریافت" && data.reason === "سرمایه گذاری";
+
+      if (!isPartnership) {
+        return true;
+      }
+      return !!data.profitState;
+    },
+    {
+      message: "حالت سود الزامی است",
+      path: ["profitState"],
     },
   )
   .refine(
@@ -220,6 +254,21 @@ export const transactionChequeSchema = z
   )
   .refine(
     (data) => {
+      if (
+        data.paymentMethod === "مشتری به مشتری" &&
+        data.reason !== "فروش خودروـ صراف"
+      ) {
+        return data.secondDealId;
+      }
+      return true;
+    },
+    {
+      message: "معامله طرف دوم الزامی است",
+      path: ["secondDealId"],
+    },
+  )
+  .refine(
+    (data) => {
       // If cheque type is issued, customer is required
       if (data.paymentMethod === "چک" && data.chequeType === "دریافتی") {
         return data.chequeCustomerPersonId;
@@ -241,6 +290,18 @@ export const transactionChequeSchema = z
     {
       message: "طرف حساب دوم الزامی است",
       path: ["secondPersonId"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.paymentMethod !== "مشتری به مشتری") {
+        return !!data.bussinessAccountId && data.bussinessAccountId.length > 0;
+      }
+      return true;
+    },
+    {
+      message: "حساب بانکی الزامی است",
+      path: ["bussinessAccountId"],
     },
   );
 

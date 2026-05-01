@@ -6,15 +6,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { saleDealSchema, saleDealSchemaType } from "@/validations/saleDeal";
 import { toast } from "sonner";
 import { useUpdateDeal } from "@/apis/mutations/deals";
-import { getAllDeals } from "@/apis/client/deals";
-import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import PersonSelect from "../ui/person-select";
 import PersianDatePicker from "../global/persianDatePicker";
 import type { IPeople, IDeal } from "@/types/new-backend-types";
 import useUpdateWalletHandler from "@/hooks/useUpdateWalletHandler";
-import { useUpdateVehicle } from "@/apis/mutations/vehicle";
-import { getVehicleByVin } from "@/apis/client/vehicles";
+import { useGetVehicleByVin, useUpdateVehicle } from "@/apis/mutations/vehicle";
+import useGetAllDeals from "@/hooks/useGetAllDeals";
+import { setVehicleUpdated } from "@/redux/slices/transactionSlice";
+import { useDispatch } from "react-redux";
 
 interface SaleDealFormProps {
   onSuccess?: () => void;
@@ -41,13 +42,18 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
   //   queryFn: () => getDealsByStatus("in_stock"),
   // });
 
-  const { data: allDeals } = useQuery({
-    queryKey: ["get-all-deals"],
-    queryFn: getAllDeals,
-  });
+  // const { data: allDeals } = useQuery({
+  //   queryKey: ["get-all-deals"],
+  //   queryFn: getAllDeals,
+  // });
+
+  const { data: allDeals } = useGetAllDeals();
+  const queryClient = useQueryClient();
+  const dispatch = useDispatch();
 
   const { updateWalletHandler } = useUpdateWalletHandler();
   const updateVehicle = useUpdateVehicle();
+  const getVehicleByVin = useGetVehicleByVin();
 
   const customers = allPeople?.filter((el) => el.roles.includes("customer"));
 
@@ -87,26 +93,26 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
       const updateData: Partial<IDeal> = {
         buyer: buyer
           ? {
-            personId: buyer._id?.toString() || "",
-            fullName: `${buyer.firstName} ${buyer.lastName}`,
-            nationalId: buyer.nationalId?.toString() || "",
-            mobile: buyer.phoneNumbers?.map((el) => el)?.toString() || "",
-          }
+              personId: buyer._id?.toString() || "",
+              fullName: `${buyer.firstName} ${buyer.lastName}`,
+              nationalId: buyer.nationalId?.toString() || "",
+              mobile: buyer.phoneNumbers?.map((el) => el)?.toString() || "",
+            }
           : undefined,
         salePrice: parseFloat(data.salePrice),
         saleDate: data.saleDate,
         saleBroker:
           selectedBroker && data.saleBrokerPersonId
             ? {
-              personId: data.saleBrokerPersonId,
-              fullName: `${selectedBroker.firstName} ${selectedBroker.lastName}`,
-              commissionPercent: parseFloat(
-                data.saleBrokerCommissionPercent || "0",
-              ),
-              commissionAmount:
-                parseFloat(data.salePrice) *
-                (parseFloat(data.saleBrokerCommissionPercent || "0") / 100),
-            }
+                personId: data.saleBrokerPersonId,
+                fullName: `${selectedBroker.firstName} ${selectedBroker.lastName}`,
+                commissionPercent: parseFloat(
+                  data.saleBrokerCommissionPercent || "0",
+                ),
+                commissionAmount:
+                  parseFloat(data.salePrice) *
+                  (parseFloat(data.saleBrokerCommissionPercent || "0") / 100),
+              }
             : undefined,
         status: "sold",
       };
@@ -120,12 +126,18 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
 
       if (selectedDeal.vehicleSnapshot?.vin) {
         try {
-          const vehicle = await getVehicleByVin(selectedDeal.vehicleSnapshot.vin);
-          const vehicleId = (vehicle as any)._id?.toString?.() ?? String((vehicle as any)._id ?? "");
+          const vehicle = await getVehicleByVin.mutateAsync(
+            selectedDeal.vehicleSnapshot.vin,
+          );
+          const vehicleId =
+            (vehicle as any)._id?.toString?.() ??
+            String((vehicle as any)._id ?? "");
           await updateVehicle.mutateAsync({
             id: vehicleId,
             data: { status: "sold" },
           });
+          queryClient.invalidateQueries({ queryKey: ["get-deals-by-vin"] });
+          dispatch(setVehicleUpdated(vehicle?._id));
         } catch (e) {
           console.error("Error updating vehicle status:", e);
         }
@@ -133,30 +145,37 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
       onSuccess?.();
 
       const price = Number(data.salePrice);
+      queryClient.invalidateQueries({ queryKey: ["get-deals-by-vin"] });
+      queryClient.invalidateQueries({ queryKey: ["get-vehicles"] });
 
       if (data.buyerPersonId) {
         const walletDataForBuyer = {
           amount: -price,
           type: "خرید ماشین",
           description: "خرید ماشین",
+          dealID: data.dealId ?? "",
+          transactionID: "",
         };
         updateWalletHandler(data.buyerPersonId, walletDataForBuyer);
       }
 
       const brokerPercent = parseFloat(data.saleBrokerCommissionPercent || "0");
       const brokerCommission =
-        !isNaN(price) && !isNaN(brokerPercent) ? (price * brokerPercent) / 100 : 0;
+        !isNaN(price) && !isNaN(brokerPercent)
+          ? (price * brokerPercent) / 100
+          : 0;
       if (data.saleBrokerPersonId && brokerCommission !== 0) {
         const walletDataForSaleBroker = {
           amount: brokerCommission,
           type: "کمیسیون فروش",
           description: "کمیسیون فروش خودرو",
+          dealID: data.dealId ?? "",
+          transactionID: "",
         };
-        updateWalletHandler(
-          data.saleBrokerPersonId,
-          walletDataForSaleBroker,
-        );
+        updateWalletHandler(data.saleBrokerPersonId, walletDataForSaleBroker);
       }
+
+    
     } catch (error: any) {
       console.error("Error updating sale deal:", error);
       toast.error(error?.response?.data?.message || "خطا در ثبت فروش خودرو");
@@ -394,7 +413,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
                 (selectedDeal.purchaseBroker?.commissionAmount || 0) -
                 (brokerCommissionPercent
                   ? parseFloat(salePrice) *
-                  (parseFloat(brokerCommissionPercent) / 100)
+                    (parseFloat(brokerCommissionPercent) / 100)
                   : 0)
               ).toLocaleString()}{" "}
               ریال

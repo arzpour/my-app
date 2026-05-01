@@ -44,6 +44,7 @@ export interface IChequeNew {
   amount: number;
   type: ChequeType; // "issued" | "received"
   status: string; // "paid" | "unpaid" | etc.
+  reason: string;
   sayadiID: string;
   description: string;
   payer: {
@@ -86,6 +87,20 @@ export interface IChequeNew {
 // ============================================
 // DEALS (NEW STRUCTURE - REPLACES CARS)
 // ============================================
+
+export interface IOptions {
+  id: string;
+  _id: string;
+  provider: {
+    personId: string;
+    name: string;
+  };
+  optionId: string;
+  date: string;
+  description: string;
+  cost: number;
+}
+
 export interface IDeal {
   _id: Types.ObjectId;
   vehicleId: number;
@@ -127,17 +142,9 @@ export interface IDeal {
   commissionPercent: number;
   commissionAmount: number;
   directCosts: {
-    options: {
-      id: string;
-      provider: {
-        personId: string;
-        name: string;
-      };
-      date: string;
-      description: string;
-      cost: number;
-    }[];
+    options: IOptions[];
     otherCost: {
+      _id: string;
       id: string;
       category: string;
       description: string;
@@ -145,6 +152,7 @@ export interface IDeal {
         personId: string;
         name: string;
       };
+      optionId: string;
       date: string;
       cost: number;
     }[];
@@ -162,6 +170,10 @@ export interface IDeal {
   }[];
   createdAt: string;
   updatedAt: string;
+}
+
+interface IDealWithRole extends IDeal {
+  roleType: "buyer" | "seller";
 }
 
 // ============================================
@@ -316,15 +328,22 @@ export interface ITransactionNew {
   reason: string;
   paymentMethod: string;
   personId: string;
+  secondPersonId: string;
+  secondDealId: string;
   dealId: string;
   bussinessAccountId: string;
   description: string;
   vin: string;
+  secondVin: string;
   brokerPersonId: string;
   providerPersonId: string;
   partnerPersonId: string;
   partnershipProfitSharePercentage: string;
   partnerShipProfit: string;
+  isBetweenTwoPerson?: boolean;
+  pairGroupId?: string;
+  profitState?: string;
+  role?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -380,4 +399,25 @@ export interface IChequesByPersonResponse {
   cheques: IChequeNew[];
   issued: IChequeNew[];
   received: IChequeNew[];
+}
+
+// Roles for add people
+
+export type PeopleRole =
+  | "customer"
+  | "broker"
+  | "employee"
+  | "provider"
+  | "financier"
+  | "moneyChanger";
+
+export interface WalletTransferRequest {
+  oldPersonId: string;
+  newPersonId: string;
+  amount: number;
+  type: string;
+  description: string;
+  dealId?: string;
+  transactionId: string;
+  reason: "provider" | "broker" | "financier" | "person";
 }

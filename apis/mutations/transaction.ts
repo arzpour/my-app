@@ -23,9 +23,33 @@ export const useGetTransactionsByPersonId = () => {
 };
 
 export const useCreateTransaction = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: ["create-transaction"],
     mutationFn: createTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get-transactions-by-deal-id"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["get-cheques-by-deal-id"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["get-transaction-by-id"] });
+      queryClient.invalidateQueries({
+        queryKey: ["get-transaction-by-deal-id"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["get-all-transaction"],
+      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["get-all-transactions"],
+      // });
+      queryClient.invalidateQueries({
+        queryKey: ["get-all-deals"],
+      });
+      toast.success("تراکنش با موفقیت به‌روزرسانی شد");
+    },
   });
 };
 
@@ -42,7 +66,13 @@ export const useUpdateTransaction = () => {
       queryClient.invalidateQueries({
         queryKey: ["get-cheques-by-deal-id"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["get-transaction-by-deal-id"],
+      });
       queryClient.invalidateQueries({ queryKey: ["get-transaction-by-id"] });
+      queryClient.invalidateQueries({
+        queryKey: ["get-all-transaction"],
+      });
       toast.success("تراکنش با موفقیت به‌روزرسانی شد");
     },
     onError: (error: any) => {
@@ -61,6 +91,9 @@ export const useDeleteTransaction = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-transaction-by-id"] });
       queryClient.invalidateQueries({ queryKey: ["get-all-transaction"] });
+      queryClient.invalidateQueries({
+        queryKey: ["get-transaction-by-deal-id"],
+      });
       toast.success("تراکنش با موفقیت حذف شد");
     },
     onError: (error: any) => {

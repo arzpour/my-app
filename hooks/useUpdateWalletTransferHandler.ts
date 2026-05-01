@@ -1,12 +1,13 @@
-import { useUpdateWallet } from "@/apis/mutations/people";
+import { useUpdateWalletTransfer } from "@/apis/mutations/wallet";
+import { WalletTransferRequest } from "@/types/new-backend-types";
 import { useQueryClient } from "@tanstack/react-query";
 
-const useUpdateWalletHandler = () => {
-  const updateWallet = useUpdateWallet();
+const useUpdateWalletTransferHandler = () => {
+  const updateWallet = useUpdateWalletTransfer();
   const queryClient = useQueryClient();
-  const updateWalletHandler = async (id: string, data: IUpdateWalletReq) => {
+  const updateWalletTransfer = async (data: WalletTransferRequest) => {
     try {
-      await updateWallet.mutateAsync({ id, data });
+      await updateWallet.mutateAsync(data);
       queryClient.invalidateQueries({
         queryKey: ["get-all-people"],
       });
@@ -25,7 +26,7 @@ const useUpdateWalletHandler = () => {
     }
   };
 
-  return { updateWalletHandler };
+  return { updateWalletTransfer };
 };
 
-export default useUpdateWalletHandler;
+export default useUpdateWalletTransferHandler;

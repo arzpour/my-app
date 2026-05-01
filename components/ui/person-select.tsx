@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { CheckIcon, ChevronDownIcon, SearchIcon, PlusIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  SearchIcon,
+  PlusIcon,
+  XCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { IPeople, IUsers } from "@/types/new-backend-types";
 
@@ -42,7 +48,7 @@ const PersonSelect: React.FC<PersonSelectProps> = ({
   const filteredPeopleByRole = React.useMemo(() => {
     if (!filterByRole || filterByRole.length === 0) return people;
     return people.filter((person) =>
-      filterByRole.some((role) => person.roles?.includes(role))
+      filterByRole.some((role) => person.roles?.includes(role)),
     );
   }, [people, filterByRole]);
 
@@ -128,10 +134,17 @@ const PersonSelect: React.FC<PersonSelectProps> = ({
   const displayLabel = selectedPerson
     ? `${selectedPerson.firstName} ${selectedPerson.lastName} (${selectedPerson.nationalId})`
     : selectedUser
-    ? `${selectedUser.firstname} ${selectedUser.lastname} (${selectedUser.username})`
-    : placeholder;
+      ? `${selectedUser.firstname} ${selectedUser.lastname} (${selectedUser.username})`
+      : placeholder;
 
   const data = isUser ? filteredUsers : filteredPeople;
+
+  const handleClear = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    // setInternalDate(null);
+    // onChange?.("");
+    onValueChange?.("", "");
+  };
   return (
     <div ref={selectRef} className={cn("relative w-full", className)}>
       {/* Trigger Button */}
@@ -141,16 +154,26 @@ const PersonSelect: React.FC<PersonSelectProps> = ({
         disabled={disabled}
         className={cn(
           "border-input [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 flex w-full items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 h-9",
-          className
+          className,
         )}
       >
         <span className="truncate text-right w-full">{displayLabel}</span>
         <ChevronDownIcon
           className={cn(
             "size-4 opacity-50 transition-transform",
-            isOpen && "rotate-180"
+            isOpen && "rotate-180",
           )}
         />
+        {value && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors"
+            title="پاک کردن"
+          >
+            <XCircle size={18} />
+          </button>
+        )}
       </button>
 
       {/* Dropdown */}
@@ -203,7 +226,7 @@ const PersonSelect: React.FC<PersonSelectProps> = ({
                     onClick={() => handleSelect(person)}
                     className={cn(
                       "focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-default items-start gap-2 rounded-sm py-2 pr-8 pl-2 text-sm outline-none select-none hover:bg-accent hover:text-accent-foreground",
-                      isSelected && "bg-accent text-accent-foreground"
+                      isSelected && "bg-accent text-accent-foreground",
                     )}
                     dir="rtl"
                   >

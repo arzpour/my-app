@@ -148,3 +148,21 @@ body {
 .rmdp-container {
   width: 100%;
 }
+
+@font-face {
+  font-family: "MyCustomFont";
+  src:
+    url("/fonts/my-font.woff2") format("woff2"),
+    url("/fonts/my-font.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MyCustomFont-Bold";
+  src: url("/fonts/my-font-bold.woff2") format("woff2");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}

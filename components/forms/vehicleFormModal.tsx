@@ -1,7 +1,12 @@
 "use client";
 import React from "react";
 // @ts-ignore - react-hook-form useForm: types sometimes not resolved (e.g. Next build); runtime is fine. Use @ts-ignore so Ubuntu build does not report "Unused directive".
-import { useForm, SubmitHandler, Controller, ControllerRenderProps } from "react-hook-form";
+import {
+  useForm,
+  SubmitHandler,
+  Controller,
+  ControllerRenderProps,
+} from "react-hook-form";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -17,9 +22,14 @@ import { useGetAllDeals, useUpdateDeal } from "@/apis/mutations/deals";
 import PersonSelect from "../ui/person-select";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
 import useGetAllUsers from "@/hooks/useGetAllUsers";
-import { documents, formatPrice, parsePriceToNumber } from "@/utils/systemConstants";
+import {
+  documents,
+  formatPrice,
+  parsePriceToNumber,
+} from "@/utils/systemConstants";
 import { useCreateVehicle, useUpdateVehicle } from "@/apis/mutations/vehicle";
 import { getVehicleByVin } from "@/apis/client/vehicles";
+import PlateComponent from "./plate";
 
 const isMongoObjectId = (id: string): boolean =>
   typeof id === "string" && /^[a-fA-F0-9]{24}$/.test(id);
@@ -121,7 +131,6 @@ interface VehicleFormData {
   }[];
 }
 
-
 const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
   open,
   onOpenChange,
@@ -166,12 +175,11 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
     }
 
     if (isIVehicle(vehicleData)) {
-      const docsArray =
-        Array.isArray((vehicleData as any).DocumentsCopy)
-          ? ((vehicleData as any).DocumentsCopy as string[])
-          : Array.isArray((vehicleData as any).documents)
-            ? ((vehicleData as any).documents as string[])
-            : [];
+      const docsArray = Array.isArray((vehicleData as any).DocumentsCopy)
+        ? ((vehicleData as any).DocumentsCopy as string[])
+        : Array.isArray((vehicleData as any).documents)
+          ? ((vehicleData as any).documents as string[])
+          : [];
 
       if (relatedDeal) {
         return {
@@ -235,49 +243,52 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
     getValues,
     setValue,
   } = useForm<VehicleFormData>({
+    mode: "onChange",
     defaultValues: convertVehicleToCarRes
       ? {
-        RowNo: convertVehicleToCarRes.RowNo || "",
-        CarModel: convertVehicleToCarRes.CarModel || "",
-        SaleAmount: parsePriceToNumber(convertVehicleToCarRes.SaleAmount) || "",
-        PurchaseAmount: parsePriceToNumber(convertVehicleToCarRes.PurchaseAmount) || "",
-        LicensePlate: convertVehicleToCarRes.LicensePlate || "",
-        ChassisNo: convertVehicleToCarRes.ChassisNo || "",
-        SellerName: convertVehicleToCarRes.SellerName || "",
-        BuyerName: convertVehicleToCarRes.BuyerName || "",
-        SaleDate: convertVehicleToCarRes.SaleDate || "",
-        PurchaseDate: convertVehicleToCarRes.PurchaseDate || "",
-        SellerMobile: convertVehicleToCarRes.SellerMobile || "",
-        BuyerMobile: convertVehicleToCarRes.BuyerMobile || "",
-        PurchaseBroker: convertVehicleToCarRes.PurchaseBroker || "",
-        SaleBroker: convertVehicleToCarRes.SaleBroker || "",
-        Secretary: convertVehicleToCarRes.Secretary || "",
-        SecretaryName: convertVehicleToCarRes.SecretaryName || "",
-        DocumentsCopy: convertVehicleToCarRes.DocumentsCopy || [],
-        SellerNationalID: convertVehicleToCarRes.SellerNationalID || "",
-        BuyerNationalID: convertVehicleToCarRes.BuyerNationalID || "",
-      }
+          RowNo: convertVehicleToCarRes.RowNo || "",
+          CarModel: convertVehicleToCarRes.CarModel || "",
+          SaleAmount:
+            parsePriceToNumber(convertVehicleToCarRes.SaleAmount) || "",
+          PurchaseAmount:
+            parsePriceToNumber(convertVehicleToCarRes.PurchaseAmount) || "",
+          LicensePlate: convertVehicleToCarRes.LicensePlate || "",
+          ChassisNo: convertVehicleToCarRes.ChassisNo || "",
+          SellerName: convertVehicleToCarRes.SellerName || "",
+          BuyerName: convertVehicleToCarRes.BuyerName || "",
+          SaleDate: convertVehicleToCarRes.SaleDate || "",
+          PurchaseDate: convertVehicleToCarRes.PurchaseDate || "",
+          SellerMobile: convertVehicleToCarRes.SellerMobile || "",
+          BuyerMobile: convertVehicleToCarRes.BuyerMobile || "",
+          PurchaseBroker: convertVehicleToCarRes.PurchaseBroker || "",
+          SaleBroker: convertVehicleToCarRes.SaleBroker || "",
+          Secretary: convertVehicleToCarRes.Secretary || "",
+          SecretaryName: convertVehicleToCarRes.SecretaryName || "",
+          DocumentsCopy: convertVehicleToCarRes.DocumentsCopy || [],
+          SellerNationalID: convertVehicleToCarRes.SellerNationalID || "",
+          BuyerNationalID: convertVehicleToCarRes.BuyerNationalID || "",
+        }
       : {
-        RowNo: "",
-        CarModel: "",
-        SaleAmount: "",
-        PurchaseAmount: "",
-        LicensePlate: "",
-        ChassisNo: "",
-        SellerName: "",
-        BuyerName: "",
-        SaleDate: "",
-        PurchaseDate: "",
-        SellerMobile: "",
-        BuyerMobile: "",
-        PurchaseBroker: "",
-        SaleBroker: "",
-        Secretary: "",
-        SecretaryName: "",
-        DocumentsCopy: [],
-        SellerNationalID: "",
-        BuyerNationalID: "",
-      },
+          RowNo: "",
+          CarModel: "",
+          SaleAmount: "",
+          PurchaseAmount: "",
+          LicensePlate: "",
+          ChassisNo: "",
+          SellerName: "",
+          BuyerName: "",
+          SaleDate: "",
+          PurchaseDate: "",
+          SellerMobile: "",
+          BuyerMobile: "",
+          PurchaseBroker: "",
+          SaleBroker: "",
+          Secretary: "",
+          SecretaryName: "",
+          DocumentsCopy: [],
+          SellerNationalID: "",
+          BuyerNationalID: "",
+        },
   });
 
   React.useEffect(() => {
@@ -291,7 +302,9 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
   React.useEffect(() => {
     if (mode === "edit") {
       if (convertVehicleToCarRes) {
-        const purchaseNum = parsePriceToNumber(convertVehicleToCarRes.PurchaseAmount);
+        const purchaseNum = parsePriceToNumber(
+          convertVehicleToCarRes.PurchaseAmount,
+        );
         const saleNum = parsePriceToNumber(convertVehicleToCarRes.SaleAmount);
         reset({
           RowNo: convertVehicleToCarRes.RowNo || "",
@@ -372,7 +385,9 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
   //   return result;
   // }
 
-  const onSubmit: SubmitHandler<VehicleFormData> = async (data: VehicleFormData & { DocumentsCopy: string[] }) => {
+  const onSubmit: SubmitHandler<VehicleFormData> = async (
+    data: VehicleFormData & { DocumentsCopy: string[] },
+  ) => {
     try {
       //   const vehiclePayload: Partial<IVehicle> = {
       //     vin: data?.ChassisNo,
@@ -408,10 +423,14 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
             ? "کامل"
             : "ناقص";
       vehiclePayload.documents = docStatus;
+      vehiclePayload.DocumentsCopy = cleanedDocs;
 
-      if (dirtyFields.DocumentsCopy) {
-        vehiclePayload.DocumentsCopy = cleanedDocs;
-      }
+      // if (dirtyFields.DocumentsCopy) {
+      //   vehiclePayload.DocumentsCopy = cleanedDocs;
+      // }
+      // if (data.DocumentsCopy && data.DocumentsCopy.length > 0) {
+      //   vehiclePayload.DocumentsCopy = cleanedDocs;
+      // }
 
       if (dirtyFields.CarModel) vehiclePayload.model = data.CarModel;
 
@@ -463,6 +482,14 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
           fullName: purchaseBroke
             ? `${purchaseBroke.firstName} ${purchaseBroke.lastName}`
             : data?.PurchaseBrokerName,
+          personId:
+            purchaseBroke?._id ?? relatedDeal?.purchaseBroker.personId ?? "",
+          commissionPercent:
+            purchaseBroke?.brokerDetails.currentRates
+              .purchaseCommissionPercent ||
+            relatedDeal?.purchaseBroker.commissionPercent ||
+            0,
+          commissionAmount: relatedDeal?.purchaseBroker.commissionAmount || "0",
         };
       }
 
@@ -471,6 +498,12 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
           fullName: saleBroke
             ? `${saleBroke.firstName} ${saleBroke.lastName}`
             : data?.SaleBrokerName,
+          personId: saleBroke?._id ?? relatedDeal?.saleBroker.personId ?? "",
+          commissionPercent:
+            saleBroke?.brokerDetails.currentRates.purchaseCommissionPercent ||
+            relatedDeal?.saleBroker.commissionPercent ||
+            0,
+          commissionAmount: relatedDeal?.saleBroker.commissionAmount || "0",
         };
       }
 
@@ -570,20 +603,27 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
       // };
 
       if (mode === "edit" && vehicleData?._id) {
-        let vehicleId: string =
-          isIVehicle(vehicleData) ? vehicleData._id?.toString?.() ?? String(vehicleData._id) : String(vehicleData._id);
+        let vehicleId: string = isIVehicle(vehicleData)
+          ? (vehicleData._id?.toString?.() ?? String(vehicleData._id))
+          : String(vehicleData._id);
         if (!isMongoObjectId(vehicleId)) {
-          const vin = isIVehicle(vehicleData) ? vehicleData.vin : (vehicleData as any).ChassisNo;
+          const vin = isIVehicle(vehicleData)
+            ? vehicleData.vin
+            : (vehicleData as any).ChassisNo;
           if (vin) {
             try {
               const byVin = await getVehicleByVin(vin);
-              const realId = (byVin as any)?._id?.toString?.() ?? (byVin as any)?._id;
-              if (realId && isMongoObjectId(String(realId))) vehicleId = String(realId);
-            } catch (_) { }
+              const realId =
+                (byVin as any)?._id?.toString?.() ?? (byVin as any)?._id;
+              if (realId && isMongoObjectId(String(realId)))
+                vehicleId = String(realId);
+            } catch (_) {}
           }
         }
         if (!isMongoObjectId(vehicleId)) {
-          toast.error("شناسه خودرو نامعتبر است. لطفاً از لیست خودروها ویرایش کنید.");
+          toast.error(
+            "شناسه خودرو نامعتبر است. لطفاً از لیست خودروها ویرایش کنید.",
+          );
           return;
         }
         const res = await updateVehicle.mutateAsync({
@@ -600,6 +640,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
         }
         await getAllDeals.mutateAsync();
         queryClient.invalidateQueries({ queryKey: ["get-all-vehicles"] });
+        queryClient.invalidateQueries({ queryKey: ["get-vehicles"] });
         queryClient.invalidateQueries({ queryKey: ["get-deals-by-vin"] });
 
         toast("اطلاعات با موفقیت به‌روزرسانی شد", {
@@ -635,7 +676,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
       <DialogContent className="!max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogClose onClose={() => onOpenChange(false)} />
         <DialogHeader>
-          <DialogTitle className="text-right">
+          <DialogTitle className="text-right text-lg">
             {mode === "edit" ? "ویرایش اطلاعات خودرو" : "افزودن خودرو جدید"}
           </DialogTitle>
         </DialogHeader>
@@ -646,7 +687,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
           className="mt-4 space-y-4"
         >
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
+            <div className="space-y-1 flex flex-col opacity-60">
               <label className="text-sm font-medium text-gray-700">
                 شماره شاسی
               </label>
@@ -655,6 +696,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                 {...register("ChassisNo", {
                   required: "شماره شاسی الزامی است",
                 })}
+                disabled
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
               />
               {errors.ChassisNo && (
@@ -663,7 +705,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                 </p>
               )}
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 مدل ماشین
               </label>
@@ -679,21 +721,38 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               )}
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 flex flex-col opacity-60">
               <label className="text-sm font-medium text-gray-700">پلاک</label>
-              <input
+              <Controller
+                name="LicensePlate"
+                control={control}
+                rules={{ required: "پلاک الزامی است" }}
+                render={({ field }) => (
+                  <PlateComponent
+                    initialValue={field.value}
+                    onChange={field.onChange}
+                    disabled={true}
+                  />
+                )}
+                disabled={true}
+              />
+              {/* <input
                 type="text"
                 {...register("LicensePlate")}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              />
+              /> */}
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">منشی</label>
               <Controller
                 name="Secretary"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "Secretary"> }) => {
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<VehicleFormData, "Secretary">;
+                }) => {
                   return (
                     <PersonSelect
                       value={field.value}
@@ -713,14 +772,21 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               />
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 کارگزار خرید
               </label>
               <Controller
                 name="PurchaseBroker"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "PurchaseBroker"> }) => {
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    VehicleFormData,
+                    "PurchaseBroker"
+                  >;
+                }) => {
                   return (
                     <PersonSelect
                       value={field.value}
@@ -748,14 +814,18 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               )}
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 کارگزار فروش
               </label>
               <Controller
                 name="SaleBroker"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "SaleBroker"> }) => {
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<VehicleFormData, "SaleBroker">;
+                }) => {
                   return (
                     <PersonSelect
                       value={field.value}
@@ -783,20 +853,50 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               )}
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 مبلغ خرید
               </label>
               <Controller
                 name="PurchaseAmount"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "PurchaseAmount"> }) => (
+                render={({ field }) => (
                   <input
                     type="text"
                     inputMode="numeric"
-                    value={field.value === "" || field.value == null ? "" : formatPrice(field.value)}
+                    value={field.value ? formatPrice(field.value) : ""}
                     onChange={(e) => {
-                      const raw = e.target.value.replace(/,/g, "").replace(/\s/g, "");
+                      const raw = e.target.value.replace(/[^\d]/g, "");
+                      field.onChange(raw === "" ? "" : Number(raw));
+                    }}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  />
+                )}
+              />
+
+              {/* <Controller
+                name="PurchaseAmount"
+                control={control}
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    VehicleFormData,
+                    "PurchaseAmount"
+                  >;
+                }) => (
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={
+                      field.value === "" || field.value == null
+                        ? ""
+                        : formatPrice(field.value)
+                    }
+                    onChange={(e) => {
+                      const raw = e.target.value
+                        .replace(/,/g, "")
+                        .replace(/\s/g, "");
                       field.onChange(raw === "" ? "" : raw);
                     }}
                     onBlur={() => {
@@ -809,22 +909,49 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                   />
                 )}
-              />
+              /> */}
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 مبلغ فروش
               </label>
+
               <Controller
                 name="SaleAmount"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "SaleAmount"> }) => (
+                render={({ field }) => (
                   <input
                     type="text"
                     inputMode="numeric"
-                    value={field.value === "" || field.value == null ? "" : formatPrice(field.value)}
+                    value={field.value ? formatPrice(field.value) : ""}
                     onChange={(e) => {
-                      const raw = e.target.value.replace(/,/g, "").replace(/\s/g, "");
+                      const raw = e.target.value.replace(/[^\d]/g, "");
+                      field.onChange(raw === "" ? "" : Number(raw));
+                    }}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  />
+                )}
+              />
+              {/* <Controller
+                name="SaleAmount"
+                control={control}
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<VehicleFormData, "SaleAmount">;
+                }) => (
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={
+                      field.value === "" || field.value == null
+                        ? ""
+                        : formatPrice(field.value)
+                    }
+                    onChange={(e) => {
+                      const raw = e.target.value
+                        .replace(/,/g, "")
+                        .replace(/\s/g, "");
                       field.onChange(raw === "" ? "" : raw);
                     }}
                     onBlur={() => {
@@ -837,10 +964,10 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                   />
                 )}
-              />
+              /> */}
             </div>
 
-            {/* <div className="space-y-1">
+            {/* <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 نام فروشنده
               </label>
@@ -874,7 +1001,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               )}
             </div> */}
             {/* 
-            <div className="space-y-1">
+            <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 کد ملی فروشنده
               </label>
@@ -885,7 +1012,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               />
             </div> */}
 
-            {/* <div className="space-y-1">
+            {/* <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 موبایل فروشنده
               </label>
@@ -896,7 +1023,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               />
             </div> */}
 
-            {/* <div className="space-y-1">
+            {/* <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 نام خریدار
               </label>
@@ -929,7 +1056,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               )}
             </div> */}
 
-            {/* <div className="space-y-1">
+            {/* <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 کد ملی خریدار
               </label>
@@ -940,7 +1067,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               />
             </div> */}
 
-            {/* <div className="space-y-1">
+            {/* <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 موبایل خریدار
               </label>
@@ -951,7 +1078,7 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               />
             </div> */}
 
-            <div className="space-y-1">
+            <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 تاریخ خرید
               </label>
@@ -962,12 +1089,14 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               /> */}
               <PersianDatePicker
                 value={getValues().PurchaseDate}
-                onChange={(date: string) => setValue("PurchaseDate", date)}
+                onChange={(date: string) =>
+                  setValue("PurchaseDate", date, { shouldDirty: true })
+                }
                 placeholder="تاریخ خرید"
               />
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 تاریخ فروش
               </label>
@@ -978,13 +1107,14 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               /> */}
               <PersianDatePicker
                 value={getValues().SaleDate}
-                onChange={(date: string) => setValue("SaleDate", date)}
+                onChange={(date: string) =>
+                  setValue("SaleDate", date, { shouldDirty: true })
+                }
                 placeholder="تاریخ فروش"
               />
             </div>
 
-
-            <div className="space-y-1">
+            <div className="space-y-1 flex flex-col">
               <label className="text-sm font-medium text-gray-700">
                 کپی مدارک
               </label>
@@ -1027,7 +1157,14 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
               <Controller
                 name="DocumentsCopy"
                 control={control}
-                render={({ field }: { field: ControllerRenderProps<VehicleFormData, "DocumentsCopy"> }) => {
+                render={({
+                  field,
+                }: {
+                  field: ControllerRenderProps<
+                    VehicleFormData,
+                    "DocumentsCopy"
+                  >;
+                }) => {
                   const toggleItem = (item: string) => {
                     if (field.value?.includes(item)) {
                       field.onChange(
@@ -1077,10 +1214,19 @@ const VehicleFormModal: React.FC<VehicleFormModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={createVehicle.isPending || mode === "edit" && updateVehicle.isPending}
+              disabled={
+                createVehicle.isPending ||
+                (mode === "edit" && updateVehicle.isPending)
+              }
               className="px-4 py-2 text-sm font-medium text-white bg-indigo-500 rounded-md hover:bg-indigo-600"
             >
-              {mode === "edit" && updateVehicle.isPending ? "در حال به‌روزرسانی..." : mode === "edit" ? "ذخیره تغییرات" : createVehicle.isPending ? "در حال ثبت..." : "ثبت اطلاعات"}
+              {mode === "edit" && updateVehicle.isPending
+                ? "در حال به‌روزرسانی..."
+                : mode === "edit"
+                  ? "ذخیره تغییرات"
+                  : createVehicle.isPending
+                    ? "در حال ثبت..."
+                    : "ثبت اطلاعات"}
             </button>
           </div>
         </form>

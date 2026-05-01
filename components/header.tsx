@@ -6,7 +6,7 @@ import useGetTransactionByDealId from "@/hooks/useGetTransactionByDealId";
 import useGetChequesByDealId from "@/hooks/useGetChequesByDealId";
 import { setChassisNo, setSelectedDealId } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
-import { IDeal, IChequeNew, IPeople } from "@/types/new-backend-types";
+import { IDeal, IChequeNew, IPeople, IOptions } from "@/types/new-backend-types";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -23,11 +23,21 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useGetPersonById } from "@/apis/mutations/people";
 import { formatPrice } from "@/utils/systemConstants";
+import OptionList from "./modals/optionList";
+import {
+  peopleStatus,
+  setNetProfit,
+  setTotalCommissionPurchase,
+  setTotalCommissionSale,
+} from "@/redux/slices/transactionSlice";
+import { useVehicleFinancialStatus } from "@/hooks/useVehicleFinancialStatus";
+import useGetProfit from "@/hooks/useGetProfit";
 
 const Header = () => {
   const { chassisNo: chassisNoSaved } = useSelector(
     (state: RootState) => state.cars,
   );
+  // const { peopleStatus } = useSelector((state: RootState) => state.transaction);
   const router = useRouter();
   const logout = useLogout();
   const queryClient = useQueryClient();
@@ -36,40 +46,58 @@ const Header = () => {
 
   const vin = vehicles?.map((vehicle) => vehicle.vin);
 
-  const getDealsByVin = useGetDealsByVin(chassisNoSaved);
+  // const getDealsByVin = useGetDealsByVin(chassisNoSaved);
 
   const getPersonById = useGetPersonById();
 
-  const dealsData = getDealsByVin.data;
-  const allDeals = React.useMemo(() => {
-    if (!dealsData) return [];
-    if (Array.isArray(dealsData)) return dealsData;
-    return [dealsData];
-  }, [dealsData]);
+  // const dealsData = getDealsByVin.data;
+  // const allDeals = React.useMemo(() => {
+  //   if (!dealsData) return [];
+  //   if (Array.isArray(dealsData)) return dealsData;
+  //   return [dealsData];
+  // }, [dealsData]);
 
   const [selectedDeal, setSelectedDeal] = React.useState<IDeal | null>(null);
   const [showDealModal, setShowDealModal] = React.useState(false);
   const [buyerInfo, setBuyerInfo] = React.useState<IPeople | null>(null);
   const [sellerInfo, setSellerInfo] = React.useState<IPeople | null>(null);
+  const [isOpenOptionList, setIsOpenOptionList] = React.useState(false);
 
-  React.useEffect(() => {
-    if (allDeals.length === 1) {
-      setSelectedDeal(allDeals[0]);
-      setShowDealModal(false);
-    } else if (allDeals.length > 1) {
-      if (!selectedDeal) {
-        setShowDealModal(true);
-      }
-    } else {
-      setSelectedDeal(null);
-    }
-  }, [allDeals, selectedDeal]);
+  const { peopleStatus } = useVehicleFinancialStatus();
+  const {
+    buyAmountWithPercent,
+    deal,
+    grossProfit,
+    halfProfit,
+    isLoading,
+    lastGrossProfit,
+    lastNetProfit,
+    netProfit,
+    sellAmountWithPercent,
+    totalOptionsDeals,
+    totalOtherCosts,
+    transactions,
+    allDeals,
+  } = useGetProfit();
 
-  const deals = selectedDeal || allDeals[0] || null;
+  // React.useEffect(() => {
+  //   if (allDeals.length === 1) {
+  //     setSelectedDeal(allDeals[0]);
+  //     setShowDealModal(false);
+  //   } else if (allDeals.length > 1) {
+  //     if (!selectedDeal) {
+  //       setShowDealModal(true);
+  //     }
+  //   } else {
+  //     setSelectedDeal(null);
+  //   }
+  // }, [allDeals, selectedDeal]);
 
-  const dealId = deals?._id?.toString();
-  const getTransactionByDealId = useGetTransactionByDealId(dealId);
-  const transactions = getTransactionByDealId.data || [];
+  // const deals = selectedDeal || allDeals[0] || null;
+
+  const dealId = deal?._id?.toString();
+  // const getTransactionByDealId = useGetTransactionByDealId(dealId);
+  // const transactions = getTransactionByDealId.data || [];
 
   const getChequesByDealId = useGetChequesByDealId(dealId);
   const cheques: IChequeNew[] = Array.isArray(getChequesByDealId.data)
@@ -80,9 +108,7 @@ const Header = () => {
 
   const getSellerInfoById = async () => {
     try {
-      const res = await getPersonById.mutateAsync(
-        deals?.seller?.personId ?? "",
-      );
+      const res = await getPersonById.mutateAsync(deal?.seller?.personId ?? "");
       setSellerInfo(res);
     } catch (error) {
       console.error("error:", error);
@@ -91,7 +117,7 @@ const Header = () => {
 
   const getBuyerInfoById = async () => {
     try {
-      const res = await getPersonById.mutateAsync(deals?.buyer?.personId ?? "");
+      const res = await getPersonById.mutateAsync(deal?.buyer?.personId ?? "");
       setBuyerInfo(res);
     } catch (error) {
       console.error("error:", error);
@@ -134,57 +160,88 @@ const Header = () => {
     }
   };
 
-  const otherCostCategories =
-    deals?.directCosts?.otherCost?.map((cost) => cost.category) || [];
-  const otherCostsFromDirectCosts =
-    deals?.directCosts?.otherCost?.reduce(
-      (sum, cost) => sum + (cost.cost || 0),
-      0,
-    ) || 0;
-  const otherCostsFromTransactions =
-    transactions
-      ?.filter(
-        (t) =>
-          t.type === "پرداخت" &&
-          otherCostCategories.some((category) => t.reason === category),
-      )
-      .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  const otherOptionsTransaction =
-    transactions
-      .filter((el) => el.reason === "سایر هزینه‌ها")
-      .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
-  const totalOtherCosts =
-    otherCostsFromDirectCosts +
-    otherCostsFromTransactions +
-    otherOptionsTransaction;
+  // const otherCostCategories =
+  //   deals?.directCosts?.otherCost?.map((cost) => cost.category) || [];
+  // const otherCostsFromDirectCosts =
+  //   deals?.directCosts?.otherCost?.reduce(
+  //     (sum, cost) => sum + (cost.cost || 0),
+  //     0,
+  //   ) || 0;
+  // const otherCostsFromTransactions =
+  //   transactions
+  //     ?.filter(
+  //       (t) =>
+  //         t.type === "پرداخت" &&
+  //         otherCostCategories.some((category) => t.reason === category),
+  //     )
+  //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
 
-  let lastGrossProfit: number | null = null;
-  if (deals?.purchasePrice && deals?.salePrice) {
-    lastGrossProfit = (deals?.salePrice ?? 0) - (deals?.purchasePrice ?? 0);
-  }
+  // const otherOptionsTransaction =
+  //   transactions
+  //     .filter((el) => el.reason === "سایر هزینه‌ها")
+  //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
 
-  let grossProfit: number | null = null;
-  if (deals?.purchasePrice || deals?.salePrice) {
-    grossProfit = (deals.salePrice ?? 0) - (deals.purchasePrice ?? 0);
-  }
+  // const totalOtherCosts =
+  //   otherCostsFromDirectCosts +
+  //   otherCostsFromTransactions +
+  //   otherOptionsTransaction;
 
-  let buyAmountWithPercent: number | null = null;
-  let sellAmountWithPercent: number | null = null;
+  // const totalOptionsDeals =
+  //   deals?.directCosts?.options?.reduce(
+  //     (sum, cost) => sum + (Number(cost.cost) || 0),
+  //     0,
+  //   ) || 0;
 
-  const buyAmountWithoutPercent = (deals?.purchasePrice ?? 0) - totalOtherCosts;
-  const sellAmountWithoutPercent = (deals?.salePrice ?? 0) - totalOtherCosts;
+  // let lastGrossProfit: number | null = null;
+  // if (deals?.purchasePrice && deals?.salePrice) {
+  //   lastGrossProfit = (deals?.salePrice ?? 0) - (deals?.purchasePrice ?? 0);
+  // }
 
-  buyAmountWithPercent =
-    (buyAmountWithoutPercent *
-      parseFloat(String(deals?.purchaseBroker?.commissionPercent || 0))) /
-    100;
+  // let halfProfit: number | null = null;
+  // halfProfit =
+  //   (lastGrossProfit || 0) -
+  //   totalOptionsDeals -
+  //   // sellAmountWithPercent -
+  //   // buyAmountWithPercent -
+  //   totalOtherCosts;
 
-  sellAmountWithPercent =
-    (sellAmountWithoutPercent *
-      parseFloat(String(deals?.saleBroker?.commissionPercent || 0))) /
-    100;
+  // let grossProfit: number | null = null;
+  // if (deals?.purchasePrice || deals?.salePrice) {
+  //   grossProfit = (deals.salePrice ?? 0) - (deals.purchasePrice ?? 0);
+  // }
 
+  // let buyAmountWithPercent: number | null = null;
+  // let sellAmountWithPercent: number | null = null;
+
+  // const buyAmountWithoutPercent = (deals?.purchasePrice ?? 0) - totalOtherCosts;
+  // const sellAmountWithoutPercent = (deals?.salePrice ?? 0) - totalOtherCosts;
+
+  // const isLastCalculate = process.env.NEXT_PUBLIC_PROFIT_CALCULATE;
+
+  // if (isLastCalculate) {
+  //   buyAmountWithPercent =
+  //     (buyAmountWithoutPercent *
+  //       parseFloat(String(deals?.purchaseBroker?.commissionPercent || 0))) /
+  //     100;
+
+  //   sellAmountWithPercent =
+  //     (sellAmountWithoutPercent *
+  //       parseFloat(String(deals?.saleBroker?.commissionPercent || 0))) /
+  //     100;
+  // } else {
+  //   buyAmountWithPercent =
+  //     (halfProfit *
+  //       parseFloat(String(deals?.purchaseBroker?.commissionPercent || 0))) /
+  //     100;
+  //   sellAmountWithPercent =
+  //     (halfProfit *
+  //       parseFloat(String(deals?.saleBroker?.commissionPercent || 0))) /
+  //     100;
+  // }
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // const buyPercent = deals?.purchaseBroker?.commissionPercent
   //   ? parseFloat(String(deals.purchaseBroker.commissionPercent)) * 100
   //   : 0;
@@ -205,70 +262,93 @@ const Header = () => {
   //       parseFloat(String(deals?.saleBroker?.commissionPercent || 0))) /
   //     100;
   // }
-  if (deals?.salePrice == null) {
-    const amountWithoutPercent = (deals?.purchasePrice ?? 0) - totalOtherCosts;
-    buyAmountWithPercent =
-      (amountWithoutPercent *
-        parseFloat(String(deals?.purchaseBroker?.commissionPercent || 0))) /
-      100;
-  }
 
-  let netProfit: number | null = null;
-  if (grossProfit !== null) {
-    const totalBrokerCommissions =
-      (buyAmountWithPercent || 0) + (sellAmountWithPercent || 0);
-    netProfit = grossProfit - (totalOtherCosts + totalBrokerCommissions);
-  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // if (deals?.salePrice == null) {
+  //   const amountWithoutPercent = (deals?.purchasePrice ?? 0) - totalOtherCosts;
+  //   buyAmountWithPercent =
+  //     (amountWithoutPercent *
+  //       parseFloat(String(deals?.purchaseBroker?.commissionPercent || 0))) /
+  //     100;
+  // }
 
-  let lastNetProfit: number | null = null;
+  // let netProfit: number | null = null;
+  // if (grossProfit !== null) {
+  //   const totalBrokerCommissions =
+  //     (buyAmountWithPercent || 0) + (sellAmountWithPercent || 0);
+  //   netProfit = grossProfit - (totalOtherCosts + totalBrokerCommissions);
+  // }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  // let lastNetProfit: number | null = null;
   // if (lastGrossProfit !== null && deals?.salePrice) {
   //   const totalBrokerCommissions =
   //     (buyAmountWithPercent || 0) + (sellAmountWithPercent || 0);
   //   lastNetProfit =
   //     lastGrossProfit - (totalOtherCosts + totalBrokerCommissions);
   // }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if (lastGrossProfit !== null && deals?.salePrice) {
-    lastNetProfit =
-      lastGrossProfit -
-      totalOtherCosts -
-      sellAmountWithPercent -
-      buyAmountWithPercent;
-  }
+  // if (isLastCalculate) {
+  //   if (lastGrossProfit !== null && deals?.salePrice) {
+  //     lastNetProfit =
+  //       lastGrossProfit -
+  //       totalOtherCosts -
+  //       sellAmountWithPercent -
+  //       buyAmountWithPercent -
+  //       totalOptionsDeals;
+  //   }
+  // } else {
+  //   if (lastGrossProfit !== null && deals?.salePrice) {
+  //     lastNetProfit = halfProfit - buyAmountWithPercent - sellAmountWithPercent;
+  //   }
+  // }
 
-  const isChequePaid = (cheque: IChequeNew): boolean => {
-    const paidStatuses = ["paid", "پاس شده", "وصول شده", "پاس شده است"];
-    return paidStatuses.some((status) =>
-      cheque.status?.toLowerCase().includes(status.toLowerCase()),
-    );
-  };
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  const isIssuedCheque = (cheque: IChequeNew): boolean => {
-    return (
-      cheque.type === "issued" ||
-      cheque.type === "صادره" ||
-      cheque.type?.toLowerCase().includes("issued") ||
-      cheque.type?.toLowerCase().includes("صادره")
-    );
-  };
+  React.useEffect(() => {
+    dispatch(setNetProfit(lastNetProfit || 0));
+  }, [chassisNoSaved, lastNetProfit]);
 
-  const isReceivedCheque = (cheque: IChequeNew): boolean => {
-    return (
-      cheque.type === "received" ||
-      cheque.type === "وارده" ||
-      cheque.type?.toLowerCase().includes("received") ||
-      cheque.type?.toLowerCase().includes("وارده")
-    );
-  };
+  // const isChequePaid = (cheque: IChequeNew): boolean => {
+  //   const paidStatuses = [
+  //     "paid",
+  //     "پاس شده",
+  //     "وصول شده",
+  //     "پاس شده است",
+  //     "خرج شده",
+  //   ];
+  //   return paidStatuses.some((status) =>
+  //     cheque.status?.toLowerCase().includes(status.toLowerCase()),
+  //   );
+  // };
 
-  const paymentsToSeller =
-    transactions
-      ?.filter(
-        (t) =>
-          t.type === "پرداخت" &&
-          (t.reason === "خرید خودرو" || t.reason?.includes("خرید")),
-      )
-      .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+  // const isIssuedCheque = (cheque: IChequeNew): boolean => {
+  //   return (
+  //     cheque.type === "issued" ||
+  //     cheque.type === "صادره" ||
+  //     cheque.type?.toLowerCase().includes("issued") ||
+  //     cheque.type?.toLowerCase().includes("صادره")
+  //   );
+  // };
+
+  // const isReceivedCheque = (cheque: IChequeNew): boolean => {
+  //   return (
+  //     cheque.type === "received" ||
+  //     cheque.type === "وارده" ||
+  //     cheque.type?.toLowerCase().includes("received") ||
+  //     cheque.type?.toLowerCase().includes("وارده")
+  //   );
+  // };
+
+  // const paymentsToSeller =
+  //   transactions
+  //     ?.filter(
+  //       (t) =>
+  //         t.type === "پرداخت" &&
+  //         (t.reason === "خرید خودرو" || t.reason?.includes("خرید")),
+  //     )
+  //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
 
   // transactions
   //   ?.filter(
@@ -279,64 +359,106 @@ const Header = () => {
   //         t.reason?.includes("خرید")),
   //   )
   //   .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
-  const issuedPaidCheques =
-    cheques
-      ?.filter(
-        (c) =>
-          isIssuedCheque(c) &&
-          isChequePaid(c) &&
-          c.payee?.personId?.toString() === deals?.seller?.personId?.toString(),
-      )
-      .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
-  const totalPaidToSeller = paymentsToSeller + issuedPaidCheques;
-  const sellerSettlementAmount = deals?.purchasePrice || 0;
-  const SETTLEMENT_TOLERANCE = 10000;
-  const sellerSettlementStatus = React.useMemo(() => {
-    if (!deals?.purchasePrice) return "—";
-    const diff = Math.abs(totalPaidToSeller - sellerSettlementAmount);
-    if (diff < SETTLEMENT_TOLERANCE) return "تسویه شده";
-    return totalPaidToSeller > sellerSettlementAmount ? "بدهکار" : "بستانکار";
-  }, [totalPaidToSeller, sellerSettlementAmount, deals?.purchasePrice]);
+  // const issuedPaidCheques =
+  //   cheques
+  //     ?.filter(
+  //       (c) =>
+  //         isIssuedCheque(c) &&
+  //         isChequePaid(c) &&
+  //         c.payee?.personId?.toString() === deals?.seller?.personId?.toString(),
+  //     )
+  //     .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
+  // const totalPaidToSeller = paymentsToSeller + issuedPaidCheques;
+  // const sellerSettlementAmount = deals?.purchasePrice || 0;
+  // const SETTLEMENT_TOLERANCE = 10000;
+  // const sellerSettlementStatus = React.useMemo(() => {
+  //   if (!deals?.purchasePrice) return "—";
+  //   const diff = Math.abs(totalPaidToSeller - sellerSettlementAmount);
+  //   console.log("🚀 ~ Header ~ diff:", diff);
+  //   if (diff < SETTLEMENT_TOLERANCE) return "تسویه شده";
+  //   console.log("🚀 ~ Header ~ totalPaidToSeller:", totalPaidToSeller);
+  //   return totalPaidToSeller > sellerSettlementAmount ? "بدهکار" : "بستانکار";
+  // }, [totalPaidToSeller, sellerSettlementAmount, deals?.purchasePrice]);
 
-  const receiptsFromBuyer =
-    transactions
-      ?.filter(
-        (t) =>
-          t.type === "دریافت" &&
-          (t.reason === "فروش خودرو" || t.reason?.includes("فروش")),
-      )
-      .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+  // const sellerSettlementStatus = React.useMemo(() => {
+  //   if (!deals?.purchasePrice) return "—";
 
-  const receivedPaidCheques =
-    cheques
-      ?.filter(
-        (c) =>
-          isReceivedCheque(c) &&
-          isChequePaid(c) &&
-          c.payer?.personId?.toString() === deals?.buyer?.personId?.toString(),
-      )
-      .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
-  const totalReceivedFromBuyer = receiptsFromBuyer + receivedPaidCheques;
-  const buyerSettlementAmount = deals?.salePrice || 0;
-  const buyerSettlementStatus = React.useMemo(() => {
-    if (!deals?.salePrice) return "—";
-    const diff = Math.abs(totalReceivedFromBuyer - buyerSettlementAmount);
-    if (diff < SETTLEMENT_TOLERANCE) return "تسویه شده";
-    return totalReceivedFromBuyer < buyerSettlementAmount
-      ? "بدهکار"
-      : "بستانکار";
-  }, [totalReceivedFromBuyer, buyerSettlementAmount, deals?.salePrice]);
+  //   const diff = totalPaidToSeller - sellerSettlementAmount;
+
+  //   if (Math.abs(diff) < SETTLEMENT_TOLERANCE) return "تسویه شده";
+
+  //   return diff > 0 ? "بستانکار" : "بدهکار";
+  // }, [totalPaidToSeller, sellerSettlementAmount, deals?.purchasePrice]);
+
+  // const receiptsFromBuyer =
+  //   transactions
+  //     ?.filter(
+  //       (t) =>
+  //         t.type === "دریافت" &&
+  //         (t.reason === "فروش خودرو" || t.reason?.includes("فروش")),
+  //     )
+  //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+
+  // const receivedPaidCheques =
+  //   cheques
+  //     ?.filter(
+  //       (c) =>
+  //         isReceivedCheque(c) &&
+  //         isChequePaid(c) &&
+  //         c.payer?.personId?.toString() === deals?.buyer?.personId?.toString(),
+  //     )
+  //     .reduce((sum, c) => sum + (c.amount || 0), 0) || 0;
+  // const totalReceivedFromBuyer = receiptsFromBuyer + receivedPaidCheques;
+  // const buyerSettlementAmount = deals?.salePrice || 0;
+  // const buyerSettlementStatus = React.useMemo(() => {
+  //   if (!deals?.salePrice) return "—";
+  //   const diff = Math.abs(totalReceivedFromBuyer - buyerSettlementAmount);
+  //   if (diff < SETTLEMENT_TOLERANCE) return "تسویه شده";
+  //   return totalReceivedFromBuyer < buyerSettlementAmount
+  //     ? "بدهکار"
+  //     : "بستانکار";
+  // }, [totalReceivedFromBuyer, buyerSettlementAmount, deals?.salePrice]);
+
+  // const buyerSettlementStatus = React.useMemo(() => {
+  //   if (!deals?.salePrice) return "—";
+
+  //   const diff = totalReceivedFromBuyer - buyerSettlementAmount;
+
+  //   if (Math.abs(diff) < SETTLEMENT_TOLERANCE) return "تسویه شده";
+
+  //   return diff > 0 ? "بستانکار" : "بدهکار";
+  // }, [totalReceivedFromBuyer, buyerSettlementAmount, deals?.salePrice]);
 
   React.useEffect(() => {
-    if (deals) {
+    if (deal) {
       getSellerInfoById();
       getBuyerInfoById();
     }
-  }, [deals]);
+  }, [deal]);
+
+  React.useEffect(() => {
+    dispatch(
+      setTotalCommissionPurchase({
+        totalCommissionPurchase: buyAmountWithPercent || 0,
+        totalCommissionPurchasePercent: deal?.purchaseBroker?.commissionPercent || 0,
+      }),
+    );
+  }, [buyAmountWithPercent, deal?.purchaseBroker?.commissionPercent]);
+
+  React.useEffect(() => {
+    dispatch(
+      setTotalCommissionSale({
+        totalCommissionSale: sellAmountWithPercent || 0,
+        totalCommissionSalePercent: deal?.saleBroker?.commissionPercent || 0,
+      }),
+    );
+  }, [sellAmountWithPercent, deal?.saleBroker?.commissionPercent]);
+
+  const isCarExist = deal?.buyer ? "فروخته شد" : deal?.seller ? "موجود" : "-";
 
   return (
     <div className="border border-b-2 border-gray-300 rounded flex flex-col gap-2 p-4 pb-2.5 relative">
-      <div className="grid grid-cols-9 gap-3 auto-rows-min items-start justify-start place-items-stretch">
+      <div className="grid grid-cols-10 gap-3 auto-rows-min items-start justify-start place-items-stretch">
         <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm font-bold mb-2 text-blue-900">شاسی:</h3>
           <div className="flex gap-2 items-center">
@@ -348,7 +470,7 @@ const Header = () => {
               className="w-[120px] text-sm"
               searchPlaceholder="جستجوی شماره شاسی..."
             />
-            {allDeals.length > 1 && (
+            {allDeals?.length && allDeals?.length > 1 && (
               <button
                 title="انتخاب معامله"
                 onClick={() => setShowDealModal(true)}
@@ -360,31 +482,38 @@ const Header = () => {
         </div>
         <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">مدل وسیله نقلیه</h3>
-          <h4 className="text-sm">{deals?.vehicleSnapshot?.model ?? "—"}</h4>
+          <h4 className="text-sm">{deal?.vehicleSnapshot?.model ?? "—"}</h4>
           <span className="text-xs text-green-600">
-            {deals?.vehicleSnapshot?.plateNumber ?? "—"}
+            {deal?.vehicleSnapshot?.plateNumber ?? "—"}
           </span>
         </div>
         <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">مبلغ خرید</h3>
           <h4 className="text-sm">
-            {formatPrice(deals?.purchasePrice?.toLocaleString("en-US")) ?? "—"}
+            {formatPrice(deal?.purchasePrice?.toLocaleString("en-US")) ?? "—"}
           </h4>
           <span className="text-sm text-blue-500">
-            {deals?.purchaseDate ?? "—"}
+            {deal?.purchaseDate ?? "—"}
           </span>
         </div>
         <div className="flex flex-col justify-between h-full space-y-1">
           <h3 className="text-sm text-blue-900 font-bold">مبلغ فروش</h3>
           <h4 className="text-sm">
-            {formatPrice(deals?.salePrice?.toLocaleString("en-US")) ?? "—"}
+            {formatPrice(deal?.salePrice?.toLocaleString("en-US")) ?? "—"}
           </h4>
-          <span className="text-sm text-blue-500">
-            {deals?.saleDate ?? "—"}
-          </span>
+          <span className="text-sm text-blue-500">{deal?.saleDate ?? "—"}</span>
         </div>
-        <div className="flex flex-col gap-2 items-right items-center text-sm">
-          <p className="text-sm text-blue-800">مجموع هزینه ها:</p>
+        <div
+          onClick={() => setIsOpenOptionList(true)}
+          className="flex flex-col gap-2 items-start text-sm cursor-pointer"
+        >
+          <p className="text-sm text-blue-800 font-bold">مجموع آپشن ها:</p>
+          <p className="text-sm text-orange-800">
+            {formatPrice(totalOptionsDeals.toLocaleString("en-US")) ?? "—"}
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 items-start text-sm">
+          <p className="text-sm text-blue-800 font-bold">مجموع هزینه ها:</p>
           <p className="text-sm text-orange-800">
             {formatPrice(totalOtherCosts.toLocaleString("en-US")) ?? "—"}
           </p>
@@ -410,12 +539,13 @@ const Header = () => {
           <h3 className="text-sm text-blue-900 font-bold">
             کارگزار خرید:{" "}
             <span className="text-green-700 text-xs">
-              {deals?.purchaseBroker?.commissionPercent > 0
-                ? `${deals?.purchaseBroker?.commissionPercent}%`
+              {deal?.purchaseBroker?.commissionPercent &&
+              deal?.purchaseBroker?.commissionPercent > 0
+                ? `${deal?.purchaseBroker?.commissionPercent}%`
                 : "0%"}
             </span>
           </h3>
-          <p className="text-sm">{deals?.purchaseBroker?.fullName ?? "-"}</p>
+          <p className="text-sm">{deal?.purchaseBroker?.fullName ?? "-"}</p>
           <p dir="ltr" className="text-sm text-green-700 font-bold text-right">
             {formatPrice(buyAmountWithPercent?.toLocaleString("en-US")) ?? "—"}
           </p>
@@ -424,12 +554,13 @@ const Header = () => {
           <h3 className="text-sm text-blue-900 font-bold">
             کارگزار فروش:{" "}
             <span className="text-green-700 text-xs">
-              {deals?.saleBroker?.commissionPercent > 0
-                ? `${deals?.saleBroker?.commissionPercent}%`
+              {deal?.saleBroker?.commissionPercent &&
+              deal?.saleBroker?.commissionPercent > 0
+                ? `${deal?.saleBroker?.commissionPercent}%`
                 : "0%"}
             </span>
           </h3>
-          <p className="text-sm">{deals?.saleBroker?.fullName ?? "-"}</p>
+          <p className="text-sm">{deal?.saleBroker?.fullName ?? "-"}</p>
           <p dir="ltr" className="text-sm text-green-700 font-bold text-right">
             {formatPrice(sellAmountWithPercent?.toLocaleString("en-US")) ?? "—"}
           </p>
@@ -439,16 +570,16 @@ const Header = () => {
             طرف اول: <span></span>
           </h3>
           <p className="text-sm">
-            {deals?.seller?.personId
+            {deal?.seller?.personId
               ? sellerInfo?.firstName || sellerInfo?.lastName
                 ? `${sellerInfo?.firstName} ${sellerInfo?.lastName}`
-                : (sellerInfo?.fullName ?? deals?.seller?.fullName ?? "-")
+                : (sellerInfo?.fullName ?? deal?.seller?.fullName ?? "-")
               : "—"}
           </p>
           <p className="text-sm text-orange-500">
-            {deals?.seller?.personId
+            {deal?.seller?.personId
               ? (sellerInfo?.phoneNumbers?.map((el) => el) ??
-                deals?.seller?.mobile ??
+                deal?.seller?.mobile ??
                 "-")
               : "—"}
           </p>
@@ -458,16 +589,16 @@ const Header = () => {
             طرف دوم: <span></span>
           </h3>
           <p className="text-sm">
-            {deals?.buyer?.personId
+            {deal?.buyer?.personId
               ? buyerInfo?.firstName || buyerInfo?.lastName
                 ? `${buyerInfo?.firstName} ${buyerInfo?.lastName}`
-                : (buyerInfo?.fullName ?? deals?.buyer?.fullName ?? "-")
+                : (buyerInfo?.fullName ?? deal?.buyer?.fullName ?? "-")
               : "—"}
           </p>
           <p className="text-sm text-orange-500">
-            {deals?.buyer?.personId
+            {deal?.buyer?.personId
               ? (buyerInfo?.phoneNumbers?.map((el) => el) ??
-                deals?.buyer?.mobile ??
+                deal?.buyer?.mobile ??
                 "-")
               : "—"}
           </p>
@@ -479,14 +610,14 @@ const Header = () => {
           <p className="text-sm">وضعیت خودرو:</p>
           <p
             className={`px-7 rounded py-1 text-sm ${
-              deals?.buyer
+              deal?.buyer
                 ? "bg-red-400 text-white"
-                : deals?.seller
+                : deal?.seller
                   ? "bg-green-400 text-red-900"
                   : "bg-yellow-400 text-red-900"
             }`}
           >
-            {deals?.buyer ? "فروخته شد" : deals?.seller ? "موجود" : "نامعلوم"}
+            {isCarExist}
           </p>
         </div>
         {/* <div className="flex gap-2 items-right items-center text-sm">
@@ -534,16 +665,17 @@ const Header = () => {
           </p>
           <p
             className={`px-7 rounded py-1 text-sm whitespace-nowrap ${
-              sellerSettlementStatus === "تسویه شده"
+              peopleStatus?.firstParty === "تسویه شده"
                 ? "bg-green-400 text-green-900"
-                : sellerSettlementStatus === "بدهکار"
+                : peopleStatus?.firstParty === "بدهکار"
                   ? "bg-red-400 text-red-900"
-                  : sellerSettlementStatus === "بستانکار"
+                  : peopleStatus?.firstParty === "بستانکار"
                     ? "bg-yellow-400 text-yellow-900"
                     : "bg-gray-200 text-gray-600"
             }`}
           >
-            {sellerSettlementStatus}
+            {/* {sellerSettlementStatus} */}
+            {peopleStatus?.firstParty}
           </p>
         </div>
 
@@ -553,16 +685,22 @@ const Header = () => {
           </p>
           <p
             className={`px-7 rounded py-1 text-sm whitespace-nowrap ${
-              buyerSettlementStatus === "تسویه شده"
-                ? "bg-green-400 text-green-900"
-                : buyerSettlementStatus === "بستانکار"
-                  ? "bg-yellow-400 text-yellow-900"
-                  : buyerSettlementStatus === "بدهکار"
-                    ? "bg-red-400 text-red-900"
-                    : "bg-gray-200 text-gray-600"
+              isCarExist === "موجود" &&
+              peopleStatus?.secondParty === "تسویه شده"
+                ? "bg-gray-100"
+                : peopleStatus?.secondParty === "تسویه شده"
+                  ? "bg-green-400 text-green-900"
+                  : peopleStatus?.secondParty === "بستانکار"
+                    ? "bg-yellow-400 text-yellow-900"
+                    : peopleStatus?.secondParty === "بدهکار"
+                      ? "bg-red-400 text-red-900"
+                      : "bg-gray-200 text-gray-600"
             }`}
           >
-            {buyerSettlementStatus}
+            {/* {buyerSettlementStatus} */}
+            {isCarExist === "موجود" && peopleStatus?.secondParty === "تسویه شده"
+              ? "-"
+              : peopleStatus?.secondParty}
           </p>
         </div>
       </div>
@@ -583,7 +721,7 @@ const Header = () => {
           <DialogClose onClose={() => setShowDealModal(false)} />
           <DialogHeader>
             <DialogTitle className="text-right text-base font-medium">
-              انتخاب معامله ({allDeals.length} معامله یافت شد)
+              انتخاب معامله ({allDeals?.length} معامله یافت شد)
             </DialogTitle>
           </DialogHeader>
           <div className="mt-4">
@@ -609,7 +747,7 @@ const Header = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {allDeals.map((deal) => (
+                  {(allDeals || [])?.map((deal) => (
                     <tr
                       key={deal._id.toString()}
                       onClick={() => handleSelectDeal(deal)}
@@ -635,12 +773,27 @@ const Header = () => {
                 </tbody>
               </table>
             </div>
-            {allDeals.length === 0 && (
+            {allDeals?.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 معامله‌ای یافت نشد
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isOpenOptionList} onOpenChange={setIsOpenOptionList}>
+        <DialogContent className="max-w-5xl mb-5">
+          <DialogClose onClose={() => setIsOpenOptionList(false)} />
+          <DialogHeader>
+            <DialogTitle className="text-right text-lg font-semibold my-3 mb-8">
+              لیست آپشن ها{" "}
+            </DialogTitle>
+          </DialogHeader>
+          <OptionList
+            options={deal?.directCosts?.options as IOptions[]}
+            dealId={deal?._id ?? ""}
+          />
         </DialogContent>
       </Dialog>
     </div>

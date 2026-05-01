@@ -4,6 +4,7 @@ import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import carReducer from "./slices/carSlice";
 import plateReducer from "./slices/plateSlice";
+import transactionReducer from "./slices/transactionSlice";
 
 const persistConfig = {
   key: "root",
@@ -13,6 +14,7 @@ const persistConfig = {
 const rootReducer = combineReducers({
   cars: carReducer,
   plate: plateReducer,
+  transaction: transactionReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

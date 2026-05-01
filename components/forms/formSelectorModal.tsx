@@ -21,7 +21,10 @@ import { RootState } from "@/redux/store";
 import PeopleList from "../lists/peopleList";
 import BusinessAccountList from "../lists/businessAccountList";
 import { useGetPersonById } from "@/apis/mutations/people";
-import { IBusinessAccounts, IPeople } from "@/types/new-backend-types";
+import {
+  IBusinessAccounts,
+  IPeople,
+} from "@/types/new-backend-types";
 import { useGetBusinessAccountById } from "@/apis/mutations/businessAccounts";
 import { resetPlateState } from "@/redux/slices/plateSlice";
 import SaleDealForm from "./saleDealForm";
@@ -87,7 +90,12 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
       // { id: "cheque", title: "ثبت چک", icon: "/9.png" },
       // { id: "cheque_actions", title: "عملیات روی چک", icon: "📋" },
       { id: "loans", title: "ثبت وام پرسنلی", icon: "/6.png", disabled: true },
-      { id: "salary_slip", title: "محاسبه و صدور فیش حقوقی", icon: "/3.png", disabled: true },
+      {
+        id: "salary_slip",
+        title: "محاسبه و صدور فیش حقوقی",
+        icon: "/3.png",
+        disabled: true,
+      },
       // { id: "salaries", title: "پرداخت حقوق", icon: "/3.png", disabled: true },
     );
 
@@ -297,10 +305,11 @@ const FormSelectorModal: React.FC<FormSelectorModalProps> = ({
                       type="button"
                       disabled={isDisabled}
                       onClick={() => !isDisabled && handleFormSelect(form.id)}
-                      className={`flex items-center gap-4 p-4 border rounded-lg transition-all text-right ${isDisabled
+                      className={`flex items-center gap-4 p-4 border rounded-lg transition-all text-right ${
+                        isDisabled
                           ? "opacity-60 cursor-not-allowed bg-gray-50 border-gray-200"
                           : "hover:bg-gray-50 hover:border-blue-500"
-                        }`}
+                      }`}
                     >
                       {/* <span className="text-xl">{form.icon}</span> */}
                       {/* <Image

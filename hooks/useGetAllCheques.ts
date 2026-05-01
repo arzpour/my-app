@@ -5,6 +5,7 @@ const useGetAllCheques = () => {
   const { data, isLoading, isError, error, isSuccess } = useQuery({
     queryKey: ["get-all-cheques"],
     queryFn: getAllCheques,
+    
     refetchOnWindowFocus: false,
     retry: 1,
   });

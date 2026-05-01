@@ -1,6 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createDeal, updateDeal, getAllDeals } from "../client/deals";
+import {
+  createDeal,
+  updateDeal,
+  getAllDeals,
+  deleteDeal,
+  deleteDealOption,
+  editDealOption,
+} from "../client/deals";
 import { toast } from "sonner";
+import { IOptions } from "@/types/new-backend-types";
 
 export const useGetAllDeals = () => {
   return useMutation({
@@ -42,6 +50,60 @@ export const useUpdateDeal = () => {
       toast.error(
         error?.response?.data?.message || "خطا در به‌روزرسانی معامله",
       );
+    },
+  });
+};
+
+export const useEditDealOption = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      dealId,
+      optionId,
+      data,
+    }: {
+      dealId: string;
+      optionId: string;
+      data: Partial<IOptions>;
+    }) => editDealOption({ dealId, optionId, data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get-all-deals"] });
+      queryClient.invalidateQueries({
+        queryKey: ["get-deals-by-vin"],
+      });
+      toast.success("آپشن با موفقیت به‌روزرسانی شد");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "خطا در به‌روزرسانی آپشن");
+    },
+  });
+};
+
+export const useDeleteDeal = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteDeal,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get-all-deals"] });
+      queryClient.invalidateQueries({ queryKey: ["get-deal-by-vin"] });
+      toast.success("معامله با موفقیت حذف شد");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "خطا در حذف معامله");
+    },
+  });
+};
+
+export const useDeleteDealOption = () => {
+  return useMutation({
+    mutationFn: deleteDealOption,
+    onSuccess: () => {
+      toast.success("آپشن با موفقیت حذف شد");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "خطا در حذف آپشن");
     },
   });
 };

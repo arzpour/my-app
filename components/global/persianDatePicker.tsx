@@ -3,6 +3,7 @@ import React from "react";
 import DatePicker, { DateObject } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+import { XCircle } from "lucide-react";
 
 interface PersianDatePickerProps {
   value?: string; // Format: YYYY/MM/DD
@@ -15,10 +16,10 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
   value,
   onChange,
   placeholder = "انتخاب تاریخ",
-  className
+  className,
 }) => {
   const [internalDate, setInternalDate] = React.useState<DateObject | null>(
-    null
+    null,
   );
 
   // Convert string value (YYYY/MM/DD) to DateObject when value prop changes
@@ -54,7 +55,7 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
       const year = (dateObj as DateObject).year;
       const month = String((dateObj as DateObject).month.number).padStart(
         2,
-        "0"
+        "0",
       );
       const day = String((dateObj as DateObject).day).padStart(2, "0");
       const dateString = `${year}/${month}/${day}`;
@@ -62,8 +63,14 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
     }
   };
 
+  const handleClear = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setInternalDate(null);
+    onChange?.("");
+  };
+
   return (
-    <div className="flex items-center w-full">
+    <div className="flex items-center w-full relative">
       <DatePicker
         calendar={persian}
         locale={persian_fa}
@@ -74,6 +81,17 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
         calendarPosition="bottom-left"
         className="w-full"
       />
+      {internalDate && (
+        <button
+          type="button"
+          onClick={handleClear}
+          className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors"
+          title="پاک کردن"
+        >
+          <XCircle size={18} />
+        </button>
+      )}
+      {/* <span className="border rounded-full bg-gray-100 p-2.5 py-0.5 text-red-400 absolute -top-2 -right-3">x</span> */}
     </div>
   );
 };
