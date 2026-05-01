@@ -4,6 +4,7 @@ import { axiosInstance } from "./instance";
 type loginType = (data: {
   username: string;
   password: string;
+  customerSlug: string;
 }) => Promise<ILogin>;
 export const login: loginType = async (data) => {
   const response = await axiosInstance.post(urls.auth.login, data);

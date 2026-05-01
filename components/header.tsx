@@ -32,6 +32,7 @@ import {
 } from "@/redux/slices/transactionSlice";
 import { useVehicleFinancialStatus } from "@/hooks/useVehicleFinancialStatus";
 import useGetProfit from "@/hooks/useGetProfit";
+import { deleteAccessToken, deleteCustomerSlug } from "@/utils/session";
 
 const Header = () => {
   const { chassisNo: chassisNoSaved } = useSelector(
@@ -95,14 +96,14 @@ const Header = () => {
 
   // const deals = selectedDeal || allDeals[0] || null;
 
-  const dealId = deal?._id?.toString();
+  // const dealId = deal?._id?.toString();
   // const getTransactionByDealId = useGetTransactionByDealId(dealId);
   // const transactions = getTransactionByDealId.data || [];
 
-  const getChequesByDealId = useGetChequesByDealId(dealId);
-  const cheques: IChequeNew[] = Array.isArray(getChequesByDealId.data)
-    ? getChequesByDealId.data
-    : [];
+  // const getChequesByDealId = useGetChequesByDealId(dealId);
+  // const cheques: IChequeNew[] = Array.isArray(getChequesByDealId.data)
+  //   ? getChequesByDealId.data
+  //   : [];
 
   const dispatch = useDispatch();
 
@@ -141,6 +142,8 @@ const Header = () => {
       await logout.mutateAsync();
 
       queryClient.clear();
+      deleteAccessToken()
+      deleteCustomerSlug()
 
       if (typeof window !== "undefined") {
         localStorage.clear();

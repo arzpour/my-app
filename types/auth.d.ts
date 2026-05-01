@@ -5,6 +5,7 @@ interface ILogin {
   token: {
     accessToken: string;
   };
+  customerSlug: string;
   data: {
     user: {
       _id: string;

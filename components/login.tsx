@@ -1,10 +1,11 @@
 "use client";
 import { useLogin } from "@/apis/mutations/auth";
 import { setRole } from "@/redux/slices/carSlice";
+import { setAccessToken, setCustomerSlug } from "@/utils/session";
 import { loginSchema, loginSchemaType } from "@/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 // @ts-ignore - react-hook-form useForm: types sometimes not resolved (e.g. Next build); runtime is fine. Use @ts-ignore so Ubuntu build does not report "Unused directive".
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
@@ -23,12 +24,20 @@ const Login = () => {
 
   const login = useLogin();
   const dispatch = useDispatch();
+  const params = useParams<{ customerSlug: string }>();
+  const customerNameFromUrl = params.customerSlug;
 
-  const onSubmit: SubmitHandler<loginSchemaType> = async (data: loginSchemaType) => {
+  const onSubmit: SubmitHandler<loginSchemaType> = async (
+    data: loginSchemaType,
+  ) => {
     if (!data) return;
     try {
-      const res = await login.mutateAsync(data);
-      router.replace("/panel");
+      const res = await login.mutateAsync({ username: data.username, password: data.password, customerSlug: customerNameFromUrl });
+      router.replace(`${customerNameFromUrl}/panel`);
+
+      setAccessToken(res.token.accessToken)
+      setCustomerSlug(res.customerSlug)
+
       dispatch(setRole(res.data.user.role));
       toast("وارد شدید", {
         icon: "✅",
@@ -138,18 +147,15 @@ const Login = () => {
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
             )}
           </button>
-
         </form>
       </div>
 
       <div className="w-full hidden md:inline-block">
-
         <img
           src="/Airbrush-OBJECT-REMOVER-1763980310364.jpg"
           alt="googleLogo"
           className="h-full w-full object-cover"
         />
-
       </div>
     </div>
   );
