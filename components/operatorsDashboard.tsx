@@ -15,10 +15,8 @@ import type { ITransactionNew } from "@/types/new-backend-types";
 import SelectForFilterCheques from "./selectForFilterCheques";
 import useGetAllTransactions from "@/hooks/useGetAllTransaction";
 import useGetAllDeals from "@/hooks/useGetAllDeals";
-import useGetTransactionByDealId from "@/hooks/useGetTransactionByDealId";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
 import { formatPrice } from "@/utils/systemConstants";
+import useGetProfit from "@/hooks/useGetProfit";
 
 // Persian month names
 const persianMonths = [
@@ -69,6 +67,9 @@ const OperatorsDashboard = () => {
   // });
   const { data: allDeals } = useGetAllDeals();
   const { data: allTransactions } = useGetAllTransactions();
+
+  const { lastGrossProfit, lastNetProfit, buyAmountWithPercent } = useGetProfit();
+
   // const getTransactionByDealId = useGetTransactionByDealId(dealId);
   // const otherOptionsTransaction =
   //   allTransactions
@@ -237,6 +238,7 @@ const OperatorsDashboard = () => {
     let saleCount = 0;
     let totalPurchasePercent = 0;
     let totalSalePercent = 0;
+    let isSold = false;
 
     const purchaseDealsForThisOperator = allDeals?.filter(
       (d) => d?.purchaseBroker?.fullName.trim() === selectedOperator.trim(),
@@ -271,6 +273,8 @@ const OperatorsDashboard = () => {
       const isPurchaseBroker =
         deal.purchaseBroker?.fullName.trim() === selectedOperator.trim();
 
+      isSold = !!deal?.purchaseBroker?.personId ? true : false;
+
       const isSaleBroker =
         deal.saleBroker?.fullName.trim() === selectedOperator.trim();
 
@@ -289,8 +293,8 @@ const OperatorsDashboard = () => {
       if (isPurchaseBroker && deal.purchaseBroker?.commissionPercent) {
         const commissionPercent =
           parseFloat(String(deal.purchaseBroker.commissionPercent)) || 0;
-        const commission = (buyAmountWithoutPercent * commissionPercent) / 100;
-        totalPurchaseCommission += commission;
+        // const commission = (buyAmountWithoutPercent * commissionPercent) / 100;
+        totalPurchaseCommission += buyAmountWithPercent || 0;
         totalPurchasePercent += commissionPercent;
         purchaseCount++;
       }
@@ -311,6 +315,7 @@ const OperatorsDashboard = () => {
       purchaseCommissionPercent:
         purchaseCount > 0 ? totalPurchasePercent / purchaseCount : 0,
       saleCommissionPercent: saleCount > 0 ? totalSalePercent / saleCount : 0,
+      isSold,
     };
   }, [selectedOperatorPersonId, allDeals]);
 
@@ -595,6 +600,7 @@ const OperatorsDashboard = () => {
     },
   ];
 
+
   // Calculate statistics
   const stats = React.useMemo(() => {
     if (!filteredDeals.length || !selectedOperatorPersonId) {
@@ -652,10 +658,11 @@ const OperatorsDashboard = () => {
       // let sellAmountWithPercent: number | null = null;
       // Calculate profits and commissions
       if (deal.purchasePrice && deal.salePrice) {
-        const profit = deal.salePrice - deal.purchasePrice;
+        // const profit = deal.salePrice - deal.purchasePrice;
+        const profit = lastNetProfit;
 
         if (isPurchaseBroker && deal.purchaseBroker?.commissionAmount) {
-          totalProfitPurchase += profit;
+          totalProfitPurchase += profit || 0
           // totalCommissionPurchase += deal.purchaseBroker.commissionAmount;
 
           //          const otherCostCategories =
@@ -846,11 +853,13 @@ const OperatorsDashboard = () => {
                   {/* {purchaseBroker.totalCommissionPurchase?.toLocaleString(
                     "en-US",
                   )} */}
-                  {formatPrice(
-                    brokerCommissions.totalPurchaseCommission.toLocaleString(
-                      "en-US",
-                    ),
-                  )}
+                  {!brokerCommissions.isSold
+                    ? 0
+                    : formatPrice(
+                        brokerCommissions.totalPurchaseCommission.toLocaleString(
+                          "en-US",
+                        ),
+                      )}
                 </p>
               </div>
               <div>

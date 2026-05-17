@@ -1,12 +1,13 @@
 "use client";
 import SearchableSelect from "@/components/ui/searchable-select";
-import useGetDealsByVin from "@/hooks/useGetDealsByVin";
 import useGetVehicles from "@/hooks/useGetVehicle";
-import useGetTransactionByDealId from "@/hooks/useGetTransactionByDealId";
-import useGetChequesByDealId from "@/hooks/useGetChequesByDealId";
 import { setChassisNo, setSelectedDealId } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
-import { IDeal, IChequeNew, IPeople, IOptions } from "@/types/new-backend-types";
+import {
+  IDeal,
+  IPeople,
+  IOptions,
+} from "@/types/new-backend-types";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -25,14 +26,17 @@ import { useGetPersonById } from "@/apis/mutations/people";
 import { formatPrice } from "@/utils/systemConstants";
 import OptionList from "./modals/optionList";
 import {
-  peopleStatus,
   setNetProfit,
   setTotalCommissionPurchase,
   setTotalCommissionSale,
 } from "@/redux/slices/transactionSlice";
 import { useVehicleFinancialStatus } from "@/hooks/useVehicleFinancialStatus";
 import useGetProfit from "@/hooks/useGetProfit";
-import { deleteAccessToken, deleteCustomerSlug } from "@/utils/session";
+import {
+  deleteAccessToken,
+  deleteCustomerSlug,
+  getCustomerSlug,
+} from "@/utils/session";
 
 const Header = () => {
   const { chassisNo: chassisNoSaved } = useSelector(
@@ -42,6 +46,7 @@ const Header = () => {
   const router = useRouter();
   const logout = useLogout();
   const queryClient = useQueryClient();
+  const customerSlug = getCustomerSlug();
 
   const { data: vehicles } = useGetVehicles();
 
@@ -68,16 +73,11 @@ const Header = () => {
   const {
     buyAmountWithPercent,
     deal,
-    grossProfit,
-    halfProfit,
-    isLoading,
     lastGrossProfit,
     lastNetProfit,
-    netProfit,
     sellAmountWithPercent,
     totalOptionsDeals,
     totalOtherCosts,
-    transactions,
     allDeals,
   } = useGetProfit();
 
@@ -142,8 +142,8 @@ const Header = () => {
       await logout.mutateAsync();
 
       queryClient.clear();
-      deleteAccessToken()
-      deleteCustomerSlug()
+      deleteAccessToken();
+      deleteCustomerSlug();
 
       if (typeof window !== "undefined") {
         localStorage.clear();
@@ -151,7 +151,7 @@ const Header = () => {
       }
 
       toast.success("با موفقیت خارج شدید");
-      router.replace("/");
+      router.replace(`/${customerSlug}`);
     } catch (error) {
       console.error("Logout error:", error);
       queryClient.clear();
@@ -159,7 +159,7 @@ const Header = () => {
         localStorage.clear();
         sessionStorage.clear();
       }
-      router.replace("/");
+      router.replace(`/${customerSlug}`);
     }
   };
 
@@ -443,7 +443,8 @@ const Header = () => {
     dispatch(
       setTotalCommissionPurchase({
         totalCommissionPurchase: buyAmountWithPercent || 0,
-        totalCommissionPurchasePercent: deal?.purchaseBroker?.commissionPercent || 0,
+        totalCommissionPurchasePercent:
+          deal?.purchaseBroker?.commissionPercent || 0,
       }),
     );
   }, [buyAmountWithPercent, deal?.purchaseBroker?.commissionPercent]);
@@ -550,7 +551,7 @@ const Header = () => {
           </h3>
           <p className="text-sm">{deal?.purchaseBroker?.fullName ?? "-"}</p>
           <p dir="ltr" className="text-sm text-green-700 font-bold text-right">
-            {formatPrice(buyAmountWithPercent?.toLocaleString("en-US")) ?? "—"}
+            {lastNetProfit === null && lastGrossProfit === null ? "__" : formatPrice(buyAmountWithPercent?.toLocaleString("en-US")) ?? "—"}
           </p>
         </div>
         <div className="flex flex-col justify-between h-full space-y-1">

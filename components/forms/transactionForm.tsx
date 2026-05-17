@@ -48,6 +48,7 @@ import { useDispatch } from "react-redux";
 import useGetAllDeals from "@/hooks/useGetAllDeals";
 import useGetAllBusinessAccount from "@/hooks/useGetAllBusinessAccount";
 import useGetAllTransactions from "@/hooks/useGetAllTransaction";
+import { useDeleteWalletTransaction } from "@/apis/mutations/people";
 
 interface TransactionFormProps {
   onSuccess?: () => void;
@@ -88,7 +89,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const transactionDataById = allTransactions?.filter(
     (t) => t._id === transactionId,
   )[0];
-  
 
   const { data: getChequeByDealId } = useGetChequesByDealId(dealId ?? "");
   // const { data: getTransactionByDealId } = useGetTransactionByDealId(
@@ -383,6 +383,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const brokers = allPeople?.filter((p) => p.roles.includes("broker"));
 
   const { updateWalletHandler } = useUpdateWalletHandler();
+  const deleteWalletTransaction = useDeleteWalletTransaction();
   const updateTransaction = useUpdateTransaction();
   const { updateWalletTransfer } = useUpdateWalletTransferHandler();
   const queryClient = useQueryClient();
@@ -794,7 +795,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           type: buyFromMoneyChanger ? "دریافت" : "پرداخت",
           description: data.description,
           dealID: data.dealId || transactionForMoneyChanger.secondDealId || "",
-          transactionID: transactionForMoneyChanger._id ?? "",
+          transactionID: transactionForMoneyChanger._id || "",
+          // moneyChangerId: transactionForMoneyChanger._id || ""
+          moneyChangerId: buyFromMoneyChanger
+            ? data.personId
+            : data.secondPersonId || "",
         };
 
         const walletDataForOtherPerson = {
@@ -804,7 +809,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           // dealID: data.dealId || transactionForOtherPerson.dealId || "",
           // transactionID: transactionForOtherPerson._id ?? "",
           dealID: data.dealId || transactionForMoneyChanger.dealId || "",
-          transactionID: transactionForMoneyChanger._id ?? "",
+          transactionID: transactionForMoneyChanger._id || "",
+          // moneyChangerId: transactionForOtherPerson._id || ""
+          moneyChangerId: buyFromMoneyChanger
+            ? data.secondPersonId
+            : data.personId || "",
         };
 
         // updateWalletHandler(data.personId ?? "", walletDataForMoneyChanger);
@@ -829,30 +838,33 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
         toast.success("تراکنش با موفقیت ثبت شد");
       } else if (transactionsForaPersonAndMoneyChanger && mode === "edit") {
-        // const updatedFieldsForMoneyChanger: any = {};
-        // const updatedOtherPersonDataFields: any = {};
+        const updatedFieldsForMoneyChanger: any = {};
+        const updatedOtherPersonDataFields: any = {};
 
-        // Helper function to check if a field changed
-        // const hasChanged = (currentVal: any, oldVal: any) => {
-        //   if (currentVal === undefined || currentVal === null) {
-        //     return oldVal !== undefined && oldVal !== null && oldVal !== "";
-        //   }
-        //   if (oldVal === undefined || oldVal === null) {
-        //     return currentVal !== undefined && currentVal !== null && currentVal !== "";
-        //   }
-        //   return currentVal !== oldVal;
-        // };
+        const hasChanged = (currentVal: any, oldVal: any) => {
+          if (currentVal === undefined || currentVal === null) {
+            return oldVal !== undefined && oldVal !== null && oldVal !== "";
+          }
+          if (oldVal === undefined || oldVal === null) {
+            return (
+              currentVal !== undefined &&
+              currentVal !== null &&
+              currentVal !== ""
+            );
+          }
+          return currentVal !== oldVal;
+        };
 
-        ///////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////
         // const isBuyFromMoneyChanger = data.reason === "خرید خودروـ صراف";
         // const isSellToMoneyChanger = data.reason === "فروش خودروـ صراف";
 
-        // const currentSelectedDealVin =
-        //   selectedDeal?.vehicleSnapshot.vin ?? transactionDataById?.vin ?? "";
-        // const currentSelectedSecondDealVin =
-        //   selectedSecondDeal?.vehicleSnapshot.vin ??
-        //   transactionDataById?.secondVin ??
-        //   "";
+        const currentSelectedDealVin =
+          selectedDeal?.vehicleSnapshot.vin ?? transactionDataById?.vin ?? "";
+        const currentSelectedSecondDealVin =
+          selectedSecondDeal?.vehicleSnapshot.vin ??
+          transactionDataById?.secondVin ??
+          "";
 
         // if (isBuyFromMoneyChanger) {
         //   updatedFieldsForMoneyChanger.dealId = undefined;
@@ -864,7 +876,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         //   updatedFieldsForMoneyChanger.vin = currentSelectedDealVin;
         //   updatedFieldsForMoneyChanger.secondDealId = "";
         //   updatedFieldsForMoneyChanger.secondVin = "";
-        // } else {
+        // }
+        //  else {
         //   if (data.dealId !== transactionDataById?.dealId) {
         //     updatedFieldsForMoneyChanger.dealId = data.dealId || undefined;
         //   }
@@ -922,58 +935,92 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         //   }
         // }
 
-        // if (data.type !== transactionDataById?.type) {
-        //   updatedFieldsForMoneyChanger.type = data.type;
-        //   updatedOtherPersonDataFields.type = data.type;
-        // }
-        // if (data.reason !== transactionDataById?.reason) {
-        //   updatedFieldsForMoneyChanger.reason = data.reason;
-        //   updatedOtherPersonDataFields.reason = data.reason;
-        // }
-        // if (data.transactionDate !== transactionDataById?.transactionDate) {
-        //   updatedFieldsForMoneyChanger.transactionDate = data.transactionDate;
-        //   updatedOtherPersonDataFields.transactionDate = data.transactionDate;
-        // }
-        // if (data?.amount !== transactionDataById?.amount.toString()) {
-        //   updatedFieldsForMoneyChanger.amount = data?.amount;
-        //   updatedOtherPersonDataFields.amount = data?.amount;
-        // }
-        // if (data.description !== (transactionDataById?.description || "")) {
-        //   updatedFieldsForMoneyChanger.description = data.description || "";
-        //   updatedOtherPersonDataFields.description = data.description || "";
-        // }
-        // if (
-        //   data.bussinessAccountId !== transactionDataById?.bussinessAccountId
-        // ) {
-        //   updatedFieldsForMoneyChanger.bussinessAccountId =
-        //     data.bussinessAccountId;
-        //   updatedOtherPersonDataFields.bussinessAccountId =
-        //     data.bussinessAccountId;
-        // }
-        // if (data.paymentMethod !== transactionDataById?.paymentMethod) {
-        //   updatedFieldsForMoneyChanger.paymentMethod = data.paymentMethod;
-        //   updatedOtherPersonDataFields.paymentMethod = data.paymentMethod;
-        // }
+        if (data.type !== transactionDataById?.type) {
+          updatedFieldsForMoneyChanger.type = buyFromMoneyChanger
+            ? "دریافت"
+            : "پرداخت";
+          updatedOtherPersonDataFields.type = buyFromMoneyChanger
+            ? "پرداخت"
+            : "دریافت";
+        }
+        if (data.reason !== transactionDataById?.reason) {
+          updatedFieldsForMoneyChanger.reason = buyFromMoneyChanger
+            ? "فروش خودروـ صراف"
+            : "خرید خودروـ صراف";
+          updatedOtherPersonDataFields.reason = buyFromMoneyChanger
+            ? "خرید خودروـ صراف"
+            : "فروش خودروـ صراف";
+        }
 
-        // if (data.personId !== transactionDataById?.personId) {
-        //   updatedFieldsForMoneyChanger.personId = data.personId;
-        // }
-        // if (data.secondPersonId !== transactionDataById?.secondPersonId) {
-        //   updatedFieldsForMoneyChanger.secondPersonId = data.secondPersonId;
-        //   updatedOtherPersonDataFields.secondPersonId = data.secondPersonId;
-        // }
-        // if (data.brokerPersonId !== transactionDataById?.brokerPersonId) {
-        //   updatedFieldsForMoneyChanger.brokerPersonId = data.brokerPersonId;
-        //   updatedOtherPersonDataFields.brokerPersonId = data.brokerPersonId;
-        // }
-        // if (data.providerPersonId !== transactionDataById?.providerPersonId) {
-        //   updatedFieldsForMoneyChanger.providerPersonId = data.providerPersonId;
-        //   updatedOtherPersonDataFields.providerPersonId = data.providerPersonId;
-        // }
-        // if (data.partnerPersonId !== transactionDataById?.partnerPersonId) {
-        //   updatedFieldsForMoneyChanger.partnerPersonId = data.partnerPersonId;
-        //   updatedOtherPersonDataFields.partnerPersonId = data.partnerPersonId;
-        // }
+        if (data.personId !== transactionDataById?.personId) {
+          updatedFieldsForMoneyChanger.personId = buyFromMoneyChanger
+            ? data.personId
+            : data.secondPersonId;
+          updatedOtherPersonDataFields.personId = buyFromMoneyChanger
+            ? data.secondPersonId
+            : data.personId;
+        }
+        if (data.secondPersonId !== transactionDataById?.secondPersonId) {
+          updatedFieldsForMoneyChanger.secondPersonId = buyFromMoneyChanger
+            ? data.secondPersonId
+            : data.personId;
+          updatedOtherPersonDataFields.secondPersonId = buyFromMoneyChanger
+            ? data.personId
+            : data.secondPersonId;
+        }
+
+        if (data.dealId !== transactionDataById?.dealId) {
+          updatedOtherPersonDataFields.dealId = buyFromMoneyChanger
+            ? data.secondDealId || undefined
+            : data.dealId || undefined;
+          updatedOtherPersonDataFields.vin = buyFromMoneyChanger
+            ? currentSecondVin
+            : currentVin;
+
+          updatedFieldsForMoneyChanger.dealId = undefined;
+          updatedFieldsForMoneyChanger.vin = buyFromMoneyChanger ? "" : "";
+        }
+        if (data.secondDealId !== transactionDataById?.secondDealId) {
+          updatedOtherPersonDataFields.secondDealId = buyFromMoneyChanger
+            ? undefined
+            : undefined;
+          updatedOtherPersonDataFields.secondVin = buyFromMoneyChanger
+            ? ""
+            : "";
+
+          updatedFieldsForMoneyChanger.secondDealId = buyFromMoneyChanger
+            ? data.secondDealId
+            : data.dealId;
+          updatedFieldsForMoneyChanger.secondVin = buyFromMoneyChanger
+            ? currentSecondVin
+            : currentVin;
+        }
+
+        if (data.transactionDate !== transactionDataById?.transactionDate) {
+          updatedFieldsForMoneyChanger.transactionDate = data.transactionDate;
+          updatedOtherPersonDataFields.transactionDate = data.transactionDate;
+        }
+        if (data?.amount !== transactionDataById?.amount.toString()) {
+          updatedFieldsForMoneyChanger.amount = data?.amount;
+          updatedOtherPersonDataFields.amount = data?.amount;
+        }
+        if (data.description !== (transactionDataById?.description || "")) {
+          updatedFieldsForMoneyChanger.description = data.description || "";
+          updatedOtherPersonDataFields.description = data.description || "";
+        }
+
+        if (
+          data.bussinessAccountId !== transactionDataById?.bussinessAccountId
+        ) {
+          updatedFieldsForMoneyChanger.bussinessAccountId =
+            data.bussinessAccountId;
+          updatedOtherPersonDataFields.bussinessAccountId =
+            data.bussinessAccountId;
+        }
+        if (data.paymentMethod !== transactionDataById?.paymentMethod) {
+          updatedFieldsForMoneyChanger.paymentMethod = data.paymentMethod;
+          updatedOtherPersonDataFields.paymentMethod = data.paymentMethod;
+        }
 
         // --- 3. Perform Updates ---
 
@@ -982,8 +1029,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           id: transactionId ?? "",
           data:
             transactionDataById?.role === "saraf"
-              ? transactionDataForMoneyChanger
-              : transactionForOtherPersonData,
+              ? updatedFieldsForMoneyChanger
+              : updatedOtherPersonDataFields,
         });
         dispatch(setTransactionCreated(`${transaction._id}78`));
 
@@ -1007,8 +1054,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                         id: t._id,
                         data:
                           t.role === "saraf"
-                            ? transactionDataForMoneyChanger
-                            : transactionForOtherPersonData,
+                            ? updatedFieldsForMoneyChanger
+                            : updatedOtherPersonDataFields,
                       });
                     return updatedSimilarTransaction;
                   } catch (error) {
@@ -1030,8 +1077,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         // --- 4. Update Wallets ---
         const newPrice = Number(data.amount);
 
-        const primaryPersonId = data.personId || "";
-        const secondaryPersonId = data.secondPersonId || "";
+        // const primaryPersonId = data.personId || "";
+        // const secondaryPersonId = data.secondPersonId || "";
 
         // const primaryWalletAmount = (data.reason === "خرید خودروـ صراف" || data.reason === "فروش خودرو-صراف")
         //     ? -newPrice
@@ -1059,8 +1106,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           amount: buyFromMoneyChanger ? newPrice : -newPrice,
           type: buyFromMoneyChanger ? "دریافت" : "پرداخت",
           description: data.description,
-          dealID: data.dealId || transaction.secondDealId || "",
-          transactionID: transaction._id ?? "",
+          dealID: dealId || data.dealId || transaction.secondDealId || "",
+          transactionID:
+            transactionDataById?._id || transactionId || transaction._id || "",
+          // moneyChangerId: transactionId || ""
+          moneyChangerId: buyFromMoneyChanger
+            ? data.personId
+            : data.secondPersonId || "",
         };
 
         const walletDataForOtherPerson = {
@@ -1069,8 +1121,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           description: data.description,
           // dealID: data.dealId || transactionForOtherPerson.dealId || "",
           // transactionID: transactionForOtherPerson._id ?? "",
-          dealID: data.dealId || transaction.dealId || "",
-          transactionID: transaction._id ?? "",
+          dealID: dealId || data.dealId || transaction.dealId || "",
+          transactionID:
+            transactionDataById?._id || transactionId || transaction._id || "",
+          // moneyChangerId: transactionId || "",
+          moneyChangerId: buyFromMoneyChanger
+            ? data.secondPersonId
+            : data.personId || "",
         };
 
         updateWalletHandler(
@@ -1083,67 +1140,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         );
 
         // --- 5. Handle Person ID Changes (Wallet Transfer) ---
-        const oldPersonId =
-          transactionDataById?.personId || transactionDataById?.partnerPersonId;
-        const newPersonId = data?.personId || data?.partnerPersonId;
-        const oldSecondPersonId = transactionDataById?.secondPersonId;
-        const newSecondPersonId = data.secondPersonId;
-
-        const walletUpdates: Array<{
-          oldPersonId: string;
-          newPersonId: string;
-          amount: number;
-          type: string;
-          description: string;
-          dealId?: string;
-          transactionId: string;
-          reason: "provider" | "broker" | "financier" | "person";
-        }> = [];
-
-        if (oldPersonId !== newPersonId && oldPersonId && newPersonId) {
-          walletUpdates.push({
-            oldPersonId,
-            newPersonId,
-            amount: newPrice,
-            type: "دریافت",
-            description: data.description || `تغییر طرف حساب - ${data.reason}`,
-            dealId: data.dealId,
-            transactionId: transactionId ?? "",
-            reason: "person",
-          });
-        }
-        if (
-          oldSecondPersonId !== newSecondPersonId &&
-          oldSecondPersonId &&
-          newSecondPersonId
-        ) {
-          walletUpdates.push({
-            oldPersonId: oldSecondPersonId,
-            newPersonId: newSecondPersonId,
-            amount: -newPrice,
-            type: "پرداخت",
-            description:
-              data.description || `تغییر طرف حساب دوم - ${data.reason}`,
-            dealId: data.dealId,
-            transactionId: transactionId ?? "",
-            reason: "person",
-          });
-        }
-
-        for (const update of walletUpdates) {
-          try {
-            if (
-              (oldPersonId !== newPersonId && oldPersonId && newPersonId) ||
-              (oldSecondPersonId !== newSecondPersonId &&
-                oldSecondPersonId &&
-                newSecondPersonId)
-            ) {
-              await updateWalletTransfer(update);
-            }
-          } catch (walletError) {
-            console.error("Error updating wallet:", walletError);
-          }
-        }
+        // const oldMoneyChangerId = (buyFromMoneyChanger && transactionDataById) ? transactionDataById?.personId : transactionDataById?.secondPersonId
       }
 
       // else if (transactionsForaPersonAndMoneyChanger && mode === "edit") {
@@ -1402,10 +1399,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
     const pairGroupId = crypto.randomUUID();
 
-    const transActionDataVin = selectedDeal?.vehicleSnapshot.vin ?? transactionDataById?.vin ?? ""
-    const transActionDataSecondVin = selectedSecondDeal?.vehicleSnapshot.vin ??
-        transactionDataById?.secondVin ?? ""
-
+    const transActionDataVin =
+      selectedDeal?.vehicleSnapshot.vin ?? transactionDataById?.vin ?? "";
+    const transActionDataSecondVin =
+      selectedSecondDeal?.vehicleSnapshot.vin ??
+      transactionDataById?.secondVin ??
+      "";
 
     const transactionData = {
       type: "دریافت",
@@ -1414,12 +1413,42 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       amount: parseFloat(data.amount),
       bussinessAccountId: data.bussinessAccountId,
       paymentMethod: data.paymentMethod,
-      personId: transactionDataById?.role === "first" ? data?.personId : transactionDataById?.role === "second" ? data?.secondPersonId : data?.personId,
-      secondPersonId: transactionDataById?.role === "first" ? data?.secondPersonId : transactionDataById?.role === "second" ? data?.personId : data?.secondPersonId,
-      secondDealId: transactionDataById?.role === "first" ? data?.secondDealId : transactionDataById?.role === "second" ? data?.dealId : data?.secondDealId,
-      dealId: transactionDataById?.role === "first" ? data?.dealId : transactionDataById?.role === "second" ? data?.secondDealId : data?.dealId,
-      vin: transactionDataById?.role === "first" ? transActionDataVin : transactionDataById?.role === "second" ? transActionDataSecondVin : transActionDataVin,
-      secondVin: transactionDataById?.role === "first" ? transActionDataSecondVin : transactionDataById?.role === "second" ? transActionDataVin : transActionDataSecondVin,
+      personId:
+        transactionDataById?.role === "first"
+          ? data?.personId
+          : transactionDataById?.role === "second"
+            ? data?.secondPersonId
+            : data?.personId,
+      secondPersonId:
+        transactionDataById?.role === "first"
+          ? data?.secondPersonId
+          : transactionDataById?.role === "second"
+            ? data?.personId
+            : data?.secondPersonId,
+      secondDealId:
+        transactionDataById?.role === "first"
+          ? data?.secondDealId
+          : transactionDataById?.role === "second"
+            ? data?.dealId
+            : data?.secondDealId,
+      dealId:
+        transactionDataById?.role === "first"
+          ? data?.dealId
+          : transactionDataById?.role === "second"
+            ? data?.secondDealId
+            : data?.dealId,
+      vin:
+        transactionDataById?.role === "first"
+          ? transActionDataVin
+          : transactionDataById?.role === "second"
+            ? transActionDataSecondVin
+            : transActionDataVin,
+      secondVin:
+        transactionDataById?.role === "first"
+          ? transActionDataSecondVin
+          : transactionDataById?.role === "second"
+            ? transActionDataVin
+            : transActionDataSecondVin,
       description: data.description || "",
       brokerPersonId: data.brokerPersonId || "",
       providerPersonId: data.providerPersonId || "",
@@ -1437,24 +1466,56 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       profitState: data?.profitState ?? "",
     };
 
-    const transactionSecondDealIdDataVin = selectedSecondDeal?.vehicleSnapshot.vin ??
-        transactionDataById?.secondVin ??
-        ""
-         const transactionSecondDealIdDataSecondVin = selectedSecondDeal?.vehicleSnapshot.vin ??
-        transactionDataById?.secondVin ??
-        ""
+    const transactionSecondDealIdDataVin =
+      selectedSecondDeal?.vehicleSnapshot.vin ??
+      transactionDataById?.secondVin ??
+      "";
+    const transactionSecondDealIdDataSecondVin =
+      selectedSecondDeal?.vehicleSnapshot.vin ??
+      transactionDataById?.secondVin ??
+      "";
     const transactionSecondDealIdData = {
       type: "پرداخت",
       reason: data.personId ? "خرید خودرو" : "سرمایه گذاری",
       transactionDate: data.transactionDate,
       amount: parseFloat(data.amount),
 
-      personId: transactionDataById?.role === "first" ? data?.secondPersonId : transactionDataById?.role === "second" ? data?.personId : data?.secondPersonId,
-      secondPersonId: transactionDataById?.role === "first" ? data?.personId : transactionDataById?.role === "second" ? data?.secondPersonId : data?.personId,
-      secondDealId: transactionDataById?.role === "first" ? data?.dealId : transactionDataById?.role === "second" ? data?.secondDealId : data?.dealId,
-      dealId: transactionDataById?.role === "first" ? data?.secondDealId : transactionDataById?.role === "second" ? data?.dealId : data?.secondDealId,
-      vin: transactionDataById?.role === "first" ? transactionSecondDealIdDataSecondVin : transactionDataById?.role === "second" ? transactionSecondDealIdDataVin : transactionSecondDealIdDataSecondVin,
-      secondVin: transactionDataById?.role === "first" ? transactionSecondDealIdDataVin : transactionDataById?.role === "second" ? transactionSecondDealIdDataSecondVin : transactionSecondDealIdDataVin,
+      personId:
+        transactionDataById?.role === "first"
+          ? data?.secondPersonId
+          : transactionDataById?.role === "second"
+            ? data?.personId
+            : data?.secondPersonId,
+      secondPersonId:
+        transactionDataById?.role === "first"
+          ? data?.personId
+          : transactionDataById?.role === "second"
+            ? data?.secondPersonId
+            : data?.personId,
+      secondDealId:
+        transactionDataById?.role === "first"
+          ? data?.dealId
+          : transactionDataById?.role === "second"
+            ? data?.secondDealId
+            : data?.dealId,
+      dealId:
+        transactionDataById?.role === "first"
+          ? data?.secondDealId
+          : transactionDataById?.role === "second"
+            ? data?.dealId
+            : data?.secondDealId,
+      vin:
+        transactionDataById?.role === "first"
+          ? transactionSecondDealIdDataSecondVin
+          : transactionDataById?.role === "second"
+            ? transactionSecondDealIdDataVin
+            : transactionSecondDealIdDataSecondVin,
+      secondVin:
+        transactionDataById?.role === "first"
+          ? transactionSecondDealIdDataVin
+          : transactionDataById?.role === "second"
+            ? transactionSecondDealIdDataSecondVin
+            : transactionSecondDealIdDataVin,
 
       // personId: data.secondPersonId,
       // secondPersonId: data.personId,
@@ -1695,7 +1756,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           const similarTransactions = allTransactions?.filter(
             (t) =>
               t.pairGroupId === transactionDataById.pairGroupId &&
-            t._id !== transactionId,
+              t._id !== transactionId,
           );
 
           if (similarTransactions && similarTransactions.length > 0) {
@@ -1839,9 +1900,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           }
         }
       }
-      
-      dispatch(setTransactionCreated(`${(transactionId || "")}768`));
 
+      dispatch(setTransactionCreated(`${transactionId || ""}768`));
     } catch (error) {
       console.log("🚀 ~ twoPersonTransactionHandler ~ error:", error);
     }
@@ -1938,7 +1998,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       };
 
       if (mode === "add") {
-        await createCheque(chequeData);
+        const res = await createCheque(chequeData);
         queryClient.invalidateQueries({
           queryKey: ["get-transactions-by-deal-id"],
         });
@@ -1964,8 +2024,39 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         // queryClient.invalidateQueries({
         //   queryKey: ["get-transaction-by-id"],
         // });
+
+        const price = parseFloat(data.amount);
+
+        if (
+          data?.chequeStatus === "وصول شده" ||
+          data?.chequeStatus === "خرج شده"
+        ) {
+          await updateWalletHandler(
+            data.chequePayeePersonId ||
+              data.chequePayerPersonId ||
+              data.personId ||
+              data.brokerPersonId ||
+              data.chequeCustomerPersonId ||
+              data.partnerPersonId ||
+              data.providerPersonId ||
+              "",
+            {
+              amount: -price,
+              type:
+                `${data.type} ${data.chequeStatus}-چک-${res.reason} ${res.type}` ||
+                data.type,
+              description: data.description,
+              dealID: res?.relatedDealId ?? "",
+              transactionID: res?.relatedTransactionId ?? "",
+              chequeId: res?._id,
+            },
+          );
+        }
       } else if (mode === "edit") {
-        await updateCheque(selectedTransactionChequeInfo?._id, chequeData);
+        const res = await updateCheque(
+          selectedTransactionChequeInfo?._id,
+          chequeData,
+        );
         queryClient.invalidateQueries({
           queryKey: ["get-transactions-by-deal-id"],
         });
@@ -1975,6 +2066,64 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         queryClient.invalidateQueries({
           queryKey: ["get-cheques-by-deal-id"],
         });
+
+        const price = parseFloat(data.amount);
+
+        if (
+          (selectedTransactionChequeInfo?.status === "وصول شده" ||
+            selectedTransactionChequeInfo?.status === "خرج شده") &&
+          (data.chequeStatus === "در جریان" ||
+            data.chequeStatus === "برگشتی" ||
+            data.chequeStatus === "عودت داده شده")
+        ) {
+          await deleteWalletTransaction.mutateAsync({
+            id:
+              data.chequePayeePersonId ||
+              data.chequePayerPersonId ||
+              data.personId ||
+              data.brokerPersonId ||
+              data.chequeCustomerPersonId ||
+              data.partnerPersonId ||
+              data.providerPersonId ||
+              "",
+            data: {
+              dealID: selectedTransactionChequeInfo?.relatedDealId ?? "",
+              transactionID:
+                selectedTransactionChequeInfo?.relatedTransactionId ?? "",
+              chequeId: selectedTransactionChequeInfo?._id,
+            },
+          });
+        }
+
+        if (
+          (selectedTransactionChequeInfo?.status === "در جریان" ||
+            selectedTransactionChequeInfo?.status === "برگشتی" ||
+            selectedTransactionChequeInfo?.status === "عودت داده شده") &&
+          (data?.chequeStatus === "وصول شده" ||
+            data?.chequeStatus === "خرج شده")
+        ) {
+          await updateWalletHandler(
+            data.chequePayeePersonId ||
+              data.chequePayerPersonId ||
+              data.personId ||
+              data.brokerPersonId ||
+              data.chequeCustomerPersonId ||
+              data.partnerPersonId ||
+              data.providerPersonId ||
+              "",
+            {
+              amount: -price,
+              type:
+                `${data.type} ${data.chequeStatus}-چک-${res.reason} ${res.type}` ||
+                data.type,
+              description: data.description,
+              dealID: selectedTransactionChequeInfo?.relatedDealId ?? "",
+              transactionID:
+                selectedTransactionChequeInfo?.relatedTransactionId ?? "",
+              chequeId: selectedTransactionChequeInfo?._id,
+            },
+          );
+        }
 
         // if(data.chequeStatus === "وصول شده" || data.chequeStatus === "خرج شده"){
 
@@ -2144,6 +2293,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     data: transactionChequeSchemaType,
     transaction: ITransactionNew,
   ) => {
+    if (data.paymentMethod === "چک") return;
+
     const isPartnershipReason =
       (data.type === "دریافت" && data.reason === "سرمایه گذاری") ||
       (data.type === "پرداخت" &&
@@ -2428,6 +2579,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         // dispatch(setTransactionCreated(transaction._id));
         dispatch(setTransactionCreated(`${transaction?._id}748`));
 
+        alert("mode ===transactionId");
         toast.success("تراکنش با موفقیت به‌روزرسانی شد");
       } else {
         // Create new transaction
@@ -2436,10 +2588,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           queryKey: ["get-transactions-by-deal-id"],
         });
         toast.success("تراکنش با موفقیت ثبت شد");
+        alert("else");
 
         // dispatch(setTransactionCreated(transaction._id));
         dispatch(setTransactionCreated(`${transaction?._id}728`));
       }
+      alert("out");
+
       await chequeHandler(data, transaction);
       await walletUpdateHandler(data, transaction);
 
@@ -2724,7 +2879,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           </div>
 
           <div
-            className={`space-y-2 ${transactionReason === "خرید خودروـ صراف" ? "opacity-50 cursor-not-allowed" : ""}`}
+            // className={`space-y-2 ${transactionReason === "خرید خودروـ صراف" ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`space-y-2 ${
+              transactionReason === "خرید خودروـ صراف" ||
+              transactionReason === "فروش خودروـ صراف"
+                ? "opacity-50 cursor-not-allowed"
+                : ""
+            }`}
           >
             <label className="block text-sm font-medium">
               مرتبط با معامله
@@ -2760,7 +2921,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 }
               }}
               className="w-full px-3 py-2 border rounded-md"
-              disabled={transactionReason === "خرید خودروـ صراف"}
+              // disabled={transactionReason === "خرید خودروـ صراف"}
+              disabled={
+                transactionReason === "خرید خودروـ صراف" ||
+                transactionReason === "فروش خودروـ صراف"
+              }
             >
               <option value="">
                 انتخاب معامله
@@ -2918,7 +3083,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               )}
             </div>
           ) : (
-            <div className="space-y-2">
+            <div
+              className={`space-y-2 ${transactionReason === "خرید خودروـ صراف" || transactionReason === "فروش خودروـ صراف" ? "opacity-50 cursor-" : ""}`}
+            >
               <label className="block text-sm font-medium">
                 {transactionReason === "سایر هزینه‌ها" ? (
                   "طرف حساب"
@@ -2932,6 +3099,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Controller
                 name="personId"
                 control={control}
+                disabled={
+                  transactionReason === "خرید خودروـ صراف" ||
+                  transactionReason === "فروش خودروـ صراف"
+                }
                 render={({
                   field,
                 }: {
@@ -2968,7 +3139,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           {paymentMethod === "مشتری به مشتری" && (
             <>
               <div
-                className={`space-y-2 ${transactionReason === "فروش خودروـ صراف" ? "opacity-50 cursor-not-allowed" : ""}`}
+                // className={`space-y-2 ${transactionReason === "فروش خودروـ صراف" ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`space-y-2 ${
+                  transactionReason === "خرید خودروـ صراف" ||
+                  transactionReason === "فروش خودروـ صراف"
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
               >
                 <label className="block text-sm font-medium">
                   مرتبط با معامله دوم
@@ -3001,7 +3178,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                     setValue("secondDealId", e.target.value);
                   }}
                   className="w-full px-3 py-2 border rounded-md"
-                  disabled={transactionReason === "فروش خودروـ صراف"}
+                  // disabled={transactionReason === "فروش خودروـ صراف"}
+                  disabled={
+                    transactionReason === "خرید خودروـ صراف" ||
+                    transactionReason === "فروش خودروـ صراف"
+                  }
                 >
                   <option value="">انتخاب معامله دوم</option>
 
@@ -3052,6 +3233,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                           : (peopleForSecondDeal ?? allPeople) || []
                       }
                       placeholder="انتخاب طرف حساب دوم"
+                      disabled={
+                        transactionReason === "خرید خودروـ صراف" ||
+                        transactionReason === "فروش خودروـ صراف"
+                      }
                     />
                   )}
                 />

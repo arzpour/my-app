@@ -23,11 +23,12 @@ const BusinessAccountList: React.FC<IBusinessAccountList> = ({
 
   return (
     <>
-      {isLoading ? (
+    {isLoading && (
         <div className="border border-gray-300 p-4 rounded-md w-full text-center text-gray-500">
           در حال بارگذاری...
         </div>
-      ) : (allBusinessAccount ?? []).length > 0 ? (
+      )}
+      {(allBusinessAccount ?? []).length > 0 ? (
         <div className="border border-gray-300 p-4 rounded-md w-full mt-3">
           <div className="max-h-[33rem] overflow-y-auto rounded-md border w-full">
             <Table className="min-w-full table-fixed text-right border-collapse">
