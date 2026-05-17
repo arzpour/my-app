@@ -1,4 +1,4 @@
-import { getAccessToken, getCustomerSlug } from "@/utils/session";
+import { deleteAccessToken, getAccessToken, getCustomerSlug } from "@/utils/session";
 import axios from "axios";
 
 export const axiosInstance = axios.create({
@@ -29,6 +29,7 @@ axiosInstance.interceptors.response.use(
     }
     if (error.response?.status === 401) {
       console.warn("Unauthorize:", error.config?.url);
+      deleteAccessToken()
       return Promise.reject(error);
     }
     console.error("API Error:", error.message);

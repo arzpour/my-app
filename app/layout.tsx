@@ -4,6 +4,7 @@ import "./globals.css";
 import TanstackProvider from "@/providers/tanstack-provider";
 import ReduxProvider from "@/providers/redux-provider";
 import { Toaster } from "sonner";
+import Guard from "@/providers/guard";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -28,12 +29,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`font-tahoma antialiased`} suppressHydrationWarning>
-        <ReduxProvider>
-          <TanstackProvider>
-            <Toaster />
-            {children}
-          </TanstackProvider>
-        </ReduxProvider>
+        <Guard>
+          <ReduxProvider>
+            <TanstackProvider>
+              <Toaster />
+              {children}
+            </TanstackProvider>
+          </ReduxProvider>
+        </Guard>
       </body>
     </html>
   );

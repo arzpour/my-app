@@ -1,7 +1,11 @@
 "use client";
 import { useLogin } from "@/apis/mutations/auth";
 import { setRole } from "@/redux/slices/carSlice";
-import { setAccessToken, setCustomerSlug } from "@/utils/session";
+import {
+  getCustomerSlug,
+  setAccessToken,
+  setCustomerSlug,
+} from "@/utils/session";
 import { loginSchema, loginSchemaType } from "@/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -12,7 +16,61 @@ import { useDispatch } from "react-redux";
 import { toast } from "sonner";
 
 const Login = () => {
+  // const router = useRouter();
+  // const {
+  //   register,
+  //   handleSubmit,
+  //   formState: { errors },
+  // } = useForm<loginSchemaType>({
+  //   mode: "all",
+  //   resolver: zodResolver(loginSchema),
+  // });
+
+  // const login = useLogin();
+  // const dispatch = useDispatch();
+  // const params = useParams<{ customerSlug: string }>();
+  // console.log("🚀 ~ Login ~ params:", params);
+  // const customerNameFromUrl = params.customerSlug;
+
+  // const onSubmit: SubmitHandler<loginSchemaType> = async (
+  //   data: loginSchemaType,
+  // ) => {
+  //   if (!data) return;
+  //   try {
+  //     const res = await login.mutateAsync({
+  //       username: data.username,
+  //       password: data.password,
+  //       customerSlug: customerNameFromUrl,
+  //     });
+  //     console.log("🚀 ~ onSubmit ~ res:", res);
+
+  //     const redirectPath = `/${customerNameFromUrl}/panel`;
+  //     console.log("🚀 ~ onSubmit ~ customerNameFromUrl:", customerNameFromUrl)
+  //     console.log("🚀 ~ onSubmit ~ redirectPath:", redirectPath);
+
+  //     setAccessToken(res.token.accessToken);
+  //     setCustomerSlug(res.customerSlug);
+
+  //     dispatch(setRole(res.data.user.role));
+  //     toast("وارد شدید", {
+  //       icon: "✅",
+  //       className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
+  //     });
+  //     router.push(redirectPath);
+
+  //   } catch (error) {
+  //     toast("اطلاعات وارد شده صحیح نیست", {
+  //       className: "!bg-red-100 !text-red-800 !shadow-md !h-[60px]",
+  //     });
+
+  //     console.log(error);
+  //   }
+  // };
+
   const router = useRouter();
+  const dispatch = useDispatch();
+  const params = useParams<{ customerSlug: string }>();
+  const login = useLogin();
   const {
     register,
     handleSubmit,
@@ -22,33 +80,35 @@ const Login = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  const login = useLogin();
-  const dispatch = useDispatch();
-  const params = useParams<{ customerSlug: string }>();
-  const customerNameFromUrl = params.customerSlug;
+  const currentCustomerSlug = params.customerSlug || getCustomerSlug() || "";
 
   const onSubmit: SubmitHandler<loginSchemaType> = async (
     data: loginSchemaType,
   ) => {
     if (!data) return;
     try {
-      const res = await login.mutateAsync({ username: data.username, password: data.password, customerSlug: customerNameFromUrl });
-      router.replace(`${customerNameFromUrl}/panel`);
+      const res = await login.mutateAsync({
+        username: data.username,
+        password: data.password,
+        customerSlug: currentCustomerSlug,
+      });
 
-      setAccessToken(res.token.accessToken)
-      setCustomerSlug(res.customerSlug)
-
+      setAccessToken(res.token.accessToken);
+      setCustomerSlug(res.customerSlug); // ذخیره اسلاگ مشتری از پاسخ API
       dispatch(setRole(res.data.user.role));
+
       toast("وارد شدید", {
         icon: "✅",
         className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
       });
+
+      const redirectPath = `/${res.customerSlug}/panel`;
+      router.push(redirectPath);
     } catch (error) {
       toast("اطلاعات وارد شده صحیح نیست", {
         className: "!bg-red-100 !text-red-800 !shadow-md !h-[60px]",
       });
-
-      console.log(error);
+      console.error("Login error:", error);
     }
   };
 
