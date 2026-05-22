@@ -94,7 +94,7 @@ const Login = () => {
       });
 
       setAccessToken(res.token.accessToken);
-      setCustomerSlug(res.customerSlug); // ذخیره اسلاگ مشتری از پاسخ API
+      setCustomerSlug(res.customerSlug);
       dispatch(setRole(res.data.user.role));
 
       toast("وارد شدید", {
@@ -102,8 +102,8 @@ const Login = () => {
         className: "!bg-green-100 !text-green-800 !shadow-md !h-[60px]",
       });
 
-      const redirectPath = `/${res.customerSlug}/panel`;
-      router.push(redirectPath);
+      const redirectPath = `/${res.customerSlug || currentCustomerSlug}/panel`;
+      router.replace(redirectPath);
     } catch (error) {
       toast("اطلاعات وارد شده صحیح نیست", {
         className: "!bg-red-100 !text-red-800 !shadow-md !h-[60px]",

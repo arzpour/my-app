@@ -17,6 +17,7 @@ import useGetAllTransactions from "@/hooks/useGetAllTransaction";
 import useGetAllDeals from "@/hooks/useGetAllDeals";
 import { formatPrice } from "@/utils/systemConstants";
 import useGetProfit from "@/hooks/useGetProfit";
+import { calculateProfit } from "@/components/vehicles/exportExcelVehicleReport";
 
 // Persian month names
 const persianMonths = [
@@ -68,7 +69,7 @@ const OperatorsDashboard = () => {
   const { data: allDeals } = useGetAllDeals();
   const { data: allTransactions } = useGetAllTransactions();
 
-  const { lastGrossProfit, lastNetProfit, buyAmountWithPercent } = useGetProfit();
+  const { buyAmountWithPercent } = useGetProfit();
 
   // const getTransactionByDealId = useGetTransactionByDealId(dealId);
   // const otherOptionsTransaction =
@@ -654,55 +655,19 @@ const OperatorsDashboard = () => {
         }
       }
 
-      //       let buyAmountWithPercent: number | null = null;
-      // let sellAmountWithPercent: number | null = null;
-      // Calculate profits and commissions
       if (deal.purchasePrice && deal.salePrice) {
-        // const profit = deal.salePrice - deal.purchasePrice;
-        const profit = lastNetProfit;
+        const { lastGrossProfit: dealGrossProfit } = calculateProfit({
+          allTransactions: (allTransactions as ITransactionNew[]) ?? [],
+          deal,
+        });
 
-        if (isPurchaseBroker && deal.purchaseBroker?.commissionAmount) {
-          totalProfitPurchase += profit || 0
-          // totalCommissionPurchase += deal.purchaseBroker.commissionAmount;
-
-          //          const otherCostCategories =
-          //   deals?.directCosts?.otherCost?.map((cost) => cost.category) || [];
-          // const otherCostsFromDirectCosts =
-          //   deals?.directCosts?.otherCost?.reduce(
-          //     (sum, cost) => sum + (cost.cost || 0),
-          //     0,
-          //   ) || 0;
-          // const otherCostsFromTransactions =
-          //   transactions
-          //     ?.filter(
-          //       (t) =>
-          //         t.type === "پرداخت" &&
-          //         otherCostCategories.some((category) => t.reason === category),
-          //     )
-          //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
-
-          // const otherOptionsTransaction =
-          //   transactions
-          //     .filter((el) => el.reason === "سایر هزینه‌ها")
-          //     .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
-          // const totalOtherCosts =
-          //   otherCostsFromDirectCosts +
-          //   otherCostsFromTransactions +
-          //   otherOptionsTransaction;
-
-          // const buyAmountWithoutPercent = (deal?.purchasePrice ?? 0) - totalOtherCosts;
-          // const sellAmountWithoutPercent = (deal?.salePrice ?? 0) - totalOtherCosts;
+        if (isPurchaseBroker && dealGrossProfit != null) {
+          totalProfitPurchase += dealGrossProfit;
         }
 
-        if (isSaleBroker && deal.saleBroker?.commissionAmount) {
-          totalProfitSale += profit;
-          // totalCommissionSale += deal.saleBroker.commissionAmount;
+        if (isSaleBroker && dealGrossProfit != null) {
+          totalProfitSale += dealGrossProfit;
         }
-      } else {
-        // If deal is not sold yet, use commission from purchase price
-        // if (isPurchaseBroker && deal.purchaseBroker?.commissionAmount) {
-        //   totalCommissionPurchase += deal.purchaseBroker.commissionAmount;
-        // }
       }
     });
     // const totalCommissionPurchase = 0
@@ -856,10 +821,10 @@ const OperatorsDashboard = () => {
                   {!brokerCommissions.isSold
                     ? 0
                     : formatPrice(
-                        brokerCommissions.totalPurchaseCommission.toLocaleString(
-                          "en-US",
-                        ),
-                      )}
+                      brokerCommissions.totalPurchaseCommission.toLocaleString(
+                        "en-US",
+                      ),
+                    )}
                 </p>
               </div>
               <div>

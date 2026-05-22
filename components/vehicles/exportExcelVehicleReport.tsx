@@ -12,15 +12,16 @@ export const calculateProfit = ({
   allDeals,
   allTransactions,
   vin,
+  deal: providedDeal,
 }: {
-  allDeals: IDeal[];
+  allDeals?: IDeal[];
   allTransactions: ITransactionNew[];
-  vin: string;
+  vin?: string;
+  deal?: IDeal;
 }) => {
-  const dealsData = allDeals?.filter((d) => d.vehicleSnapshot.vin === vin);
-
-  const selectedDeal = Array.isArray(dealsData) ? dealsData : [dealsData];
-  const deal = selectedDeal?.[0];
+  const deal =
+    providedDeal ??
+    allDeals?.find((d) => d.vehicleSnapshot.vin === vin);
 
   const dealId = deal?._id?.toString();
   const transactions = allTransactions.filter((t) => t.dealId === dealId);
