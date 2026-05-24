@@ -150,6 +150,9 @@ export const calculateProfit = ({
     totalOptionsDeals,
     grossProfit,
     lastGrossProfit,
+    buyAmountWithPercent,
+    sellAmountWithPercent,
+    halfProfit,
   };
 };
 

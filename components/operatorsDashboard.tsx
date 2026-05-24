@@ -16,7 +16,9 @@ import SelectForFilterCheques from "./selectForFilterCheques";
 import useGetAllTransactions from "@/hooks/useGetAllTransaction";
 import useGetAllDeals from "@/hooks/useGetAllDeals";
 import { formatPrice } from "@/utils/systemConstants";
+import useGetProfit from "@/hooks/useGetProfit";
 import { calculateProfit } from "@/components/vehicles/exportExcelVehicleReport";
+import useGetAllCheques from "@/hooks/useGetAllCheques";
 
 // Persian month names
 const persianMonths = [
@@ -67,6 +69,9 @@ const OperatorsDashboard = () => {
   // });
   const { data: allDeals } = useGetAllDeals();
   const { data: allTransactions } = useGetAllTransactions();
+  const { data: allCheques } = useGetAllCheques();
+
+  const { buyAmountWithPercent } = useGetProfit();
 
   // const getTransactionByDealId = useGetTransactionByDealId(dealId);
   // const otherOptionsTransaction =
@@ -220,6 +225,19 @@ const OperatorsDashboard = () => {
     return combined;
   }, [brokerPeople]);
 
+  // Filter deals by selected operator
+  const filteredDeals = React.useMemo(() => {
+    if (!selectedOperatorPersonId || !allDeals) return [];
+    return allDeals.filter((deal) => {
+      const isPurchaseBroker =
+        deal.purchaseBroker?.personId === selectedOperatorPersonId;
+      const isSaleBroker =
+        deal.saleBroker?.personId === selectedOperatorPersonId;
+      return isPurchaseBroker || isSaleBroker;
+    });
+  }, [selectedOperatorPersonId, allDeals]);
+
+
   const brokerCommissions = React.useMemo(() => {
     if (!selectedOperatorPersonId || !allDeals) {
       return {
@@ -267,11 +285,65 @@ const OperatorsDashboard = () => {
         0,
       ) || 0;
 
+
+    // let totalPurchase = 0;
+    // let totalSale = 0;
+    // let totalProfitPurchase = 0;
+    // let totalProfitSale = 0;
+    // // let totalCommissionPurchase = 0;
+    // // let totalCommissionSale = 0;
+    // // let purchaseCount = 0;
+    // // let saleCount = 0;
+    // let totalPercentPurchase = 0;
+    // let totalPercentSale = 0;
+
+
+    // filteredDeals.forEach((deal) => {
+    //   const isPurchaseBroker =
+    //     deal.purchaseBroker?.personId === selectedOperatorPersonId;
+    //   const isSaleBroker =
+    //     deal.saleBroker?.personId === selectedOperatorPersonId;
+
+    //   // Sum purchase amounts only for deals where operator is PurchaseBroker
+    //   if (isPurchaseBroker && deal.purchasePrice) {
+    //     totalPurchase += deal.purchasePrice || 0;
+    //     if (deal.purchaseBroker?.commissionPercent) {
+    //       totalPercentPurchase += deal.purchaseBroker.commissionPercent;
+    //       // purchaseCount++;
+    //     }
+    //   }
+
+    //   // Sum sale amounts only for deals where operator is SaleBroker
+    //   if (isSaleBroker && deal.salePrice) {
+    //     totalSale += deal.salePrice || 0;
+    //     if (deal.saleBroker?.commissionPercent) {
+    //       totalPercentSale += deal.saleBroker.commissionPercent;
+    //       // saleCount++;
+    //     }
+    //   }
+
+    //   if (deal.purchasePrice && deal.salePrice) {
+    //     const { lastGrossProfit: dealGrossProfit } = calculateProfit({
+    //       allTransactions: (allTransactions as ITransactionNew[]) ?? [],
+    //       deal,
+    //     });
+
+    //     if (isPurchaseBroker && dealGrossProfit != null) {
+    //       totalProfitPurchase += dealGrossProfit;
+    //     }
+
+    //     if (isSaleBroker && dealGrossProfit != null) {
+    //       totalProfitSale += dealGrossProfit;
+    //     }
+    //   }
+    // });
+
     allDeals.forEach((deal) => {
       const isPurchaseBroker =
         deal.purchaseBroker?.fullName.trim() === selectedOperator.trim();
 
-      isSold = !!deal?.purchaseBroker?.personId ? true : false;
+      // isSold = !!deal?.purchaseBroker?.personId ? true : false;
+      isSold = deal.status === "sold" ? true : false;
 
       const isSaleBroker =
         deal.saleBroker?.fullName.trim() === selectedOperator.trim();
@@ -283,16 +355,27 @@ const OperatorsDashboard = () => {
         ) || 0;
 
       const buyAmountWithoutPercent =
-        (deal.purchasePrice ?? 0) - otherCosts - purchaseOtherCosts;
+        (((deal.salePrice || 0) - (deal.purchasePrice || 0))) - otherCosts - purchaseOtherCosts;
+      // (totalProfitPurchase || 0) - otherCosts - purchaseOtherCosts;
+      // console.log("🚀 ~ OperatorsDashboard ~ buyAmountWithoutPercent:", buyAmountWithoutPercent)
 
+
+      //  const buyWithoutPercent =
+      //   (deal.purchasePrice ?? 0) - otherCosts - purchaseOtherCosts;
       const sellAmountWithoutPercent =
-        (deal.salePrice ?? 0) - otherCosts - saleOtherCosts;
+        (((deal.salePrice || 0) - (deal.purchasePrice || 0))) - otherCosts - saleOtherCosts;
+
+      // (totalProfitSale || 0) - otherCosts - saleOtherCosts;
+      // (deal.salePrice ?? 0) - otherCosts - saleOtherCosts;
 
       if (isPurchaseBroker && deal.purchaseBroker?.commissionPercent) {
         const commissionPercent =
           parseFloat(String(deal.purchaseBroker.commissionPercent)) || 0;
         const commission =
           (buyAmountWithoutPercent * commissionPercent) / 100;
+
+        // totalPurchaseCommission += buyAmountWithPercent || 0;
+
         totalPurchaseCommission += commission;
         totalPurchasePercent += commissionPercent;
         purchaseCount++;
@@ -302,6 +385,7 @@ const OperatorsDashboard = () => {
         const commissionPercent =
           parseFloat(String(deal.saleBroker.commissionPercent)) || 0;
         const commission = (sellAmountWithoutPercent * commissionPercent) / 100;
+
         totalSaleCommission += commission;
         totalSalePercent += commissionPercent;
         saleCount++;
@@ -333,17 +417,17 @@ const OperatorsDashboard = () => {
     }
   }, [selectedOperator, brokerPeople]);
 
-  // Filter deals by selected operator
-  const filteredDeals = React.useMemo(() => {
-    if (!selectedOperatorPersonId || !allDeals) return [];
-    return allDeals.filter((deal) => {
-      const isPurchaseBroker =
-        deal.purchaseBroker?.personId === selectedOperatorPersonId;
-      const isSaleBroker =
-        deal.saleBroker?.personId === selectedOperatorPersonId;
-      return isPurchaseBroker || isSaleBroker;
-    });
-  }, [selectedOperatorPersonId, allDeals]);
+  // // Filter deals by selected operator
+  // const filteredDeals = React.useMemo(() => {
+  //   if (!selectedOperatorPersonId || !allDeals) return [];
+  //   return allDeals.filter((deal) => {
+  //     const isPurchaseBroker =
+  //       deal.purchaseBroker?.personId === selectedOperatorPersonId;
+  //     const isSaleBroker =
+  //       deal.saleBroker?.personId === selectedOperatorPersonId;
+  //     return isPurchaseBroker || isSaleBroker;
+  //   });
+  // }, [selectedOperatorPersonId, allDeals]);
 
   // Calculate monthly breakdown
   const monthlyData = React.useMemo(() => {
@@ -390,6 +474,7 @@ const OperatorsDashboard = () => {
     const filteredDealIds = new Set(
       filteredDeals.map((deal) => deal._id?.toString()).filter(Boolean),
     );
+
     return (
       (allTransactions as unknown as ITransactionNew[])
         ?.filter((t) => {
@@ -403,6 +488,8 @@ const OperatorsDashboard = () => {
           const deal = filteredDeals.find(
             (d) => d._id?.toString() === t.dealId,
           );
+          const cheque = allCheques?.find(c => c.relatedTransactionId === t._id)
+
           if (!deal) return null;
 
           const isPurchaseBroker =
@@ -428,6 +515,7 @@ const OperatorsDashboard = () => {
             brokerPercentage: isPurchaseBroker
               ? deal.purchaseBroker.commissionPercent
               : deal.saleBroker.commissionPercent,
+            status: cheque?.status
           };
         })
         .filter((item): item is NonNullable<typeof item> => item !== null) || []
@@ -677,13 +765,16 @@ const OperatorsDashboard = () => {
     //   purchaseCount > 0 ? totalPercentPurchase / purchaseCount : 0;
     // const avgPercentSale = saleCount > 0 ? totalPercentSale / saleCount : 0;
 
-    const totalPaidToOperator = operatorTransactionsForDisplay.reduce(
+    const totalPaidToOperator = operatorTransactionsForDisplay.filter(t => t.status === "وصول شده" || t.status === "خرج شده").reduce(
       (sum, t) => {
         const price = parseFloat(t.price.toString().replace(/,/g, ""));
         return sum + (price || 0);
       },
       0,
     );
+    console.log(`🚀 ~ OperatorsDashboard ~ operatorTransactionsForDisplay.filter(t => t.status === "وصول شده" || t.status === "خرح شده"):`, operatorTransactionsForDisplay.filter(t => t.status === "وصول شده" || t.status === "خرح شده"))
+    console.log("🚀 ~ OperatorsDashboard ~ operatorTransactionsForDisplay:", operatorTransactionsForDisplay)
+    // console.log("🚀 ~ OperatorsDashboard ~ totalPaidToOperator:", totalPaidToOperator)
 
     const remainingCommission = totalCommission - totalPaidToOperator;
 
@@ -714,6 +805,8 @@ const OperatorsDashboard = () => {
     return { totalCount, totalAmount };
   }, [monthlyData]);
 
+  console.log("🚀 ~ OperatorsDashboard ~ brokerCommissions.totalSaleCommission:sallllllllllllllllllll", brokerCommissions.totalSaleCommission)
+  console.log("🚀 ~ OperatorsDashboard ~ !brokerCommissions.isSold:", !brokerCommissions.isSold)
   return (
     <div>
       <div className="flex justify-end">
@@ -816,7 +909,7 @@ const OperatorsDashboard = () => {
                   {/* {purchaseBroker.totalCommissionPurchase?.toLocaleString(
                     "en-US",
                   )} */}
-                  {!brokerCommissions.isSold
+                  {!stats.totalProfitPurchase
                     ? 0
                     : formatPrice(
                       brokerCommissions.totalPurchaseCommission.toLocaleString(

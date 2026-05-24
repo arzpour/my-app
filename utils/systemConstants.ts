@@ -141,24 +141,34 @@ export const CHEQUE_TYPES = [
 ];
 
 export const CHEQUE_ACTIONS = [
-  { value: "paid", label: "پاس شدن" },
-  { value: "returned", label: "برگشت خوردن" },
-  { value: "spent", label: "خرج کردن" },
-  { value: "returned_to_owner", label: "عودت دادن" },
+  // { value: "paid", label: "پاس شدن" },
+  // { value: "returned", label: "برگشت خوردن" },
+  // { value: "spent", label: "خرج کردن" },
+  // { value: "returned_to_owner", label: "عودت دادن" },
+  { value: "inProgress", label: "در جریان" },
+  { value: "returned", label: "برگشتی" },
+  { value: "spent", label: "خرج شده" },
+  { value: "returned_to_owner", label: "عودت داده شده" },
+  { value: "received", label: "وصول شده" },
 ];
 
 export const CHEQUE_LAST_STATUS = [
-  { value: "waitingForDateBook", label: "در انتظار سررسید" },
-  { value: "dateBooked", label: "سررسید شده" },
+  // { value: "waitingForDateBook", label: "در انتظار سررسید" },
+  // { value: "dateBooked", label: "سررسید شده" },
+  // { value: "received", label: "وصول شده" },
+  // { value: "notReceived", label: "وصول نشده" },
+  // { value: "revert", label: "برگشتی" },
+  // { value: "inProgress", label: "در جریان پیگیری" },
+  // { value: "defeasance", label: "ابطال شده" },
+  // { value: "changeWithAnother", label: "تعویض با چک دیگر" },
+  // { value: "depositedToAccount", label: "سپرده شده به حساب" },
+  // { value: "makeOver", label: "واگذاری به شخص ثالث" },
+  // { value: "robbery/lost", label: "مفقود / سرقت شده" },
+  { value: "inProgress", label: "در جریان" },
+  { value: "returned", label: "برگشتی" },
+  { value: "spent", label: "خرج شده" },
+  { value: "returned_to_owner", label: "عودت داده شده" },
   { value: "received", label: "وصول شده" },
-  { value: "notReceived", label: "وصول نشده" },
-  { value: "revert", label: "برگشتی" },
-  { value: "inProgress", label: "در جریان پیگیری" },
-  { value: "defeasance", label: "ابطال شده" },
-  { value: "changeWithAnother", label: "تعویض با چک دیگر" },
-  { value: "depositedToAccount", label: "سپرده شده به حساب" },
-  { value: "makeOver", label: "واگذاری به شخص ثالث" },
-  { value: "robbery/lost", label: "مفقود / سرقت شده" },
 ];
 
 export const PERSIAN_MONTHS = [

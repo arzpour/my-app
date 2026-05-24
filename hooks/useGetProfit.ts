@@ -148,6 +148,7 @@ const useGetProfit = () => {
 
   const selectedDeal = allDeals.length > 0 ? allDeals[0] : undefined;
   const dealId = selectedDeal?._id?.toString();
+  console.log("🚀 ~ useGetProfit ~ selectedDeal:", selectedDeal)
 
   const { data: transactionsData } = useGetTransactionByDealId(dealId);
   const transactions: ITransactionNew[] = transactionsData || [];
@@ -284,6 +285,41 @@ const useGetProfit = () => {
     }
   }
 
+  // let lastNetProfitAfterPartner
+  // // if(selectedDeal.)
+  // const partnerExistsTransactions = transactions?.filter(t => !!t.partnerPersonId && t.partnerPersonId !== "")
+  // console.log("🚀 ~ useGetProfit ~ partnerExistsTransactions:", partnerExistsTransactions)
+
+  // lastNetProfitAfterPartner = partnerExistsTransactions.map(p => (((lastNetProfit || 0) - Number(p.partnershipProfitSharePercentage)) / 100))
+
+
+
+    // --- PARTNER CALCULATION FIX ---
+  
+  // 1. Filter transactions that have a partner
+  const partnerTransactions = transactions?.filter(
+    (t) => !!t.partnerPersonId && t.partnerPersonId !== ""
+  );
+
+  // 2. Calculate total percentage owed to partners
+  // Note: Ensure 'partnershipProfitSharePercentage' is stored as a number in your DB.
+  // If it's stored as string, parse it.
+  const totalPartnerPercentage = partnerTransactions?.reduce(
+    (sum, t) => sum + (Number(t.partnershipProfitSharePercentage) || 0),
+    0
+  ) || 0;
+
+  // 3. Calculate the actual monetary amount to be paid to partners
+  // Formula: Net Profit * (Total Partner Percentage / 100)
+  const partnerTotalShare = lastNetProfit != null 
+    ? (lastNetProfit * (totalPartnerPercentage / 100)) 
+    : 0;
+
+  // 4. Calculate Net Profit AFTER paying partners (Owner's final profit)
+  const lastNetProfitAfterPartner = lastNetProfit != null 
+    ? lastNetProfit - partnerTotalShare 
+    : null;
+
   return {
     lastNetProfit,
     netProfit,
@@ -298,6 +334,8 @@ const useGetProfit = () => {
     deal: selectedDeal,
     transactions,
     allDeals,
+    lastNetProfitAfterPartner,
+    partnerTotalShare
   };
 };
 

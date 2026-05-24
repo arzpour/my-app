@@ -22,6 +22,58 @@ interface SaleDealFormProps {
   embedded?: boolean;
 }
 
+const parseAmount = (value: string | number | undefined) => {
+  if (value == null || value === "") return 0;
+  const num =
+    typeof value === "number"
+      ? value
+      : parseFloat(String(value).replace(/,/g, ""));
+  return Number.isNaN(num) ? 0 : num;
+};
+
+const calculateSaleFinancials = (
+  deal: IDeal,
+  salePrice: string | number,
+  brokerCommissionPercent: string | number | undefined,
+) => {
+  const salePriceNum = parseAmount(salePrice);
+  const purchasePriceNum = deal.purchasePrice ?? 0;
+  const brokerPercent = parseAmount(brokerCommissionPercent);
+  const optionsCosts =
+    deal.directCosts?.options?.reduce(
+      (sum, opt) => sum + (Number(opt.cost) || 0),
+      0,
+    ) ?? 0;
+  const otherCosts =
+    deal.directCosts?.otherCost?.reduce(
+      (sum, cost) => sum + (cost.cost || 0),
+      0,
+    ) ?? 0;
+  const purchaseBrokerCommission = deal.purchaseBroker?.commissionAmount ?? 0;
+
+  const grossProfit = salePriceNum - purchasePriceNum;
+  const halfProfit = grossProfit - optionsCosts - otherCosts;
+  const isLastCalculate = process.env.NEXT_PUBLIC_PROFIT_CALCULATE;
+  const commissionBase = isLastCalculate
+    ? salePriceNum - otherCosts
+    : halfProfit;
+  const brokerCommission = (commissionBase * brokerPercent) / 100;
+  const netProfit =
+    grossProfit -
+    optionsCosts -
+    otherCosts -
+    purchaseBrokerCommission -
+    brokerCommission;
+
+  return {
+    salePriceNum,
+    purchasePriceNum,
+    grossProfit,
+    brokerCommission,
+    netProfit,
+  };
+};
+
 const SaleDealForm: React.FC<SaleDealFormProps> = ({
   onSuccess,
   embedded = false,
@@ -79,6 +131,15 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
   const salePrice = watch("salePrice");
   const brokerCommissionPercent = watch("saleBrokerCommissionPercent");
 
+  const saleFinancials = React.useMemo(() => {
+    if (!selectedDeal || !salePrice) return null;
+    return calculateSaleFinancials(
+      selectedDeal,
+      salePrice,
+      brokerCommissionPercent,
+    );
+  }, [selectedDeal, salePrice, brokerCommissionPercent]);
+
   const onSubmit: SubmitHandler<saleDealSchemaType> = async (data) => {
     try {
       if (!selectedDeal) {
@@ -90,6 +151,12 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
         (p) => p._id?.toString() === data.buyerPersonId,
       );
 
+      const financials = calculateSaleFinancials(
+        selectedDeal,
+        data.salePrice,
+        data.saleBrokerCommissionPercent,
+      );
+
       const updateData: Partial<IDeal> = {
         buyer: buyer
           ? {
@@ -99,7 +166,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
               mobile: buyer.phoneNumbers?.map((el) => el)?.toString() || "",
             }
           : undefined,
-        salePrice: parseFloat(data.salePrice),
+        salePrice: parseAmount(data.salePrice),
         saleDate: data.saleDate,
         saleBroker:
           selectedBroker && data.saleBrokerPersonId
@@ -109,9 +176,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
                 commissionPercent: parseFloat(
                   data.saleBrokerCommissionPercent || "0",
                 ),
-                commissionAmount:
-                  parseFloat(data.salePrice) *
-                  (parseFloat(data.saleBrokerCommissionPercent || "0") / 100),
+                commissionAmount: financials.brokerCommission,
               }
             : undefined,
         status: "sold",
@@ -144,7 +209,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
       }
       onSuccess?.();
 
-      const price = Number(data.salePrice);
+      const price = parseAmount(data.salePrice);
       queryClient.invalidateQueries({ queryKey: ["get-deals-by-vin"] });
       queryClient.invalidateQueries({ queryKey: ["get-vehicles"] });
 
@@ -159,11 +224,7 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
         updateWalletHandler(data.buyerPersonId, walletDataForBuyer);
       }
 
-      const brokerPercent = parseFloat(data.saleBrokerCommissionPercent || "0");
-      const brokerCommission =
-        !isNaN(price) && !isNaN(brokerPercent)
-          ? (price * brokerPercent) / 100
-          : 0;
+      const brokerCommission = financials.brokerCommission;
       if (data.saleBrokerPersonId && brokerCommission !== 0) {
         const walletDataForSaleBroker = {
           amount: brokerCommission,
@@ -375,48 +436,29 @@ const SaleDealForm: React.FC<SaleDealFormProps> = ({
               placeholder="مثلاً 0.01"
               className="w-full px-3 py-2 border rounded-md"
             />
-            {salePrice && brokerCommissionPercent && (
+            {saleFinancials && brokerCommissionPercent && (
               <p className="text-xs text-gray-500">
                 مبلغ کمیسیون:{" "}
-                {(
-                  parseFloat(salePrice) *
-                  (parseFloat(brokerCommissionPercent || "0") / 100)
-                ).toLocaleString()}{" "}
-                ریال
+                {saleFinancials.brokerCommission.toLocaleString()} ریال
               </p>
             )}
           </div>
         </div>
       </div>
 
-      {selectedDeal && salePrice && (
+      {saleFinancials && (
         <div className="p-4 bg-blue-50 rounded-md">
           <h4 className="font-semibold mb-2">محاسبه سود (نمایشی)</h4>
           <div className="space-y-1 text-sm">
             <p>
-              قیمت خرید: {selectedDeal.purchasePrice?.toLocaleString()} ریال
+              قیمت خرید: {saleFinancials.purchasePriceNum.toLocaleString()} ریال
             </p>
-            <p>قیمت فروش: {parseFloat(salePrice).toLocaleString()} ریال</p>
+            <p>
+              قیمت فروش: {saleFinancials.salePriceNum.toLocaleString()} ریال
+            </p>
             <p className="font-semibold">
-              سود خالص:{" "}
-              {(
-                parseFloat(salePrice) -
-                (selectedDeal.purchasePrice || 0) -
-                (selectedDeal.directCosts?.options?.reduce(
-                  (sum, opt) => sum + opt.cost,
-                  0,
-                ) || 0) -
-                (selectedDeal.directCosts?.otherCost?.reduce(
-                  (sum, cost) => sum + cost.cost,
-                  0,
-                ) || 0) -
-                (selectedDeal.purchaseBroker?.commissionAmount || 0) -
-                (brokerCommissionPercent
-                  ? parseFloat(salePrice) *
-                    (parseFloat(brokerCommissionPercent) / 100)
-                  : 0)
-              ).toLocaleString()}{" "}
-              ریال
+              {/* سود خالص: {saleFinancials.netProfit.toLocaleString()} ریال */}
+              سود ناخالص: {(saleFinancials.salePriceNum - saleFinancials.purchasePriceNum).toLocaleString()} ریال
             </p>
           </div>
         </div>

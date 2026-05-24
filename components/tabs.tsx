@@ -24,11 +24,6 @@ const tabs = [
     content: <CustomersDashboard />,
   },
   {
-    id: "checkDashboard",
-    title: "داشبورد چک",
-    content: <CheckDashboard />,
-  },
-  {
     id: "providersDashboard",
     title: "داشبورد تامین کنندگان",
     content: <ProvidersDashboard />,
@@ -47,6 +42,11 @@ const tabs = [
     id: "transactionDashboard",
     title: "گزارش تراکنش ها",
     content: <TransactionDashboard />,
+  },
+  {
+    id: "checkDashboard",
+    title: "داشبورد چک",
+    content: <CheckDashboard />,
   },
   {
     id: "vehicleList",

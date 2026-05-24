@@ -1189,10 +1189,10 @@ const CustomersDashboard = () => {
     setTransactionId(undefined);
     // getTransactionsByDealIdHandler();
     handleAllDeals();
-      transactionsByPersonId(selectedPersonId ?? "");
-      handleTransationDataByDealId(selectedDealId ?? "");
-      handleChequeDataByDealId(selectedDealId ?? "");
-      handleChequeDataByPersonlId(selectedPersonId ?? "");
+    transactionsByPersonId(selectedPersonId ?? "");
+    handleTransationDataByDealId(selectedDealId ?? "");
+    handleChequeDataByDealId(selectedDealId ?? "");
+    handleChequeDataByPersonlId(selectedPersonId ?? "");
     queryClient.invalidateQueries({
       queryKey: ["get-all-transaction"],
     });
@@ -1731,12 +1731,11 @@ const CustomersDashboard = () => {
                           setSelectedChassisNo(null);
                           setSelectedVin(null);
                         }}
-                        className={`cursor-pointer ${
-                          selectedNationalId?.toString() ===
-                          person.nationalId.toString()
+                        className={`cursor-pointer ${selectedNationalId?.toString() ===
+                            person.nationalId.toString()
                             ? "bg-gray-200"
                             : "bg-white"
-                        }`}
+                          }`}
                       >
                         <TableCell className="text-center">
                           {index + 1}
@@ -1993,12 +1992,11 @@ const CustomersDashboard = () => {
                             handleChequeDataByDealId(deal._id.toString());
                             setSelectedVin(deal?.vehicleSnapshot.vin);
                           }}
-                          className={`hover:bg-gray-50 cursor-pointer ${
-                            selectedDealId === deal._id.toString() &&
-                            selectedChassisNo === deal.vehicleSnapshot?.vin
+                          className={`hover:bg-gray-50 cursor-pointer ${selectedDealId === deal._id.toString() &&
+                              selectedChassisNo === deal.vehicleSnapshot?.vin
                               ? "bg-blue-100"
                               : ""
-                          }`}
+                            }`}
                         >
                           <TableCell className="text-center">
                             {index + 1}
@@ -2019,13 +2017,14 @@ const CustomersDashboard = () => {
                             {deal.vehicleSnapshot?.model}
                           </TableCell>
                           <TableCell className="text-center">
-                            {deal.saleDate || deal.purchaseDate}
+                            {deal.roleType === "buyer" ? deal.saleDate : deal.roleType === "seller" ? deal.purchaseDate : ""}
                           </TableCell>
                           <TableCell className="text-center">
-                            {formatPrice(
+                            {/* {formatPrice(
                               deal.salePrice?.toLocaleString("en-US") ||
-                                deal.purchasePrice?.toLocaleString("en-US"),
-                            )}
+                              deal.purchasePrice?.toLocaleString("en-US"),
+                            )} */}
+                            {deal.roleType === "buyer" ? formatPrice(deal.salePrice?.toLocaleString("en-US")) : deal.roleType === "seller" ? formatPrice(deal.purchasePrice?.toLocaleString("en-US")) : ""}
                           </TableCell>
                         </TableRow>
                       );
@@ -2080,57 +2079,57 @@ const CustomersDashboard = () => {
 
                 <TableBody>
                   {// (displayedCheques.length > 0
-                  //   ? displayedCheques
-                  //   : cheques
-                  // )
-                  cheques?.map((item, index) => (
-                    <TableRow
-                      key={`${item?._id}-${index}`}
-                      className="hover:bg-gray-50 cursor-pointer"
-                    >
-                      <TableCell className="text-center">{index + 1}</TableCell>
-                      <TableCell className="text-center">
-                        {item?.chequeSerial ?? ""}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.sayadiID ?? ""}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {formatPrice(item?.amount?.toLocaleString("en-US")) ??
-                          ""}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.dueDate ?? "-"}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {item?.type === "issued" || item?.type === "صادره"
-                          ? "صادره"
-                          : item?.type === "received" || item?.type === "وارده"
-                            ? "وارده"
-                            : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                    //   ? displayedCheques
+                    //   : cheques
+                    // )
+                    cheques?.map((item, index) => (
+                      <TableRow
+                        key={`${item?._id}-${index}`}
+                        className="hover:bg-gray-50 cursor-pointer"
+                      >
+                        <TableCell className="text-center">{index + 1}</TableCell>
+                        <TableCell className="text-center">
+                          {item?.chequeSerial ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.sayadiID ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {formatPrice(item?.amount?.toLocaleString("en-US")) ??
+                            ""}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.dueDate ?? "-"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {item?.type === "issued" || item?.type === "صادره"
+                            ? "صادره"
+                            : item?.type === "received" || item?.type === "وارده"
+                              ? "وارده"
+                              : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   {[].length > 0
                     ? []?.map((item, index) => (
-                        <TableRow
-                          key={`${item}-${index}`}
-                          className="has-data-[state=checked]:bg-muted/50"
-                        >
-                          <TableCell className="text-center">
-                            {index + 1}
-                          </TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">
-                            {item ?? ""}
-                          </TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                          <TableCell className="text-center">{item}</TableCell>
-                        </TableRow>
-                      ))
+                      <TableRow
+                        key={`${item}-${index}`}
+                        className="has-data-[state=checked]:bg-muted/50"
+                      >
+                        <TableCell className="text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">
+                          {item ?? ""}
+                        </TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                        <TableCell className="text-center">{item}</TableCell>
+                      </TableRow>
+                    ))
                     : null}
                 </TableBody>
               </Table>
@@ -2164,137 +2163,137 @@ const CustomersDashboard = () => {
 
                 <TableBody>
                   {filteredTransactionsWithValidCheques &&
-                  filteredTransactionsWithValidCheques.length > 0
+                    filteredTransactionsWithValidCheques.length > 0
                     ? filteredTransactionsWithValidCheques.map(
-                        (item, index) => {
-                          let customerReason;
-                          let customerType;
+                      (item, index) => {
+                        let customerReason;
+                        let customerType;
 
-                          // if (item.reason === "خرید خودرو") {
-                          //   customerReason = "فروش خودرو";
-                          // } else if (item.reason === "فروش خودرو") {
-                          //   customerReason = "خرید خودرو";
-                          // } else {
-                          //   customerReason = item.reason;
-                          // }
+                        // if (item.reason === "خرید خودرو") {
+                        //   customerReason = "فروش خودرو";
+                        // } else if (item.reason === "فروش خودرو") {
+                        //   customerReason = "خرید خودرو";
+                        // } else {
+                        //   customerReason = item.reason;
+                        // }
 
-                          if (item.reason === "خرید خودرو") {
-                            customerReason = "فروش";
-                          } else if (item.reason === "فروش خودرو") {
-                            customerReason = "خرید";
-                          } else if (item.reason === "خرید خودروـ صراف") {
-                            customerReason = "فروش";
-                          } else if (item.reason === "فروش خودروـ صراف") {
-                            customerReason = "خرید";
-                          } else if (item.reason === "سایر هزینه‌ها") {
-                            customerReason = "هزینه";
-                          } else {
-                            customerReason = item.reason;
-                          }
+                        if (item.reason === "خرید خودرو") {
+                          customerReason = "فروش";
+                        } else if (item.reason === "فروش خودرو") {
+                          customerReason = "خرید";
+                        } else if (item.reason === "خرید خودروـ صراف") {
+                          customerReason = "فروش";
+                        } else if (item.reason === "فروش خودروـ صراف") {
+                          customerReason = "خرید";
+                        } else if (item.reason === "سایر هزینه‌ها") {
+                          customerReason = "هزینه";
+                        } else {
+                          customerReason = item.reason;
+                        }
 
-                          if (item.type === "دریافت") {
-                            customerType = "پرداخت";
-                          } else if (item.type === "پرداخت") {
-                            customerType = "دریافت";
-                          } else {
-                            customerType = item.type;
-                          }
+                        if (item.type === "دریافت") {
+                          customerType = "پرداخت";
+                        } else if (item.type === "پرداخت") {
+                          customerType = "دریافت";
+                        } else {
+                          customerType = item.type;
+                        }
 
-                          return (
-                            <TableRow
-                              key={`${item?._id}-${index}`}
-                              className="hover:bg-gray-50 cursor-pointer"
-                            >
-                              <TableCell className="text-center">
-                                {index + 1}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {customerType === "دریافت" && (
-                                  <div className="w-3 h-3 rounded-full bg-blue-500 mx-auto" />
-                                )}
+                        return (
+                          <TableRow
+                            key={`${item?._id}-${index}`}
+                            className="hover:bg-gray-50 cursor-pointer"
+                          >
+                            <TableCell className="text-center">
+                              {index + 1}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {customerType === "دریافت" && (
+                                <div className="w-3 h-3 rounded-full bg-blue-500 mx-auto" />
+                              )}
 
-                                {customerType === "پرداخت" && (
-                                  <div className="w-3 h-3 rounded-full bg-red-500 mx-auto" />
-                                )}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {item.transactionDate}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {formatPrice(
-                                  item?.amount?.toLocaleString("en-US"),
-                                ) ?? ""}
-                              </TableCell>
-                              {/* <TableCell className="text-center">
+                              {customerType === "پرداخت" && (
+                                <div className="w-3 h-3 rounded-full bg-red-500 mx-auto" />
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {item.transactionDate}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {formatPrice(
+                                item?.amount?.toLocaleString("en-US"),
+                              ) ?? ""}
+                            </TableCell>
+                            {/* <TableCell className="text-center">
                                 {customerType} - {customerReason}
                               </TableCell> */}
-                              <TableCell className="text-center">
-                                {customerReason}
-                              </TableCell>
-                              <TableCell
-                                title={item.paymentMethod}
-                                className="text-center truncate"
-                              >
-                                {item.paymentMethod}
-                              </TableCell>
-                              <TableCell className="text-center flex gap-3 justify-center items-center">
-                                <Pencil
-                                  className="w-4 h-4 cursor-pointer hover:text-indigo-500"
-                                  onClick={() => {
-                                    setIsOpenEditModal(true);
-                                    setTransactionId(item._id?.toString());
-                                    setDealId(
-                                      (item as ITransactionNew)?.dealId,
-                                    );
-                                  }}
-                                />
-                                <Trash
-                                  className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
-                                  onClick={() => {
-                                    handleDeleteClick(
-                                      item._id?.toString() || "",
-                                    );
-                                    setDealToDelete(
-                                      item?.dealId?.toString() || "",
-                                    );
-                                    setPersonId(
-                                      item.personId ||
-                                        item.brokerPersonId ||
-                                        item.partnerPersonId ||
-                                        item.providerPersonId ||
-                                        "",
-                                    );
-                                    setIsCustomerToCustomer(
-                                      item.paymentMethod === "مشتری به مشتری"
-                                        ? true
-                                        : false,
-                                    );
-                                    setSecondDealToDelete(
-                                      item.secondDealId ?? "",
-                                    );
-                                    setSecondPersonId(
-                                      item.secondPersonId ?? "",
-                                    );
+                            <TableCell className="text-center">
+                              {customerReason}
+                            </TableCell>
+                            <TableCell
+                              title={item.paymentMethod}
+                              className="text-center truncate"
+                            >
+                              {item.paymentMethod}
+                            </TableCell>
+                            <TableCell className="text-center flex gap-3 justify-center items-center">
+                              <Pencil
+                                className="w-4 h-4 cursor-pointer hover:text-indigo-500"
+                                onClick={() => {
+                                  setIsOpenEditModal(true);
+                                  setTransactionId(item._id?.toString());
+                                  setDealId(
+                                    (item as ITransactionNew)?.dealId,
+                                  );
+                                }}
+                              />
+                              <Trash
+                                className="w-4 h-4 cursor-pointer text-red-500 hover:text-red-700"
+                                onClick={() => {
+                                  handleDeleteClick(
+                                    item._id?.toString() || "",
+                                  );
+                                  setDealToDelete(
+                                    item?.dealId?.toString() || "",
+                                  );
+                                  setPersonId(
+                                    item.personId ||
+                                    item.brokerPersonId ||
+                                    item.partnerPersonId ||
+                                    item.providerPersonId ||
+                                    "",
+                                  );
+                                  setIsCustomerToCustomer(
+                                    item.paymentMethod === "مشتری به مشتری"
+                                      ? true
+                                      : false,
+                                  );
+                                  setSecondDealToDelete(
+                                    item.secondDealId ?? "",
+                                  );
+                                  setSecondPersonId(
+                                    item.secondPersonId ?? "",
+                                  );
 
-                                    // setBrokerPersonId(item.brokerPersonId);
-                                    setIsChequeTransaction(
-                                      item.paymentMethod === "چک"
-                                        ? true
-                                        : false,
-                                    );
-                                    // setBrokerPersonId(item.brokerPersonId);
-                                    setIsChequeTransaction(
-                                      item.paymentMethod === "چک"
-                                        ? true
-                                        : false,
-                                    );
-                                  }}
-                                />
-                              </TableCell>
-                            </TableRow>
-                          );
-                        },
-                      )
+                                  // setBrokerPersonId(item.brokerPersonId);
+                                  setIsChequeTransaction(
+                                    item.paymentMethod === "چک"
+                                      ? true
+                                      : false,
+                                  );
+                                  // setBrokerPersonId(item.brokerPersonId);
+                                  setIsChequeTransaction(
+                                    item.paymentMethod === "چک"
+                                      ? true
+                                      : false,
+                                  );
+                                }}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      },
+                    )
                     : null}
                 </TableBody>
               </Table>

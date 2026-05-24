@@ -77,7 +77,7 @@ const PeopleList: React.FC<IPeopleList> = ({ setMode, setPersonId }) => {
   }: PersonReportPrintParams) => {
     if (isNaN(Number(personNationalId))) {
       console.error("خطا: کد ملی معتبر نیست:", personNationalId);
-      alert("کد ملی نامعتبر است. لطفاً دوباره امتحان کنید.");
+      // alert("کد ملی نامعتبر است. لطفاً دوباره امتحان کنید.");
       return;
     }
 
@@ -229,7 +229,7 @@ const PeopleList: React.FC<IPeopleList> = ({ setMode, setPersonId }) => {
                                 console.error(
                                   "خطا: nationalId برای فرد مورد نظر موجود نیست.",
                                 );
-                                alert("کد ملی فرد مورد نظر یافت نشد.");
+                                // alert("کد ملی فرد مورد نظر یافت نشد.");
                               }
                             }}
                           />

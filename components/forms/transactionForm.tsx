@@ -2579,7 +2579,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         // dispatch(setTransactionCreated(transaction._id));
         dispatch(setTransactionCreated(`${transaction?._id}748`));
 
-        alert("mode ===transactionId");
+        // alert("mode ===transactionId");
         toast.success("تراکنش با موفقیت به‌روزرسانی شد");
       } else {
         // Create new transaction
@@ -2588,12 +2588,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           queryKey: ["get-transactions-by-deal-id"],
         });
         toast.success("تراکنش با موفقیت ثبت شد");
-        alert("else");
+        // alert("else");
 
         // dispatch(setTransactionCreated(transaction._id));
         dispatch(setTransactionCreated(`${transaction?._id}728`));
       }
-      alert("out");
+      // alert("out");
 
       await chequeHandler(data, transaction);
       await walletUpdateHandler(data, transaction);

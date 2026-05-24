@@ -75,6 +75,8 @@ const Header = () => {
     totalOptionsDeals,
     totalOtherCosts,
     allDeals,
+    lastNetProfitAfterPartner,
+    partnerTotalShare,
   } = useGetProfit();
 
   // React.useEffect(() => {
@@ -534,7 +536,7 @@ const Header = () => {
             کارگزار خرید:{" "}
             <span className="text-green-700 text-xs">
               {deal?.purchaseBroker?.commissionPercent &&
-              deal?.purchaseBroker?.commissionPercent > 0
+                deal?.purchaseBroker?.commissionPercent > 0
                 ? `${deal?.purchaseBroker?.commissionPercent}%`
                 : "0%"}
             </span>
@@ -549,7 +551,7 @@ const Header = () => {
             کارگزار فروش:{" "}
             <span className="text-green-700 text-xs">
               {deal?.saleBroker?.commissionPercent &&
-              deal?.saleBroker?.commissionPercent > 0
+                deal?.saleBroker?.commissionPercent > 0
                 ? `${deal?.saleBroker?.commissionPercent}%`
                 : "0%"}
             </span>
@@ -603,13 +605,12 @@ const Header = () => {
         <div className="flex gap-2 items-right items-baseline text-sm">
           <p className="text-sm">وضعیت خودرو:</p>
           <p
-            className={`px-7 rounded py-1 text-sm ${
-              deal?.buyer
-                ? "bg-red-400 text-white"
-                : deal?.seller
-                  ? "bg-green-400 text-red-900"
-                  : "bg-yellow-400 text-red-900"
-            }`}
+            className={`px-7 rounded py-1 text-sm ${deal?.buyer
+              ? "bg-red-400 text-white"
+              : deal?.seller
+                ? "bg-green-400 text-red-900"
+                : "bg-yellow-400 text-red-900"
+              }`}
           >
             {isCarExist}
           </p>
@@ -647,9 +648,27 @@ const Header = () => {
         </p>
         <p className="text-sm text-green-700">
           سود خالص:{" "}
+          {/* <strong dir="ltr" className="text-black text-sm"> */}
+          {/* {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"} */}
+          {/* {formatPrice(lastNetProfit?.toLocaleString("en-US")) ?? "—"}
+            {lastNetProfitAfterPartner && `(${lastNetProfitAfterPartner})`}
+          </strong> */}
           <strong dir="ltr" className="text-black text-sm">
-            {/* {carInfo ? carInfo.SaleAmount - carInfo.PurchaseAmount : "—"} */}
-            {formatPrice(lastNetProfit?.toLocaleString("en-US")) ?? "—"}
+            <strong dir="ltr" className={`${lastNetProfitAfterPartner != null ? "line-through" : ""} text-black text-sm`}>
+              {formatPrice(lastNetProfit?.toLocaleString("en-US")) ?? "—"}{" "}
+            </strong>
+            {lastNetProfitAfterPartner != null ? (
+              <>
+                {" "} {`(${formatPrice(lastNetProfitAfterPartner.toLocaleString("en-US"))})`}
+                {/* {partnerTotalShare > 0 && (
+                  <span className="text-xs text-red-600 mr-2">
+                    (سهم شرکا: {formatPrice(partnerTotalShare.toLocaleString("en-US"))})
+                  </span>
+                )} */}
+              </>
+            ) : (
+              "—"
+            )}
           </strong>
         </p>
         {/* </div> */}
@@ -658,15 +677,14 @@ const Header = () => {
             وضعیت مالی با طرف اول:
           </p>
           <p
-            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${
-              peopleStatus?.firstParty === "تسویه شده"
-                ? "bg-green-400 text-green-900"
-                : peopleStatus?.firstParty === "بدهکار"
-                  ? "bg-red-400 text-red-900"
-                  : peopleStatus?.firstParty === "بستانکار"
-                    ? "bg-yellow-400 text-yellow-900"
-                    : "bg-gray-200 text-gray-600"
-            }`}
+            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${peopleStatus?.firstParty === "تسویه شده"
+              ? "bg-green-400 text-green-900"
+              : peopleStatus?.firstParty === "بدهکار"
+                ? "bg-red-400 text-red-900"
+                : peopleStatus?.firstParty === "بستانکار"
+                  ? "bg-yellow-400 text-yellow-900"
+                  : "bg-gray-200 text-gray-600"
+              }`}
           >
             {/* {sellerSettlementStatus} */}
             {peopleStatus?.firstParty}
@@ -678,18 +696,17 @@ const Header = () => {
             وضعیت مالی با طرف دوم:
           </p>
           <p
-            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${
-              isCarExist === "موجود" &&
+            className={`px-7 rounded py-1 text-sm whitespace-nowrap ${isCarExist === "موجود" &&
               peopleStatus?.secondParty === "تسویه شده"
-                ? "bg-gray-100"
-                : peopleStatus?.secondParty === "تسویه شده"
-                  ? "bg-green-400 text-green-900"
-                  : peopleStatus?.secondParty === "بستانکار"
-                    ? "bg-yellow-400 text-yellow-900"
-                    : peopleStatus?.secondParty === "بدهکار"
-                      ? "bg-red-400 text-red-900"
-                      : "bg-gray-200 text-gray-600"
-            }`}
+              ? "bg-gray-100"
+              : peopleStatus?.secondParty === "تسویه شده"
+                ? "bg-green-400 text-green-900"
+                : peopleStatus?.secondParty === "بستانکار"
+                  ? "bg-yellow-400 text-yellow-900"
+                  : peopleStatus?.secondParty === "بدهکار"
+                    ? "bg-red-400 text-red-900"
+                    : "bg-gray-200 text-gray-600"
+              }`}
           >
             {/* {buyerSettlementStatus} */}
             {isCarExist === "موجود" && peopleStatus?.secondParty === "تسویه شده"
