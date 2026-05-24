@@ -16,7 +16,6 @@ import SelectForFilterCheques from "./selectForFilterCheques";
 import useGetAllTransactions from "@/hooks/useGetAllTransaction";
 import useGetAllDeals from "@/hooks/useGetAllDeals";
 import { formatPrice } from "@/utils/systemConstants";
-import useGetProfit from "@/hooks/useGetProfit";
 import { calculateProfit } from "@/components/vehicles/exportExcelVehicleReport";
 
 // Persian month names
@@ -68,8 +67,6 @@ const OperatorsDashboard = () => {
   // });
   const { data: allDeals } = useGetAllDeals();
   const { data: allTransactions } = useGetAllTransactions();
-
-  const { buyAmountWithPercent } = useGetProfit();
 
   // const getTransactionByDealId = useGetTransactionByDealId(dealId);
   // const otherOptionsTransaction =
@@ -294,8 +291,9 @@ const OperatorsDashboard = () => {
       if (isPurchaseBroker && deal.purchaseBroker?.commissionPercent) {
         const commissionPercent =
           parseFloat(String(deal.purchaseBroker.commissionPercent)) || 0;
-        // const commission = (buyAmountWithoutPercent * commissionPercent) / 100;
-        totalPurchaseCommission += buyAmountWithPercent || 0;
+        const commission =
+          (buyAmountWithoutPercent * commissionPercent) / 100;
+        totalPurchaseCommission += commission;
         totalPurchasePercent += commissionPercent;
         purchaseCount++;
       }

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 const useGetAllBusinessAccount = () => {
   const { data, isLoading, isError, error, isSuccess } = useQuery({
-    queryKey: ["get-all-business-account"],
+    queryKey: ["get-all-business-accounts"],
     queryFn: getAllBusinessAccounts,
     refetchOnWindowFocus: false,
     retry: 1,

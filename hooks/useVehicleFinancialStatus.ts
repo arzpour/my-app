@@ -1,73 +1,51 @@
 import { RootState } from "@/redux/store";
-import { IChequeNew, IDeal, ITransactionNew } from "@/types/new-backend-types";
+import { IDeal } from "@/types/new-backend-types";
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import useGetDealsByVin from "./useGetDealsByVin";
-import { useGetTransactionsByDealId } from "@/apis/mutations/transaction";
-import { peopleStatus, setPeopleStatus } from "@/redux/slices/transactionSlice";
-import { useGetChequesByDealId } from "@/apis/mutations/cheques";
+import useGetTransactionByDealId from "./useGetTransactionByDealId";
+import useGetChequesByDealId from "./useGetChequesByDealId";
+import { peopleStatus } from "@/redux/slices/transactionSlice";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function useVehicleFinancialStatus() {
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const { selectedDealId, chassisNo } = useSelector(
     (state: RootState) => state.cars,
   );
   const [deal, setDeal] = React.useState<IDeal>();
-  const [transactions, setTransactions] = React.useState<ITransactionNew[]>([]);
-  const [cheques, setCheques] = React.useState<IChequeNew[]>([]);
 
-  // --- FETCHERS ---
   const getDealByVin = useGetDealsByVin(chassisNo);
   const dealsData = getDealByVin.data;
-  const getTransactionsByDealId = useGetTransactionsByDealId();
-  const getChequesByDealId = useGetChequesByDealId();
 
-  // --- DEAL SYNC ---
   React.useEffect(() => {
     if (dealsData?.length === 1) {
       setDeal(dealsData[0]);
-    } else if (dealsData?.length && dealsData?.length > 1) {
-      const selectedDeal = dealsData?.find(
+    } else if (dealsData?.length && dealsData.length > 1) {
+      const selectedDeal = dealsData.find(
         (d) => d._id.toString() === selectedDealId,
       );
       setDeal(selectedDeal ?? undefined);
     }
-  }, [dealsData, selectedDealId, chassisNo]);
+  }, [dealsData, selectedDealId]);
+
+  const dealId = deal?._id?.toString();
+  const { data: transactions = [] } = useGetTransactionByDealId(dealId);
+  const { data: cheques = [] } = useGetChequesByDealId(dealId);
+
+  const getTransactionsByDealIdHandler = async () => {
+    if (!dealId) return;
+    await queryClient.invalidateQueries({
+      queryKey: ["get-transaction-by-deal-id", dealId],
+    });
+  };
 
   const getChequesByDealIdHandler = async () => {
-    if (!deal?._id) return;
-    try {
-      const cheques = await getChequesByDealId.mutateAsync(
-        deal?._id.toString() ?? selectedDealId ?? "",
-      );
-      setCheques(cheques);
-    } catch (error) {
-      console.log("🚀 ~ getChequesByDealIdHandler ~ error:", error);
-    }
+    if (!dealId) return;
+    await queryClient.invalidateQueries({
+      queryKey: ["get-cheques-by-deal-id", dealId],
+    });
   };
-  const getTransactionsByDealIdHandler = async () => {
-    if (!deal?._id) return;
-    try {
-      const transactions = await getTransactionsByDealId.mutateAsync(
-        deal?._id.toString() ?? selectedDealId ?? "",
-      );
-
-      setTransactions(transactions);
-    } catch (error) {
-      console.log("🚀 ~ getTransactionsByDealIdHandler ~ error:", error);
-    }
-  };
-
-  React.useEffect(() => {
-    if (dealsData?.length === 1) {
-      setDeal(dealsData[0]);
-    } else if (dealsData?.length && dealsData?.length > 1) {
-      const selectedDeal = dealsData?.find(
-        (deal) => deal._id.toString() === selectedDealId,
-      );
-      setDeal(selectedDeal ?? undefined);
-    }
-  }, [dealsData, selectedDealId]);
 
   const validChequeRecieved = cheques?.filter((c) => {
     const isRecieved =
@@ -103,7 +81,7 @@ export function useVehicleFinancialStatus() {
     validChequeRecievedTransactionIds?.includes(t._id?.toString()),
   );
 
-  const investmentTransactionConditions = (t: ITransactionNew) => {
+  const investmentTransactionConditions = (t: (typeof transactions)[number]) => {
     return (
       (t.type === "پرداخت" && t.reason === "اصل سرمایه") ||
       (t.type === "پرداخت" && t.reason === "سود سرمایه") ||
@@ -175,16 +153,12 @@ export function useVehicleFinancialStatus() {
     secondPartyStatus = "بدهکار";
   } else if (remainingForBuyer > 0) {
     secondPartyStatus = "بستانکار";
-  }
-  const peopleStatus = {
+  };
+
+  const peopleStatusResult = {
     firstParty: firstPartyStatus,
     secondParty: secondPartyStatus,
   };
-
-  React.useEffect(() => {
-    getTransactionsByDealIdHandler();
-    getChequesByDealIdHandler();
-  }, [deal?._id, selectedDealId]);
 
   return {
     deal,
@@ -196,10 +170,8 @@ export function useVehicleFinancialStatus() {
     totalReceived,
     remainingForBuyer,
     remainingToSeller,
-    peopleStatus,
-    setTransactions,
+    peopleStatus: peopleStatusResult,
     setDeal,
-    setCheques,
     getTransactionsByDealIdHandler,
     getChequesByDealIdHandler,
   };

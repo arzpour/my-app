@@ -3,12 +3,12 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Pencil, Trash } from "lucide-react";
 import { formatPrice } from "@/utils/systemConstants";
 import { IVehicle, IDeal } from "@/types/new-backend-types";
-import useCalculateVehicleProfit from "@/hooks/useCalculateVehicleProfit";
 
 interface VehicleRowProps {
   vehicle: IVehicle;
   index: number;
   relatedDeal: IDeal | undefined;
+  lastNetProfit: number | null;
   onEdit: (vehicle: IVehicle) => void;
   onDelete: (vehicle: IVehicle) => void;
 }
@@ -17,12 +17,10 @@ const VehicleRow: React.FC<VehicleRowProps> = ({
   vehicle,
   index,
   relatedDeal,
+  lastNetProfit,
   onEdit,
   onDelete,
 }) => {
-  const { lastNetProfit, isLoading: profitLoading } =
-    useCalculateVehicleProfit(vehicle.vin);
-
   const options =
     relatedDeal?.directCosts.options?.reduce(
       (sum, t) => sum + parseInt(t?.cost.toString() || "0"),
@@ -101,7 +99,7 @@ const VehicleRow: React.FC<VehicleRowProps> = ({
         {formatPrice(costs) || "—"}
       </TableCell>
       <TableCell className="text-center">
-        {profitLoading ? "..." : formatPrice(lastNetProfit || 0) || "—"}
+        {formatPrice(lastNetProfit || 0) || "—"}
       </TableCell>
       <TableCell
         title={vehicle.SecretaryName}

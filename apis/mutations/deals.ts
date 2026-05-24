@@ -24,7 +24,7 @@ export const useCreateDeal = () => {
     mutationFn: createDeal,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-all-deals"] });
-      queryClient.invalidateQueries({ queryKey: ["get-deal-by-vin"] });
+      queryClient.invalidateQueries({ queryKey: ["get-deals-by-vin"] });
       queryClient.invalidateQueries({ queryKey: ["get-vehicles"] });
       queryClient.invalidateQueries({ queryKey: ["get-all-vehicles"] });
       toast.success("معامله با موفقیت ثبت شد");
@@ -43,7 +43,7 @@ export const useUpdateDeal = () => {
       updateDeal(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-all-deals"] });
-      queryClient.invalidateQueries({ queryKey: ["get-deal-by-vin"] });
+      queryClient.invalidateQueries({ queryKey: ["get-deals-by-vin"] });
       toast.success("معامله با موفقیت به‌روزرسانی شد");
     },
     onError: (error: any) => {
@@ -87,7 +87,7 @@ export const useDeleteDeal = () => {
     mutationFn: deleteDeal,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-all-deals"] });
-      queryClient.invalidateQueries({ queryKey: ["get-deal-by-vin"] });
+      queryClient.invalidateQueries({ queryKey: ["get-deals-by-vin"] });
       toast.success("معامله با موفقیت حذف شد");
     },
     onError: (error: any) => {

@@ -1,10 +1,7 @@
 "use client";
 import {
-  useGetChequesByDealId,
   useGetChequesByPersonId,
 } from "@/apis/mutations/cheques";
-import { useGetAllDeals } from "@/apis/mutations/deals";
-import { useGetTransactionsByDealId } from "@/apis/mutations/transaction";
 import {
   Table,
   TableBody,
@@ -14,10 +11,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import useGetAllPeople from "@/hooks/useGetAllPeople";
+import useGetAllTransactions from "@/hooks/useGetAllTransaction";
+import useGetAllDeals from "@/hooks/useGetAllDeals";
+import useGetAllCheques from "@/hooks/useGetAllCheques";
 import { IChequeNew, IDeal, ITransactionNew } from "@/types/new-backend-types";
 import React from "react";
 import { formatPrice } from "@/utils/systemConstants";
-import useGetAllTransactions from "@/hooks/useGetAllTransaction";
 import { setChassisNo } from "@/redux/slices/carSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -37,14 +36,7 @@ const ProvidersDashboard = () => {
     string | null
   >(null);
   const [searchValue, setSearchValue] = React.useState<string>("");
-  const [allDeals, setAllDeals] = React.useState<IDeal[]>([]);
-  const [allDealsTransactions, setAllDealsTransactions] = React.useState<
-    ITransactionNew[]
-  >([]);
   const [cheques, setCheques] = React.useState<IChequeNew[]>([]);
-  const [allPersonCheques, setAllPersonCheques] = React.useState<IChequeNew[]>(
-    [],
-  );
   const [selectedDealId, setSelectedDealId] = React.useState<string | null>(
     null,
   );
@@ -53,14 +45,15 @@ const ProvidersDashboard = () => {
   );
   const [vehicleVin, setVehicleVin] = React.useState<string | null>(null);
 
-  const getTransactionsByDealId = useGetTransactionsByDealId();
   const { data: getTransactions } = useGetAllTransactions();
-  const getChequesByDealId = useGetChequesByDealId();
+  const { data: allDeals = [] } = useGetAllDeals();
+  const { data: allPersonCheques = [] } = useGetAllCheques();
   const getChequesByPersonId = useGetChequesByPersonId();
   const { data: allPeople } = useGetAllPeople();
-  const getAllDeals = useGetAllDeals();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
+
+  const allDealsTransactions = getTransactions ?? [];
 
   const { optionUpdated, transactionCreated } = useSelector(
     (state: RootState) => state.transaction,
@@ -96,9 +89,10 @@ const ProvidersDashboard = () => {
   });
 
   const costumerRefreshHandler = () => {
-    queryClient.invalidateQueries({
-      queryKey: ["get-all-people"],
-    });
+    queryClient.invalidateQueries({ queryKey: ["get-all-people"] });
+    queryClient.invalidateQueries({ queryKey: ["get-all-deals"] });
+    queryClient.invalidateQueries({ queryKey: ["get-all-transaction"] });
+    queryClient.invalidateQueries({ queryKey: ["get-all-cheques"] });
   };
 
   // const customerRolesMap = React.useMemo(() => {
@@ -137,16 +131,6 @@ const ProvidersDashboard = () => {
   //   return Array.from(roles).join(" / ");
   // };
 
-  const handleAllDeals = async () => {
-    try {
-      const res = await getAllDeals.mutateAsync();
-      setAllDeals(res);
-    } catch (error) {
-      console.log("🚀 ~ handleSelectChassis ~ error:", error);
-      setAllDeals([]);
-    }
-  };
-
   const relatedDeals = allDeals.filter((deal) => {
     return deal.directCosts.options.some(
       (option) => option.provider?.personId === selectedPersonId,
@@ -173,30 +157,6 @@ const ProvidersDashboard = () => {
       console.log("🚀 ~ handleChequeDataByDealId ~ error:", error);
     }
   };
-
-  const fetchAllDealsCheques = async () => {
-    if (allDeals.length === 0) {
-      setAllPersonCheques([]);
-      return;
-    }
-
-    try {
-      const chequesPromises = allDeals.map((deal) =>
-        getChequesByDealId.mutateAsync(deal._id.toString()),
-      );
-      const chequesArrays = await Promise.all(chequesPromises);
-      const allCheques = chequesArrays.flat();
-      setAllPersonCheques(allCheques);
-    } catch (error) {
-      console.error("Error fetching all deals cheques:", error);
-      setAllPersonCheques([]);
-    }
-  };
-
-  React.useEffect(() => {
-    fetchAllDealsCheques();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allDeals]);
 
   const transactionsWithoutCheques = transactions?.filter((t) => {
     if (t.paymentMethod !== "چک") {
@@ -252,30 +212,6 @@ const ProvidersDashboard = () => {
   }, [selectedNationalId, transactionsWithoutCheques]);
 
   const diffPaymentReceived = (totalPayment || 0) - (totalReceived || 0);
-
-  React.useEffect(() => {
-    const fetchAllDealsTransactions = async () => {
-      if (allDeals.length === 0) {
-        setAllDealsTransactions([]);
-        return;
-      }
-
-      try {
-        const transactionsPromises = allDeals?.map((deal) =>
-          getTransactionsByDealId.mutateAsync(deal?._id.toString()),
-        );
-        const transactionsArrays = await Promise.all(transactionsPromises);
-        const allTransactions = transactionsArrays.flat();
-        setAllDealsTransactions(allTransactions);
-      } catch (error) {
-        console.error("Error fetching all deals transactions:", error);
-        setAllDealsTransactions([]);
-      }
-    };
-
-    fetchAllDealsTransactions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allDeals]);
 
   const customerStatusMap = React.useMemo(() => {
     const statusMap = new Map<string, { status: string; amount: number }>();
@@ -369,16 +305,15 @@ const ProvidersDashboard = () => {
   }, [selectedNationalId]);
 
   React.useEffect(() => {
-    handleAllDeals();
-  }, []);
-
-  React.useEffect(() => {
     if (optionUpdated || transactionCreated) {
-      handleAllDeals();
-      handleChequeDataByPersonlId(selectedPersonId ?? "");
-      fetchAllDealsCheques();
+      queryClient.invalidateQueries({ queryKey: ["get-all-deals"] });
+      queryClient.invalidateQueries({ queryKey: ["get-all-transaction"] });
+      queryClient.invalidateQueries({ queryKey: ["get-all-cheques"] });
+      if (selectedPersonId) {
+        handleChequeDataByPersonlId(selectedPersonId);
+      }
     }
-  }, [optionUpdated, transactionCreated]);
+  }, [optionUpdated, transactionCreated, selectedPersonId, queryClient]);
 
   return (
     <>

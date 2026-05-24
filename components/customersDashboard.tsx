@@ -866,7 +866,9 @@ import {
   useGetChequesByDealId,
   useGetChequesByPersonId,
 } from "@/apis/mutations/cheques";
-import { useGetAllDeals } from "@/apis/mutations/deals";
+import useGetAllDeals from "@/hooks/useGetAllDeals";
+import useGetAllTransactions from "@/hooks/useGetAllTransaction";
+import useGetAllCheques from "@/hooks/useGetAllCheques";
 import {
   useDeleteTransaction,
   useGetTransactionsByDealId,
@@ -924,18 +926,8 @@ const CustomersDashboard = () => {
     string | null
   >(null);
   const [searchValue, setSearchValue] = React.useState<string>("");
-  const [allDeals, setAllDeals] = React.useState<IDeal[]>([]);
-  // const [allPersonTransactions, setAllPersonTransactions] = React.useState<
-  //   ITransactionNew[]
-  // >([]);
-  const [allDealsTransactions, setAllDealsTransactions] = React.useState<
-    ITransactionNew[]
-  >([]);
   const [transactions, setTransactions] = React.useState<ITransactionNew[]>([]);
   const [cheques, setCheques] = React.useState<IChequeNew[]>([]);
-  const [allPersonCheques, setAllPersonCheques] = React.useState<IChequeNew[]>(
-    [],
-  );
   const [selectedDealId, setSelectedDealId] = React.useState<string | null>(
     null,
   );
@@ -985,7 +977,10 @@ const CustomersDashboard = () => {
   const getChequesByDealId = useGetChequesByDealId();
   const getChequesByPersonId = useGetChequesByPersonId();
   const { data: allPeople } = useGetAllPeople();
-  const getAllDeals = useGetAllDeals();
+  const { data: allDeals = [] } = useGetAllDeals();
+  const { data: allTransactionsData } = useGetAllTransactions();
+  const { data: allPersonCheques = [] } = useGetAllCheques();
+  const allDealsTransactions = allTransactionsData ?? [];
   const getTransactionsByPersonId = useGetTransactionsByPersonId();
   const queryClient = useQueryClient();
   const deleteTransaction = useDeleteTransaction();
@@ -1065,16 +1060,6 @@ const CustomersDashboard = () => {
     const sortedRoles = order.filter((r) => roles.has(r));
 
     return sortedRoles.join(" / ");
-  };
-
-  const handleAllDeals = async () => {
-    try {
-      const res = await getAllDeals.mutateAsync();
-      setAllDeals(res);
-    } catch (error) {
-      console.log("🚀 ~ handleSelectChassis ~ error:", error);
-      setAllDeals([]);
-    }
   };
 
   const selectedPersonDeals = React.useMemo(() => {
@@ -1300,42 +1285,6 @@ const CustomersDashboard = () => {
     }
   }, [dealsData, selectedDealIdFromRedux]);
 
-  React.useEffect(() => {
-    const fetchAllDealsCheques = async () => {
-      if (allDeals.length === 0) {
-        setAllPersonCheques([]);
-        return;
-      }
-
-      try {
-        const chequesPromises = allDeals.map((deal) =>
-          getChequesByDealId.mutateAsync(deal._id.toString()),
-        );
-        const chequesArrays = await Promise.all(chequesPromises);
-        const allCheques = chequesArrays.flat();
-        setAllPersonCheques(allCheques);
-      } catch (error) {
-        console.error("Error fetching all deals cheques:", error);
-        setAllPersonCheques([]);
-      }
-    };
-
-    fetchAllDealsCheques();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allDeals]);
-
-  // const transactionsWithValidCheques = transactions?.filter((t) => {
-  //   if (t.paymentMethod !== "چک") return true;
-  //   const relatedCheque = allPersonCheques.find((c) => {
-  //     return c.relatedTransactionId?.toString() === t._id?.toString();
-  //   });
-  //   // if (selectedVin) {
-  //   //   return relatedCheque?.vin === selectedVin;
-  //   // }
-  //   return relatedCheque?.status === "وصول شده";
-  // });
-
-  //////////////////////////////////////////////
   const transactionsWithValidCheques = transactions?.filter((t) => {
     if (t.paymentMethod !== "چک") return true;
 
@@ -1590,30 +1539,6 @@ const CustomersDashboard = () => {
 
   const diffPaymentReceived = (totalPayment || 0) - (totalReceived || 0);
 
-  React.useEffect(() => {
-    const fetchAllDealsTransactions = async () => {
-      if (allDeals.length === 0) {
-        setAllDealsTransactions([]);
-        return;
-      }
-
-      try {
-        const transactionsPromises = allDeals?.map((deal) =>
-          getTransactionsByDealId.mutateAsync(deal?._id.toString()),
-        );
-        const transactionsArrays = await Promise.all(transactionsPromises);
-        const allTransactions = transactionsArrays.flat();
-        setAllDealsTransactions(allTransactions);
-      } catch (error) {
-        console.error("Error fetching all deals transactions:", error);
-        setAllDealsTransactions([]);
-      }
-    };
-
-    fetchAllDealsTransactions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allDeals]);
-
   const customerStatusMap = React.useMemo(() => {
     const statusMap = new Map<string, { status: string; amount: number }>();
 
@@ -1702,60 +1627,11 @@ const CustomersDashboard = () => {
   //   return customerStatusMap.get(selectedNationalId) || null;
   // }, [selectedNationalId, customerStatusMap]);
 
-  const isFetchingRef = React.useRef(false);
-  const lastFetchedIdsRef = React.useRef<string>("");
-  const lastSelectedNationalIdRef = React.useRef<string | null>(null);
-
-  React.useEffect(() => {
-    if (selectedNationalId !== lastSelectedNationalIdRef.current) {
-      lastFetchedIdsRef.current = "";
-      lastSelectedNationalIdRef.current = selectedNationalId;
-    }
-  }, [selectedNationalId]);
-
-  React.useEffect(() => {
-    if (selectedPersonDealIds === lastFetchedIdsRef.current) {
-      return;
-    }
-
-    const fetchAllPersonTransactions = async () => {
-      if (!selectedNationalId || selectedPersonDeals?.length === 0) {
-        // setAllPersonTransactions([]);
-        lastFetchedIdsRef.current = "";
-        return;
-      }
-
-      if (isFetchingRef.current) return;
-      isFetchingRef.current = true;
-
-      try {
-        const transactionsPromises = selectedPersonDeals?.map((deal) =>
-          getTransactionsByDealId.mutateAsync(deal?._id.toString()),
-        );
-        const transactionsArrays = await Promise.all(transactionsPromises);
-        const allTransactions = transactionsArrays.flat();
-        // setAllPersonTransactions(allTransactions);
-        lastFetchedIdsRef.current = selectedPersonDealIds;
-      } catch (error) {
-        console.log("🚀 ~ fetchAllPersonTransactions ~ error:", error);
-        // setAllPersonTransactions([]);
-        lastFetchedIdsRef.current = "";
-      } finally {
-        isFetchingRef.current = false;
-      }
-    };
-
-    fetchAllPersonTransactions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedNationalId, selectedPersonDealIds]);
-
-  React.useEffect(() => {
-    handleAllDeals();
-  }, []);
-
   React.useEffect(() => {
     if (vehicleUpdated || optionUpdated || transactionCreated) {
-      handleAllDeals();
+      queryClient.invalidateQueries({ queryKey: ["get-all-deals"] });
+      queryClient.invalidateQueries({ queryKey: ["get-all-transaction"] });
+      queryClient.invalidateQueries({ queryKey: ["get-all-cheques"] });
       transactionsByPersonId(selectedPersonId ?? "");
       handleTransationDataByDealId(selectedDealId ?? "");
       handleChequeDataByDealId(selectedDealId ?? "");
@@ -1767,6 +1643,7 @@ const CustomersDashboard = () => {
     transactionCreated,
     selectedPersonId,
     selectedDealId,
+    queryClient,
   ]);
 
   return (

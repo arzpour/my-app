@@ -8,7 +8,8 @@ const TanstackProvider: React.FC<IChildren> = ({ children }) => {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,
+            staleTime: 5 * 60 * 1000,
+            refetchOnWindowFocus: false,
           },
         },
       })

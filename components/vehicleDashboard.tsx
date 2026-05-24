@@ -1,13 +1,8 @@
 "use client";
-import {
-  useDeleteCheque,
-  useGetChequesByDealId,
-} from "@/apis/mutations/cheques";
-import {
-  useGetTransactionsByDealId,
-  useDeleteTransaction,
-} from "@/apis/mutations/transaction";
-import { getAllBusinessAccounts } from "@/apis/client/businessAccounts";
+import { useQueryClient } from "@tanstack/react-query";
+import useGetAllBusinessAccount from "@/hooks/useGetAllBusinessAccount";
+import { useDeleteCheque } from "@/apis/mutations/cheques";
+import { useDeleteTransaction } from "@/apis/mutations/transaction";
 import {
   Table,
   TableBody,
@@ -23,13 +18,11 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-import useGetDealsByVin from "@/hooks/useGetDealsByVin";
 import { setTotalVehicleCost } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
 import { IChequeNew, IDeal, ITransactionNew } from "@/types/new-backend-types";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash } from "lucide-react";
 import TransactionForm from "./forms/transactionForm";
 import { formatPrice } from "@/utils/systemConstants";
@@ -91,13 +84,6 @@ const VehicleDashboard = () => {
 
   const dispatch = useDispatch();
 
-  const getDealByVin = useGetDealsByVin(chassisNo);
-  const dealsData = getDealByVin.data;
-
-  const getTransactionsByDealId = useGetTransactionsByDealId();
-  // const { data: transactions } = useGetAllTransactions();
-  // const { data: cheques } = useGetAllCheques();
-  const getChequesByDealId = useGetChequesByDealId();
   const deleteTransaction = useDeleteTransaction();
   const deleteWalletTransaction = useDeleteWalletTransaction();
   const deleteCheque = useDeleteCheque();
@@ -118,10 +104,7 @@ const VehicleDashboard = () => {
     setDeal,
   } = useVehicleFinancialStatus();
 
-  const { data: businessAccounts } = useQuery({
-    queryKey: ["get-all-business-accounts"],
-    queryFn: getAllBusinessAccounts,
-  });
+  const { data: businessAccounts } = useGetAllBusinessAccount();
 
   const accountNameMap = React.useMemo(() => {
     if (!businessAccounts) return new Map<string, string>();
@@ -324,22 +307,6 @@ const VehicleDashboard = () => {
     investmentTransactions
       ?.filter((t) => t.type === "دریافت")
       .reduce((sum, t) => sum + (t?.amount || 0), 0) || 0;
-
-  React.useEffect(() => {
-    getTransactionsByDealIdHandler();
-    getChequesByDealIdHandler();
-  }, [deal?._id, selectedDealId]);
-
-  React.useEffect(() => {
-    if (dealsData?.length === 1) {
-      setDeal(dealsData[0]);
-    } else if (dealsData?.length && dealsData?.length > 1) {
-      const selectedDeal = dealsData?.find(
-        (deal) => deal._id.toString() === selectedDealId,
-      );
-      setDeal(selectedDeal ?? undefined);
-    }
-  }, [dealsData, selectedDealId]);
 
   const handleDeleteClick = (transactionId: string) => {
     setTransactionToDelete(transactionId);

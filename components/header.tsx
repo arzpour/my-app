@@ -1,6 +1,7 @@
 "use client";
 import SearchableSelect from "@/components/ui/searchable-select";
 import useGetVehicles from "@/hooks/useGetVehicle";
+import useGetAllPeople from "@/hooks/useGetAllPeople";
 import { setChassisNo, setSelectedDealId } from "@/redux/slices/carSlice";
 import { RootState } from "@/redux/store";
 import {
@@ -22,7 +23,6 @@ import { useRouter } from "next/navigation";
 import { useLogout } from "@/apis/mutations/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useGetPersonById } from "@/apis/mutations/people";
 import { formatPrice } from "@/utils/systemConstants";
 import OptionList from "./modals/optionList";
 import {
@@ -49,12 +49,8 @@ const Header = () => {
   const customerSlug = getCustomerSlug();
 
   const { data: vehicles } = useGetVehicles();
-
+  const { data: allPeople } = useGetAllPeople();
   const vin = vehicles?.map((vehicle) => vehicle.vin);
-
-  // const getDealsByVin = useGetDealsByVin(chassisNoSaved);
-
-  const getPersonById = useGetPersonById();
 
   // const dealsData = getDealsByVin.data;
   // const allDeals = React.useMemo(() => {
@@ -106,24 +102,6 @@ const Header = () => {
   //   : [];
 
   const dispatch = useDispatch();
-
-  const getSellerInfoById = async () => {
-    try {
-      const res = await getPersonById.mutateAsync(deal?.seller?.personId ?? "");
-      setSellerInfo(res);
-    } catch (error) {
-      console.error("error:", error);
-    }
-  };
-
-  const getBuyerInfoById = async () => {
-    try {
-      const res = await getPersonById.mutateAsync(deal?.buyer?.personId ?? "");
-      setBuyerInfo(res);
-    } catch (error) {
-      console.error("error:", error);
-    }
-  };
 
   const handleSelectChassis = async (vin: string) => {
     dispatch(setChassisNo(vin));
@@ -433,11 +411,23 @@ const Header = () => {
   // }, [totalReceivedFromBuyer, buyerSettlementAmount, deals?.salePrice]);
 
   React.useEffect(() => {
-    if (deal) {
-      getSellerInfoById();
-      getBuyerInfoById();
+    if (!deal) {
+      setSellerInfo(null);
+      setBuyerInfo(null);
+      return;
     }
-  }, [deal]);
+
+    setSellerInfo(
+      allPeople?.find(
+        (person) => person._id?.toString() === deal.seller?.personId,
+      ) ?? null,
+    );
+    setBuyerInfo(
+      allPeople?.find(
+        (person) => person._id?.toString() === deal.buyer?.personId,
+      ) ?? null,
+    );
+  }, [deal, allPeople]);
 
   React.useEffect(() => {
     dispatch(

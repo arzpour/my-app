@@ -1000,10 +1000,14 @@ import useGetVehicles from "@/hooks/useGetVehicle";
 import VehicleRow from "./vehicleRow";
 import { ExportExcelVehicleReport } from "./exportExcelVehicleReport";
 import useGetTransactionByDealId from "@/hooks/useGetTransactionByDealId";
+import useGetAllTransactions from "@/hooks/useGetAllTransaction";
+import { calculateProfit } from "./exportExcelVehicleReport";
+import { ITransactionNew } from "@/types/new-backend-types";
 
 const VehicleList = () => {
   const { data: vehicles, isLoading: vehiclesLoading } = useGetVehicles();
   const { data: allDeals } = useGetAllDeals();
+  const { data: allTransactions } = useGetAllTransactions();
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
@@ -1027,6 +1031,22 @@ const VehicleList = () => {
   const getDealForVehicle = (vin: string | undefined): IDeal | undefined => {
     return (allDeals ?? []).find((el) => el.vehicleSnapshot?.vin === vin);
   };
+
+  const profitByVin = React.useMemo(() => {
+    const map = new Map<string, number | null>();
+    const transactions = (allTransactions as ITransactionNew[]) ?? [];
+
+    (vehicles ?? []).forEach((vehicle) => {
+      if (!vehicle.vin) return;
+      const { lastNetProfit } = calculateProfit({
+        allTransactions: transactions,
+        deal: getDealForVehicle(vehicle.vin),
+      });
+      map.set(vehicle.vin, lastNetProfit);
+    });
+
+    return map;
+  }, [vehicles, allDeals, allTransactions]);
 
   const handleEdit = (vehicle: IVehicle) => {
     setSelectedVehicle(vehicle);
@@ -1359,6 +1379,7 @@ const VehicleList = () => {
                       vehicle={vehicle}
                       index={index}
                       relatedDeal={relatedDeal}
+                      lastNetProfit={profitByVin.get(vehicle.vin ?? "") ?? null}
                       onEdit={handleEdit}
                       onDelete={handleDeleteClick}
                     />
